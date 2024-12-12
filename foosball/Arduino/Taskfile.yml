@@ -1,0 +1,17 @@
+version: '1'
+
+tasks:
+  build:
+    desc: "Компиляция проекта"
+    cmds:
+      - "make"
+  
+  upload:
+    desc: "Прошивка на Arduino"
+    cmds:
+      - "make upload"
+
+  clean:
+    desc: "Очистка скомпилированных файлов"
+    cmds:
+      - "make clean"
