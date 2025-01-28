@@ -26,7 +26,7 @@ fun Application.configureMigration() {
         ?.getString() ?: "changelog/changelog-master.yaml"
     val defaultSchemaName: String = config.propertyOrNull("liquibase.defaultSchemaName")
         ?.getString() ?: "public"
-    val migrationsEnable: Boolean = System.getenv("MIGRATIONS_ENABLE").equals("true")
+    val migrationsEnable: Boolean = (System.getenv("MIGRATIONS_ENABLE")?:"true").equals("true")
 
     if (migrationsEnable) {
         val connection = DriverManager.getConnection(

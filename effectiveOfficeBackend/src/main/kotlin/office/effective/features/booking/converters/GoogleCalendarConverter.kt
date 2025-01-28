@@ -13,13 +13,13 @@ import office.effective.dto.UserDTO
 import office.effective.dto.WorkspaceDTO
 import office.effective.features.calendar.repository.CalendarIdsRepository
 import office.effective.features.user.converters.UserDTOModelConverter
-import office.effective.features.user.repository.UserRepository
 import office.effective.features.workspace.converters.WorkspaceFacadeConverter
 import office.effective.model.Booking
 import office.effective.model.UserModel
 import office.effective.model.Workspace
 import office.effective.features.booking.converters.RecurrenceRuleFactory.getRecurrence
 import office.effective.features.booking.converters.RecurrenceRuleFactory.rule
+import office.effective.features.user.repository.cache.UsersCache
 import office.effective.features.workspace.repository.WorkspaceRepository
 import org.slf4j.LoggerFactory
 import java.time.Instant
@@ -30,7 +30,7 @@ import java.util.*
  */
 class GoogleCalendarConverter(
     private val calendarIdsRepository: CalendarIdsRepository,
-    private val userRepository: UserRepository,
+    private val userCache: UsersCache,
     private val workspaceConverter: WorkspaceFacadeConverter,
     private val userConverter: UserDTOModelConverter,
     private val bookingConverter: BookingFacadeConverter,
@@ -103,7 +103,7 @@ class GoogleCalendarConverter(
         }
         val recurrence = event.recurrence?.toString()?.getRecurrence()
         val model = Booking(
-            owner = userRepository.findById(userId)
+            owner = userCache.getById(userId)
                 ?: run {
                     logger.warn("[toWorkspaceBooking] can't find user with id ${userId}. Creating placeholder.")
                     UserModel(
@@ -156,7 +156,7 @@ class GoogleCalendarConverter(
      * @author Danil Kiselev, Max Mishenko, Daniil Zavyalov
      */
     private fun getUser(email: String): UserDTO {
-        val userModel: UserModel = userRepository.findByEmail(email)
+        val userModel: UserModel = userCache.getByEmail(email)
             ?: run {
                 logger.warn("[getUser] can't find a user with email ${email}. Creating placeholder.")
                 UserModel(

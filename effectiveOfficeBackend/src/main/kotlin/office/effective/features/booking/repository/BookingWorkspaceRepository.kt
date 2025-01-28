@@ -9,7 +9,7 @@ import office.effective.common.exception.InstanceNotFoundException
 import office.effective.common.exception.MissingIdException
 import office.effective.common.exception.WorkspaceUnavailableException
 import office.effective.features.booking.converters.GoogleCalendarConverter
-import office.effective.features.user.repository.UserRepository
+import office.effective.features.user.repository.cache.UsersCache
 import office.effective.features.workspace.repository.WorkspaceEntity
 import office.effective.features.workspace.repository.WorkspaceRepository
 import office.effective.model.Booking
@@ -26,7 +26,7 @@ class BookingWorkspaceRepository(
     private val calendar: Calendar,
     private val googleCalendarConverter: GoogleCalendarConverter,
     private val workspaceRepository: WorkspaceRepository,
-    private val userRepository: UserRepository
+    private val userCache: UsersCache
 ) : IBookingRepository {
     private val calendarEvents = calendar.Events()
     private val workspaceCalendar: String = BookingConstants.WORKSPACE_CALENDAR
@@ -244,7 +244,7 @@ class BookingWorkspaceRepository(
         logger.debug("[save] saving booking of workspace with id {}", booking.workspace.id)
         val workspaceId = booking.workspace.id ?: throw MissingIdException("Missing booking workspace id")
         val userId = booking.owner.id ?: throw MissingIdException("Missing booking owner id")
-        if (!userRepository.existsById(userId)) {
+        if (userCache.getById(userId)==null) {
             throw InstanceNotFoundException(
                 WorkspaceEntity::class, "User with id $workspaceId not wound"
             )

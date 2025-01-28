@@ -6,7 +6,7 @@ import office.effective.features.booking.repository.BookingCalendarRepository
 import office.effective.features.booking.repository.BookingWorkspaceRepository
 import office.effective.features.booking.repository.WorkspaceBookingEntity
 import office.effective.features.user.repository.UserEntity
-import office.effective.features.user.repository.UserRepository
+import office.effective.features.user.repository.cache.UsersCache
 import office.effective.features.workspace.repository.WorkspaceRepository
 import office.effective.model.*
 import office.effective.serviceapi.IBookingService
@@ -22,7 +22,7 @@ import java.util.UUID
 class BookingService(
     private val bookingRepository: BookingCalendarRepository,
     private val bookingWorkspaceRepository: BookingWorkspaceRepository,
-    private val userRepository: UserRepository,
+    private val usersCache: UsersCache,
     private val workspaceRepository: WorkspaceRepository,
 ) : IBookingService {
     private val logger = LoggerFactory.getLogger(BookingService::class.java)
@@ -65,7 +65,7 @@ class BookingService(
             participant.id?.let { userIds.add(it) }
         }
         booking.owner.id?.let { userIds.add(it) }
-        val integrations = userRepository.findAllIntegrationsByUserIds(userIds)
+        val integrations = usersCache.findAllIntegrationsByUserIds(userIds)
         booking.workspace.utilities = findUtilities(booking.workspace)
         booking.owner.integrations = integrations[booking.owner.id] ?: setOf()
         for (participant in booking.participants) {
@@ -96,7 +96,7 @@ class BookingService(
                     ?: throw InstanceNotFoundException(
                         UserEntity::class, "User with id $workspaceId not found", workspaceId
                     )
-                if (!userRepository.existsById(userId)) throw InstanceNotFoundException(
+                if (!usersCache.existsById(userId)) throw InstanceNotFoundException(
                     UserEntity::class, "User with id $userId not found", userId
                 )
 
@@ -118,7 +118,7 @@ class BookingService(
             }
 
             userId != null -> {
-                if (!userRepository.existsById(userId)) throw InstanceNotFoundException(
+                if (!usersCache.existsById(userId)) throw InstanceNotFoundException(
                     UserEntity::class, "User with id $userId not found", userId
                 )
 
@@ -195,7 +195,7 @@ class BookingService(
             }
         }
         val utilities = workspaceRepository.findAllUtilitiesByWorkspaceIds(workspaceIds)
-        val integrations = userRepository.findAllIntegrationsByUserIds(userIds)
+        val integrations = usersCache.findAllIntegrationsByUserIds(userIds)
         return addIntegrationsAndUtilities(bookingList, integrations, utilities)
     }
 
@@ -233,7 +233,7 @@ class BookingService(
      */
     private fun findIntegrations(user: UserModel): Set<IntegrationModel> {
         val userId = user.id ?: throw MissingIdException("User with name ${user.fullName} doesn't have an id")
-        return userRepository.findSetOfIntegrationsByUser(userId)
+        return usersCache.findSetOfIntegrationsByUser(userId)
     }
 
     /**

@@ -4,7 +4,7 @@ import office.effective.common.exception.InstanceNotFoundException
 import office.effective.common.utils.UuidValidator
 import office.effective.dto.IntegrationDTO
 import office.effective.dto.UserDTO
-import office.effective.features.user.repository.UserRepository
+import office.effective.features.user.repository.UsersRepository
 import office.effective.features.user.repository.UsersTagEntity
 import office.effective.model.IntegrationModel
 import office.effective.model.UserModel
@@ -13,7 +13,7 @@ import java.util.*
  * Converters between [UserDTO] and [UserModel]
  * */
 class UserDTOModelConverter(
-    private val repository: UserRepository,
+    private val usersRepository: UsersRepository,
     private val converter: IntegrationDTOModelConverter,
     private val uuidConverter: UuidValidator
 ) {
@@ -32,7 +32,7 @@ class UserDTOModelConverter(
         }
         val tag: UsersTagEntity? = userId?.let {
             try {
-                repository.findTagByUserOrNull(userId);
+                usersRepository.findTagByUserOrNull(userId);
             } catch (ex: InstanceNotFoundException) {
                 null
             }

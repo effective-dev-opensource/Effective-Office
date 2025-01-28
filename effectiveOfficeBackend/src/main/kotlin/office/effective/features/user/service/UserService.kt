@@ -1,6 +1,7 @@
 package office.effective.features.user.service
 
-import office.effective.features.user.repository.UserRepository
+import office.effective.features.user.repository.UsersRepository
+import office.effective.features.user.repository.cache.UsersCache
 import office.effective.model.UserModel
 import office.effective.serviceapi.IUserService
 import java.util.*
@@ -8,10 +9,10 @@ import java.util.*
 /**
  * Class that provides methods to manipulate [UserModel] objects
  * */
-class UserService(private val repository: UserRepository) : IUserService {
+class UserService(private val cache: UsersCache, private val repository: UsersRepository) : IUserService {
 
     override fun getUsersByTag(tagStr: String): Set<UserModel> {
-        return repository.findByTag(repository.findTagByName(tagStr).id)
+        return cache.findByTagId(repository.findTagByName(tagStr).id)
     }
 
     /**
@@ -21,11 +22,11 @@ class UserService(private val repository: UserRepository) : IUserService {
      * @author Daniil Zavyalov
      * */
     override fun getAll(): Set<UserModel> {
-        return repository.findAll()
+        return cache.getAll()
     }
 
     override fun getUserById(userIdStr: String): UserModel? {
-        return repository.findById(UUID.fromString(userIdStr))
+        return cache.getById(UUID.fromString(userIdStr));
     }
 
     /**
@@ -36,7 +37,9 @@ class UserService(private val repository: UserRepository) : IUserService {
      * @author Kiselev Danil
      */
     override fun updateUser(user: UserModel): UserModel {
-        return repository.updateUser(user)
+        val res = repository.updateUser(user)
+        cache.invalidateUser(res.id);
+        return res;
     }
 
     /**
@@ -47,6 +50,6 @@ class UserService(private val repository: UserRepository) : IUserService {
      * @author Kiselev Danil
      * */
     override fun getUserByEmail(emailStr: String): UserModel? {
-        return repository.findByEmail(emailStr)
+        return cache.getByEmail(emailStr)
     }
 }

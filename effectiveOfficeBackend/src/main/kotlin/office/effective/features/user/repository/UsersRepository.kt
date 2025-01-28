@@ -15,7 +15,7 @@ import java.util.*
 /**
  * Perform database queries with users
  * */
-class UserRepository(
+class UsersRepository(
     private val db: Database,
     private val converter: UserModelEntityConverter,
     private val integrationConverter: IntegrationModelEntityConverter

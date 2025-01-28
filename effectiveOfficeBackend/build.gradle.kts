@@ -66,6 +66,7 @@ dependencies {
     implementation("com.google.auth:google-auth-library-oauth2-http:1.3.0")
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.34.1")
     implementation("com.google.firebase:firebase-admin:8.2.0")
+    implementation("com.google.guava:guava:33.4.0-jre")
 
     liquibaseRuntime("org.liquibase:liquibase-core:$liquibase_version")
     liquibaseRuntime("org.postgresql:postgresql:$postgresql_driver_version")
@@ -78,4 +79,5 @@ dependencies {
     testImplementation("org.mockito:mockito-inline:$mockito_version")
     testImplementation("org.mockito.kotlin:mockito-kotlin:$mockito_version")
     testImplementation("com.h2database:h2:2.2.220")
+    implementation(kotlin("stdlib"))
 }

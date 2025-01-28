@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
  * Run every time when receiving input call. Checks Authentication (bearer) header containment
  * */
 val CustomAuthorizationPlugin = createApplicationPlugin(name = "CustomAuthorizationPlugin") {
-    val pluginOn: Boolean = System.getenv("VERIFICATION_PLUGIN_ENABLE").equals("true") //
+    val pluginOn: Boolean = ((System.getenv("VERIFICATION_PLUGIN_ENABLE"))?:"").equals("true") //
     val logger = LoggerFactory.getLogger(this::class.java)
     logger.info("Authorization plugin mode enabled?: $pluginOn")
     logger.info("Authorization plugin installed")

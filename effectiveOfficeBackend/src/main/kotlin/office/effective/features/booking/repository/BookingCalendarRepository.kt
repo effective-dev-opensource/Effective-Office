@@ -4,16 +4,15 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.util.DateTime
 import com.google.api.services.calendar.Calendar
 import com.google.api.services.calendar.model.Event
-import kotlinx.coroutines.*
 import office.effective.common.constants.BookingConstants
 import office.effective.common.exception.InstanceNotFoundException
 import office.effective.common.exception.MissingIdException
 import office.effective.common.exception.WorkspaceUnavailableException
 import office.effective.features.calendar.repository.CalendarIdsRepository
 import office.effective.features.booking.converters.GoogleCalendarConverter
-import office.effective.features.user.repository.UserRepository
 import office.effective.model.Booking
 import office.effective.features.user.repository.UserEntity
+import office.effective.features.user.repository.cache.UsersCache
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.*
@@ -27,7 +26,7 @@ import java.util.concurrent.Executors
  */
 class BookingCalendarRepository(
     private val calendarIdsRepository: CalendarIdsRepository,
-    private val userRepository: UserRepository,
+    private val userCache: UsersCache,
     private val calendar: Calendar,
     private val googleCalendarConverter: GoogleCalendarConverter
 ) : IBookingRepository {
@@ -181,7 +180,7 @@ class BookingCalendarRepository(
      * @author Danil Kiselev
      */
     private fun findUserEmailByUserId(id: UUID): String {
-        return userRepository.findById(id)?.email ?: throw InstanceNotFoundException(
+        return userCache.getById(id)?.email ?: throw InstanceNotFoundException(
             UserEntity::class, "User with id $id not found"
         )
     }
