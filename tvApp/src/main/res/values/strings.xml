@@ -29,7 +29,7 @@
     <string name="top_for_XP">"Tоп по XP"</string>
     <string name="top_for_days">"Топ по дням в ударном режиме"</string>
     <string name="duolingo_attribute_name">Профиль Duolingo</string>
-    <string name="error_show_photo">Мы пока не поддерживаем этот формат фото, позже все будет ок)</string>
+    <string name="error_show_photo">Произошла ошибка при загрузке следующего фото: %1$s</string>
     <string name="photo_title">Best Photo</string>
     <string name="autoplay_button_text">autoplay</string>
     <string name="autoplay_zero_select">Выберите минимум одну категорию</string>

@@ -8,7 +8,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.input.key.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.tv.foundation.lazy.list.TvLazyListState
 import androidx.tv.foundation.lazy.list.rememberTvLazyListState
@@ -83,6 +82,11 @@ fun BestPhotoScreen(viewModel: PhotoViewModel = hiltViewModel()) {
                     )
                 },
                 onClickPlayButton = { viewModel.sendEvent(BestPhotoEvent.OnClickPlayButton) },
+                onError = { num ->
+                    viewModel.sendEvent(
+                        BestPhotoEvent.OnClickNextItem(num)
+                    )
+                },
                 uiState = uiState,
                 playButton = playButton,
                 contentFocus = contentFocus,
@@ -98,6 +102,7 @@ private fun PhotoContent(
     onClickPreviousItemButton: (Int) -> Unit,
     onClickNextItemButton: (Int) -> Unit,
     onClickPlayButton: () -> Unit,
+    onError: (Int) -> Unit,
     uiState: BestPhotoState,
     lazyListState: TvLazyListState,
     contentFocus: FocusRequester,
@@ -124,6 +129,7 @@ private fun PhotoContent(
                         down = playButton
                     }
                     .focusable(),
+                onError = onError,
                 unsafeOkHttpClient = unsafeOkHttpClient
             )
         },

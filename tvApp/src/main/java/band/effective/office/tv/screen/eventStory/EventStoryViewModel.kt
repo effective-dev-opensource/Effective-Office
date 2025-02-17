@@ -117,8 +117,9 @@ class EventStoryViewModel @Inject constructor(
                 when (events) {
                     is Either.Success -> {
                         val teammates = events.data.filterIsInstance<EmployeeInfoEntity>()
+                        val employeeStories = teammates.processEmployeeInfo()
                         updateStateAsSuccessfulFetch(
-                            teammates.processEmployeeInfo() +
+                            employeeStories +
                                     setDuolingoDataToStoryModel(
                                         events.data.filterIsInstance<DuolingoUser>()
                                     ) +
