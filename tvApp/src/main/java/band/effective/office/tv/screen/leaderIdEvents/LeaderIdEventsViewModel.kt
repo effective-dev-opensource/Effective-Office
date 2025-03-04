@@ -32,7 +32,7 @@ class LeaderIdEventsViewModel @Inject constructor(
     val finish = GregorianCalendar()
 
     init {
-        finish.set(Calendar.MONTH, GregorianCalendar().get(Calendar.MONTH) + 1)
+        finish.add(Calendar.DAY_OF_MONTH, 14)
         load()
         timer.init(
             scope = viewModelScope, callbackToEnd = {
