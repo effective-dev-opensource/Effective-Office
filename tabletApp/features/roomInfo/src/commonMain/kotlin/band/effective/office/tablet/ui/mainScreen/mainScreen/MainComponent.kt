@@ -42,19 +42,20 @@ class MainComponent(
 
     private val eventManager: EventManager by inject()
 
+    private var currentRoomName: String = {
+        state.value.let { state ->
+            if (state.roomList.isNotEmpty()) {
+                state.roomList[state.indexSelectRoom].name
+            } else {
+                RoomInfo.defaultValue.name
+            }
+        }
+    }.toString()
+
     val slotComponent = SlotComponent(
         componentContext = componentContext,
         storeFactory = storeFactory,
-        roomName = {
-            // NOTE: for some reason state's value will be null
-            // on first startup after room selection
-            if (state.value == null) RoomInfo.defaultValue.name
-            else {
-                state.value.run {
-                    with(if (roomList.isNotEmpty()) roomList[indexSelectRoom] else RoomInfo.defaultValue) { name }
-                }
-            }
-        },
+        roomName = { currentRoomName },
         openBookingDialog = { event, room ->
             mainStore.accept(
                 intent = MainStore.Intent.OnChangeEventRequest(
@@ -73,7 +74,8 @@ class MainComponent(
     )
 
     fun openModalWindow(dist: ModalWindowsConfig) {
-        navigation.activate(dist) }
+        navigation.activate(dist)
+    }
 
     fun closeModalWindow() {
         navigation.dismiss()
@@ -136,19 +138,20 @@ class MainComponent(
                     }
                 }
             )
+
             is ModalWindowsConfig.FastEvent -> FastEventComponent(
                 componentContext = componentContext,
                 storeFactory = storeFactory,
                 minEventDuration = modalWindows.minEventDuration,
                 onEventCreation = { eventInfo, room ->
-                        val result = this.componentContext.componentCoroutineScope().async {
-                            eventManager.createBooking(
-                                eventInfo = eventInfo,
-                                roomName = room
-                            )
-                        }
+                    val result = this.componentContext.componentCoroutineScope().async {
+                        eventManager.createBooking(
+                            eventInfo = eventInfo,
+                            roomName = room
+                        )
+                    }
                     return@FastEventComponent result.await()
-                    },
+                },
                 onRemoveEvent = { event, room ->
                     val result = this.componentContext.componentCoroutineScope().async {
                         eventManager.deleteBooking(
@@ -170,8 +173,7 @@ class MainComponent(
         MainFactory(
             storeFactory = storeFactory,
             navigate = ::openModalWindow,
-            updateRoomInfo = {
-                roomInfo, date->
+            updateRoomInfo = { roomInfo, date ->
                 updateComponents(roomInfo, date)
             },
             updateDate = ::updateDate

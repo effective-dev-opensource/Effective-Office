@@ -4,7 +4,6 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import band.effective.office.network.model.Either
 import band.effective.office.tablet.domain.model.ErrorWithData
-import band.effective.office.tablet.domain.model.EventInfo
 import band.effective.office.tablet.domain.model.RoomInfo
 import band.effective.office.tablet.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.domain.useCase.RoomInfoUseCase
@@ -12,7 +11,6 @@ import band.effective.office.tablet.domain.useCase.TimerUseCase
 import band.effective.office.tablet.domain.useCase.UpdateUseCase
 import band.effective.office.tablet.ui.mainScreen.mainScreen.MainComponent
 import band.effective.office.tablet.utils.BootstrapperTimer
-import band.effective.office.tablet.utils.removeSeconds
 import com.arkivanov.mvikotlin.core.store.Reducer
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
@@ -234,14 +232,19 @@ class MainFactory(
                 is Action.OnLoad -> {
                     when (val roomInfos = action.roomInfos) {
                         is Either.Success -> {
+                            val selectedRoomName = checkSettingsUseCase()
+                            val roomIndex =
+                                roomInfos.data.indexOfFirst { it.name == selectedRoomName }
+                                    .coerceAtLeast(0)
+
                             dispatch(
                                 Message.Load(
                                     isSuccess = true,
                                     roomList = roomInfos.data,
-                                    indexSelectRoom = getState().indexRoom()
+                                    indexSelectRoom = roomIndex
                                 )
                             )
-                            reboot(getState())
+                            updateRoomInfo(roomInfos.data[roomIndex], getState().selectDate)
                         }
                         is Either.Error -> {
                             val save = roomInfos.error.saveData
