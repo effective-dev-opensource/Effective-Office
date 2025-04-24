@@ -18,7 +18,7 @@ class DuolingoRepositoryImpl @Inject constructor(
         flow {
             val users = teammates.filter {
                 it.duolingo != null
-                        && it.employment == EmploymentType.Band.value
+                        && it.employment.contains(EmploymentType.Band.value) == true
                         && it.status == "Active"
             }
             var error = false

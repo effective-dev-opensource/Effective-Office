@@ -37,14 +37,14 @@ class WorkTogetherImpl(private val notionClient: NotionClient, private val notio
             id = id,
             name = getStringFromProp("Name") ?: "Null name",
             positions = getStringFromProp("Position")?.split(" ") ?: listOf(),
-            employment = getStringFromProp("Employment") ?: "Null employment",
+            employment = getStringFromProp("Employment")?.trimStart() ?: "Null employment",
             startDate = getDateFromProp("Start Date"),
-            nextBDay = getDateFromProp("Next B-DAY"),
+            nextBDay = getDateFromProp("Birthday (any year)"),
             workEmail = getStringFromProp("Effective Email"),
             personalEmail = getStringFromProp("Personal Email") ?: "",
             duolingo = getStringFromProp("Профиль Duolingo"),
             photo = getIconUrl() ?: "",
-            status = getStringFromProp("Status") ?: "Empty status"
+            status = getStringFromProp("Status")?.trimStart() ?: "Empty status"
         )
 
     private fun Page.getStringFromProp(propName: String) =

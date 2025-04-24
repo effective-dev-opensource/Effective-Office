@@ -15,5 +15,7 @@ data class Teammate(
     val photo: String,
     val status: String,
 ) {
-    fun isActive() = employment in setOf("Band", "Intern") && status == "Active"
+    fun isActive() = (employment.contains("Band") == true
+            || employment.contains("Intern") == true)
+            && status == "Active"
 }
