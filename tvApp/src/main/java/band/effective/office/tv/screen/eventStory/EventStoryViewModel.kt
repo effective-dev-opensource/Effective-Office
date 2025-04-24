@@ -158,16 +158,16 @@ class EventStoryViewModel @Inject constructor(
         SupernovaUserInfo(
             users = supernovaUsers
                 .toUi(employees)
-                .take(countUsersToShow)
                 .sortedByDescending { it.score }
+                .take(countUsersToShow)
         ) as StoryModel
 
     private fun setDuolingoDataToStoryModel(duolingoUsers: List<DuolingoUser>) =
         run {
             val userXpSort = DuolingoUserInfo(
                 users = duolingoUsers
-                    .take(countUsersToShow)
                     .sortedByDescending { it.totalXp }
+                    .take(countUsersToShow)
                     .toUI(),
                 keySort = KeySortDuolingoUser.Xp
             ) as StoryModel
