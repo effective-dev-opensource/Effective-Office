@@ -39,8 +39,10 @@ class LeaderIdEventsViewModel @Inject constructor(
                 if (state.value.curentEvent + 1 < state.value.eventsInfo.size) {
                     mutableState.update { it.copy(curentEvent = it.curentEvent + 1) }
                 } else {
-                    timer.stopTimer()
+                    timer.resetTimer()
+                    timer.startTimer()
                     autoplayController.nextScreen(state.value.toScreenState(true))
+                    mutableState.update { it.copy(curentEvent = 0) }
                 }
             }, isPlay = state.value.isPlay
         )
