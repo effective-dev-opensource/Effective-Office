@@ -7,12 +7,12 @@
 object Plugins {
 
     object Android {
-        const val implementation = "com.android.tools.build:gradle:8.1.0"
+        const val implementation = "com.android.tools.build:gradle:8.9.1"
         const val plugin = "com.android.application"
     }
 
     object AndroidLib{
-        const val implementation = "com.android.tools.build:gradle:8.1.0"
+        const val implementation = "com.android.tools.build:gradle:8.9.1"
         const val plugin = "com.android.library"
     }
 
@@ -22,7 +22,7 @@ object Plugins {
     }
 
     object Kotlin {
-        const val implementation = "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.20"
+        const val implementation = "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.21"
         const val plugin = "org.jetbrains.kotlin.multiplatform"
     }
 
@@ -36,11 +36,17 @@ object Plugins {
     }
 
     object MultiplatformCompose {
-        const val implementation = "org.jetbrains.compose:compose-gradle-plugin:1.5.10"
+        const val implementation = "org.jetbrains.compose:org.jetbrains.compose.gradle.plugin:1.7.3"
         const val plugin = "org.jetbrains.compose"
     }
 
+    object KotlinComposeGradle {
+        const val implementation = "org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:2.1.0"
+        const val plugin = "org.jetbrains.kotlin.plugin.compose"
+    }
+
     object CocoaPods {
+        const val implementation = "org.jetbrains.kotlin.native.cocoapods:org.jetbrains.kotlin.native.cocoapods.gradle.plugin:2.0.20"
         const val plugin = "org.jetbrains.kotlin.native.cocoapods"
     }
     object Libres {
@@ -62,7 +68,7 @@ object Plugins {
     }
 
     object Moko {
-        const val implementation = "dev.icerock.moko:resources-generator:0.24.0-beta-5"
+        const val implementation = "dev.icerock.moko:resources-generator:0.24.0"
         const val plugin = "dev.icerock.mobile.multiplatform-resources"
     }
 

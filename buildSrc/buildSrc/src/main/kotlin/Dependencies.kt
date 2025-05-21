@@ -2,7 +2,7 @@ object Dependencies {
 
     object Versions {
         const val activityKtx = "1.7.2"
-        const val kotlin = "1.8.20"
+        const val kotlin = "2.1.21"
         const val agp = "7.4.2"
         const val compose = "1.4.0"
         const val androidxAppCompat = "1.6.1"
@@ -25,7 +25,7 @@ object Dependencies {
         const val essenty = "1.1.0"
         const val logback = "1.2.11"
         const val shadow = "7.1.2"
-        const val moko = "0.24.0-beta-5"
+        const val moko = "0.24.5"
         const val calendar = "1.0.5"
         const val sqlDelight = "2.0.0-rc02"
     }
