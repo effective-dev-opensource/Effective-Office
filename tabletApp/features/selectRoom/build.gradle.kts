@@ -4,6 +4,7 @@ plugins {
     id(Plugins.Kotlin.plugin)
     id(Plugins.Parcelize.plugin)
     id(Plugins.Libres.plugin)
+    id("org.jetbrains.kotlin.plugin.compose") version "2.1.0"
 }
 
 android {
@@ -16,11 +17,11 @@ android {
 }
 
 kotlin {
-    android {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
-            }
+    androidTarget()
+
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
 

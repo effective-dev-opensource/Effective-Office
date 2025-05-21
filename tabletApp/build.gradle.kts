@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id(Plugins.Android.plugin)
     id(Plugins.MultiplatformCompose.plugin)
@@ -5,6 +7,7 @@ plugins {
     id(Plugins.Parcelize.plugin)
     id(Plugins.Libres.plugin)
     id(Plugins.GoogleServices.plugin)
+    id("org.jetbrains.kotlin.plugin.compose") version "2.1.0"
 }
 
 android {
@@ -24,8 +27,8 @@ android {
         res.srcDirs("src/androidMain/resources")
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     signingConfigs {
@@ -57,11 +60,11 @@ android {
 }
 
 kotlin {
-    android {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
-            }
+    androidTarget()
+
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
 

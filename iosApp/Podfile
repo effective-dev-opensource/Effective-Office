@@ -3,6 +3,7 @@ target 'iosApp' do
   platform :ios, '13'
   pod 'composeApp', :path => '../composeApp'
   pod 'sqlite3', '~> 3.42.0'
+  pod 'GoogleSignIn'
 end
 
 post_install do |installer|

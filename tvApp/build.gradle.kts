@@ -6,8 +6,9 @@ plugins {
     id(libs.plugins.android.get().pluginId)
     kotlin("android")
     id("kotlin-kapt")
-    id("com.google.devtools.ksp").version("1.9.20-1.0.14")
+    id("com.google.devtools.ksp").version("2.1.21-2.0.1")
     alias(libs.plugins.hilt)
+    id("org.jetbrains.kotlin.plugin.compose") version "2.1.0"
 }
 
 val localProperties = Properties()
