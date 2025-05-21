@@ -1,4 +1,5 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id(Plugins.AndroidLib.plugin)
@@ -22,23 +23,23 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
 kotlin {
-    android {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
-            }
-        }
-    }
+    androidTarget()
 
     iosX64()
     iosArm64()
     iosSimulatorArm64()
+
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
+    }
 
     sourceSets {
         val commonMain by getting {
@@ -81,7 +82,7 @@ kotlin {
 
 }
 
-val apiKey: String = gradleLocalProperties(rootDir).getProperty("apiKey")
+val apiKey: String = gradleLocalProperties(rootDir, providers).getProperty("apiKey")
 buildConfig {
     buildConfigField("String", "apiKey", apiKey)
     buildConfigField(
