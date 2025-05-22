@@ -25,7 +25,7 @@ kotlin {
         version = "2.0.2"
         summary = "Compose application framework"
         homepage = "https://github.com/Radch-enko"
-        ios.deploymentTarget = "11.0"
+        ios.deploymentTarget = "12.0"
         podfile = project.file("../iosApp/Podfile")
         framework {
             baseName = "ComposeApp"
@@ -131,7 +131,7 @@ kotlin {
             iosSimulatorArm64Main.dependsOn(this)
             dependencies {
                 implementation(Dependencies.Ktor.Client.Darwin)
-                implementation(files("iosApp/GoogleAuthorization/GoogleAuthorization/Sources"))
+                //implementation(files("iosApp/GoogleAuthorization/GoogleAuthorization/Sources"))
                 implementation(Dependencies.SqlDelight.nativeDriver)
             }
         }
