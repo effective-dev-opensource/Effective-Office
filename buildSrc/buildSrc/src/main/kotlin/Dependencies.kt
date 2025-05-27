@@ -26,7 +26,7 @@ object Dependencies {
         const val logback = "1.2.11"
         const val shadow = "7.1.2"
         const val moko = "0.24.5"
-        const val calendar = "1.0.5"
+        const val calendar = "1.0.8"
         const val sqlDelight = "2.0.0-rc02"
     }
 
@@ -139,7 +139,7 @@ object Dependencies {
         const val composeBasic = "io.github.epicarchitect:calendar-compose-basis:${Versions.calendar}"
         const val composeRanges = "io.github.epicarchitect:calendar-compose-ranges:${Versions.calendar}"
         const val composePager = "io.github.epicarchitect:calendar-compose-pager:${Versions.calendar}"
-        const val composeDatePicker = "io.github.epicarchitect:calendar-compose-datepicker:${Versions.calendar}"
+        const val composeDatePicker = "io.github.epicarchitect:epic-calendar-compose:${Versions.calendar}"
     }
 
     object SqlDelight {

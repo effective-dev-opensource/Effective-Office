@@ -33,7 +33,7 @@ import epicarchitect.calendar.compose.basis.BasisDayOfMonthContent
 import epicarchitect.calendar.compose.basis.BasisDayOfWeekContent
 import epicarchitect.calendar.compose.basis.config.LocalBasisEpicCalendarConfig
 import epicarchitect.calendar.compose.basis.contains
-import epicarchitect.calendar.compose.basis.localized
+import epicarchitect.calendar.compose.basis.localizedBySystem
 import epicarchitect.calendar.compose.basis.state.LocalBasisEpicCalendarState
 import epicarchitect.calendar.compose.datepicker.EpicDatePicker
 import epicarchitect.calendar.compose.datepicker.state.EpicDatePickerState
@@ -129,7 +129,7 @@ private fun stringFormat(date: LocalDate) =
 private val CustomDayOfWeekContent: BasisDayOfWeekContent = { dayOfWeek ->
     val config = LocalBasisEpicCalendarConfig.current
     Text(
-        text = dayOfWeek.localized(),
+        text = dayOfWeek.localizedBySystem(),
         textAlign = TextAlign.Center,
         color = config.contentColor,
         fontSize = 20.sp,
