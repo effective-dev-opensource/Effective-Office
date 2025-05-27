@@ -11,7 +11,7 @@ import band.effective.office.network.dto.BookingResponseDTO
 import band.effective.office.network.dto.RecurrenceDTO
 import band.effective.office.network.dto.UserDTO
 import band.effective.office.network.dto.WorkspaceDTO
-import epicarchitect.calendar.compose.basis.localized
+import epicarchitect.calendar.compose.basis.localizedBySystem
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 
@@ -80,7 +80,7 @@ fun BookingInfo.toUiModel() = ReservedSeat(
 fun List<BookingInfo>.toUIModel() = map { it.toUiModel() }
 
 private fun convertDateTimeToUiDateString(dateOfStart: LocalDateTime) =
-    "${capitalizeFirstLetter(dateOfStart.dayOfWeek.localized())}, ${dateOfStart.dayOfMonth} ${
+    "${capitalizeFirstLetter(dateOfStart.dayOfWeek.localizedBySystem())}, ${dateOfStart.dayOfMonth} ${
         MonthLocalizations.getMonthName(dateOfStart.month, Locale("ru"))}"
 
 private fun convertDateTimeToUiTimeString(

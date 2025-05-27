@@ -6,35 +6,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ButtonElevation
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
-import band.effective.office.elevator.ExtendedThemeColors
 import band.effective.office.elevator.MainRes
 import band.effective.office.elevator.common.compose.components.GrayText
-import band.effective.office.elevator.utils.MonthLocalizations
-import band.effective.office.elevator.utils.capitalizeFirstLetter
 import band.effective.office.elevator.utils.convertDateTimeToUiDateString
 import band.effective.office.elevator.utils.convertTimeToString
 import dev.icerock.moko.resources.compose.stringResource
-import epicarchitect.calendar.compose.basis.localized
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 
 @Composable
@@ -55,7 +42,7 @@ fun TimeLine(
             .fillMaxWidth()
             .padding(start = 30.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)
     ) {
-        when(startDate == endDate) {
+        when (startDate == endDate) {
             true -> SingleTimeLine(
                 startDate = startDate,
                 startTime = startTime,
@@ -65,6 +52,7 @@ fun TimeLine(
                 onPickStartTime = onPickStartTime,
                 onPickEndTime = onPickEndTime
             )
+
             false -> NonSingleTimeLine(
                 startDate = startDate,
                 startTime = startTime,
@@ -156,7 +144,7 @@ private fun NonSingleTimeLine(
     onPickStartTime: () -> Unit,
     onPickEndTime: () -> Unit,
 ) {
-    Column (
+    Column(
         horizontalAlignment = Alignment.Start
     ) {
         Text(
