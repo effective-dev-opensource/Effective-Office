@@ -141,11 +141,11 @@ kotlin {
 android {
 
     namespace = "band.effective.office.elevator"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
 
         applicationId = "band.effective.office.mobile"
         versionCode = 1
