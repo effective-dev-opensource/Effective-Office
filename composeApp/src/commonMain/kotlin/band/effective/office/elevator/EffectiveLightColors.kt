@@ -3,7 +3,7 @@ package band.effective.office.elevator
 val EffectiveLightColors = EffectiveThemeColors(
     background = EffectiveThemeColors.Background(
         primary = neutral10,
-        secondary = neutral20,
+        secondary = neutral15,
         tertiary = neutral15.copy(alpha = 0.8f),
         additional = neutral25,
     ),
