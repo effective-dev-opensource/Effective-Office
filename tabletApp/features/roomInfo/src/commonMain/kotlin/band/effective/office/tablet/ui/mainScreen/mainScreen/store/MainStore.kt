@@ -16,6 +16,7 @@ interface MainStore : Store<MainStore.Intent, MainStore.State, MainStore.Label> 
         data class OnFastBooking(val minDuration: Int) : Intent
         data class OnUpdateSelectDate(val updateInDays: Int) : Intent
         object OnResetSelectDate : Intent
+        data class OnShowToast(val text: String) : Intent
     }
 
     sealed interface Label {
@@ -33,6 +34,7 @@ interface MainStore : Store<MainStore.Intent, MainStore.State, MainStore.Label> 
         val indexSelectRoom: Int,
         val timeToNextEvent: Int,
         val selectDate: Calendar,
+        val showToast: String
     ) {
         companion object {
             val defaultState =
@@ -46,7 +48,8 @@ interface MainStore : Store<MainStore.Intent, MainStore.State, MainStore.Label> 
                     roomList = listOf(),
                     indexSelectRoom = 0,
                     timeToNextEvent = 0,
-                    selectDate = GregorianCalendar()
+                    selectDate = GregorianCalendar(),
+                    showToast = ""
                 )
         }
     }

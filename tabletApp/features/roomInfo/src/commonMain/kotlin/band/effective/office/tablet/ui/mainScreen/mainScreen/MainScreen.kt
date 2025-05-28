@@ -43,6 +43,15 @@ fun MainScreen(component: MainComponent) {
             }
         }
     }
+    LaunchedEffect(state.showToast) {
+        state.showToast.let { text ->
+            Toast.makeText(
+                context,
+                text,
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
     when {
         state.isError -> {
             ErrorMainScreen { component.sendIntent(MainStore.Intent.RebootRequest) }

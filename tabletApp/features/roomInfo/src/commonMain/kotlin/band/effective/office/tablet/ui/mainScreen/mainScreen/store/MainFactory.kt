@@ -122,6 +122,7 @@ class MainFactory(
         data class SelectRoom(val index: Int) : Message
         data object UpdateTimer : Message
         data class UpdateDate(val newDate: Calendar) : Message
+        data class ShowToast(val text: String) : Message
     }
 
     private sealed interface Action {
@@ -165,6 +166,7 @@ class MainFactory(
                         )
                     )
                 }
+
                 is MainStore.Intent.OnUpdateSelectDate -> {
                     currentTimeTimer.restart()
                     currentRoomTimer.restart()
@@ -181,6 +183,10 @@ class MainFactory(
                 MainStore.Intent.OnResetSelectDate -> {
                     updateDate(GregorianCalendar())
                     dispatch(Message.UpdateDate(GregorianCalendar()))
+                }
+
+                is MainStore.Intent.OnShowToast -> {
+                    dispatch(Message.ShowToast(intent.text))
                 }
             }
         }
@@ -210,6 +216,7 @@ class MainFactory(
                     )
                     updateRoomInfo(roomInfos.data[roomIndex], state.selectDate)
                 }
+
                 is Either.Error -> {
                     val save = roomInfos.error.saveData
                     if (!state.isData) {
@@ -246,6 +253,7 @@ class MainFactory(
                             )
                             updateRoomInfo(roomInfos.data[roomIndex], getState().selectDate)
                         }
+
                         is Either.Error -> {
                             val save = roomInfos.error.saveData
                             dispatch(
@@ -314,6 +322,7 @@ class MainFactory(
 
                 Message.UpdateTimer -> copy(timeToNextEvent = calcTimeToNextEvent())
                 is Message.UpdateDate -> copy(selectDate = message.newDate)
+                is Message.ShowToast -> copy(showToast = message.text)
             }
 
         private fun MainStore.State.calcTimeToNextEvent() =
