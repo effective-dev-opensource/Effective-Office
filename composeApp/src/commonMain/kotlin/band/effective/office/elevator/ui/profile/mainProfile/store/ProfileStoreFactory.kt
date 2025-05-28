@@ -67,6 +67,7 @@ internal class ProfileStoreFactory(
 
         private fun fetchUserInfo() {
             scope.launch(Dispatchers.IO) {
+                getUserUseCase
                 getUserUseCase.execute().collect { user ->
                     withContext(Dispatchers.Main) {
                         when (user) {
@@ -93,5 +94,4 @@ internal class ProfileStoreFactory(
                     isLoading = false)
             }
     }
-
 }

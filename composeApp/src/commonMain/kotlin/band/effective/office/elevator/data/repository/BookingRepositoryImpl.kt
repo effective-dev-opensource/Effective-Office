@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.atTime
 
@@ -42,9 +41,8 @@ class BookingRepositoryImpl(
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
-            val currentUserResponse = profileRepository.getUser()
-
-            currentUserResponse.collect { response ->
+            profileRepository.refresh()
+            profileRepository.user.collect { response ->
                 user = when (response) {
                     is Either.Error -> null
                     is Either.Success -> response.data
@@ -99,18 +97,15 @@ class BookingRepositoryImpl(
                 book(user = user!!, creatingBookModel = creatingBookModel)
             )
         } else {
-            profileRepository.getUser().collect { userResponse ->
-                when (userResponse) {
-                    is Either.Success -> {
-                        user = userResponse.data
-                        emit(
-                            book(user = user!!, creatingBookModel = creatingBookModel)
-                        )
-                    }
-
-                    is Either.Error -> {
-                        emit(Either.Error(userResponse.error.error))
-                    }
+            when (val userResponse = profileRepository.refresh()) {
+                is Either.Success -> {
+                    user = userResponse.data
+                    emit(
+                        book(user = user!!, creatingBookModel = creatingBookModel)
+                    )
+                }
+                is Either.Error -> {
+                    emit(Either.Error(userResponse.error.error))
                 }
             }
         }
@@ -144,27 +139,24 @@ class BookingRepositoryImpl(
         bookingsFilter: BookingsFilter
     ): Flow<Either<ErrorWithData<List<BookingInfo>>, List<BookingInfo>>> = flow {
         if (ownerId == null) {
-            val currentUserResponse = profileRepository.getUser() // TODO (Artem Gruzdev) use saved user params
-            currentUserResponse.collect { userResponse ->
-                when (userResponse) {
-                    is Either.Success -> {
-                        val bookings = api
-                            .getBookingsByUser(
-                                userId = userResponse.data.id,
-                                beginDate = localDateTimeToUnix(beginDate)!!,
-                                endDate = localDateTimeToUnix(endDate)!!
-                            )
-                            .convert(
-                                filter = bookingsFilter,
-                                oldValue = lastResponse.value
-                            )
-                        lastResponse.update { bookings }
-                        emit(bookings)
-                    }
+            when (val userResponse = profileRepository.refresh()) {
+                is Either.Success -> {
+                    val bookings = api
+                        .getBookingsByUser(
+                            userId = userResponse.data.id,
+                            beginDate = localDateTimeToUnix(beginDate)!!,
+                            endDate = localDateTimeToUnix(endDate)!!
+                        )
+                        .convert(
+                            filter = bookingsFilter,
+                            oldValue = lastResponse.value
+                        )
+                    lastResponse.update { bookings }
+                    emit(bookings)
+                }
 
-                    is Either.Error -> {
-                        // TODO add implemetation for error
-                    }
+                is Either.Error -> {
+                    // TODO add implemetation for error
                 }
             }
         } else {
@@ -217,29 +209,6 @@ class BookingRepositoryImpl(
                 }
             }
         }
-
-    private fun Either<ErrorResponse, List<BookingResponseDTO>>.convertWithDateFilter(
-        filter: BookingsFilter,
-        oldValue: Either<ErrorWithData<List<BookingInfo>>, List<BookingInfo>>,
-        dateFilter: LocalDate
-    ) =
-        map(errorMapper = { error ->
-            ErrorWithData(
-                error = error, saveData = when (oldValue) {
-                    is Either.Error -> oldValue.error.saveData
-                    is Either.Success -> oldValue.data
-                }
-            )
-        },
-            successMapper = { bookingDTOS ->
-                placeFilter(filter = filter, list = bookingDTOS)
-                    .toDomainZone()
-                    .filter {
-                        println("repository: ${it.dateOfStart.date} == ${dateFilter}")
-                        it.dateOfStart.date == dateFilter
-                    }
-            }
-        )
 
     private fun getRecurrenceModal(
         bookingPeriod: BookingPeriod?,

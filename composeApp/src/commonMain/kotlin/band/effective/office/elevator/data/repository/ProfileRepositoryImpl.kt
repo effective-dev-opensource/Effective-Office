@@ -17,6 +17,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
@@ -34,9 +37,9 @@ class ProfileRepositoryImpl(
     private val updateUserFlow: MutableSharedFlow<Unit> =
         MutableSharedFlow(replay = 1, extraBufferCapacity = 1)
 
-    init {
-        updateUserFlow.tryEmit(Unit)
-    }
+    private val mutableUser: MutableStateFlow<Either<ErrorWithData<User>, User>?> =
+        MutableStateFlow(null)
+    override val user: Flow<Either<ErrorWithData<User>, User>> = mutableUser.filterNotNull()
 
     private val lastResponse: MutableStateFlow<Either<ErrorWithData<User>, User>> =
         MutableStateFlow(
@@ -46,6 +49,10 @@ class ProfileRepositoryImpl(
                 )
             )
         )
+
+    init {
+        updateUserFlow.tryEmit(Unit)
+    }
 
     override suspend fun updateUser(user: User): Flow<Either<ErrorWithData<User>, User>> = flow {
         println("User for auth: ${user}")
@@ -67,31 +74,24 @@ class ProfileRepositoryImpl(
         emit(dateForEmit)
     }
 
-    //TODO(Artem Gruzdev) maybe can easier this method
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override suspend fun getUser(): Flow<Either<ErrorWithData<User>, User>> = updateUserFlow.flatMapLatest {
-        flow {
-            val cashedUser = bdSource.getCurrentUserInfo()
-            if (cashedUser == null) {
-                emit(
-                    Either.Error(
-                        ErrorWithData(
-                            error = ErrorResponse(code = 404, description = "you don`t login"),
-                            saveData = null
-                        )
-                    )
+    override suspend fun refresh(): Either<ErrorWithData<User>, User> {
+        val cashedUser = bdSource.getCurrentUserInfo()
+        return if (cashedUser == null) {
+            Either.Error(
+                ErrorWithData(
+                    error = ErrorResponse(code = 404, description = "you don`t login"),
+                    saveData = null
                 )
-            } else {
-                val requestResult = api.getUser(cashedUser.id).convert(lastResponse.value)
-                val userFromApi = requestResult.getData()
-                if (userFromApi != null && userFromApi != cashedUser) {
-                    bdSource.update(userFromApi)
-                    lastResponse.update { requestResult }
-                }
-
-                val dateForEmit = bdSource.getCurrentUserInfo().packageEither(requestResult)
-                emit(dateForEmit)
+            )
+        } else {
+            val requestResult = api.getUser(cashedUser.id).convert(lastResponse.value)
+            val userFromApi = requestResult.getData()
+            if (userFromApi != null && userFromApi != cashedUser) {
+                bdSource.update(userFromApi)
+                lastResponse.update { requestResult }
             }
+
+            bdSource.getCurrentUserInfo().packageEither(requestResult)
         }
     }
 

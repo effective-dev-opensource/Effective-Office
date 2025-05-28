@@ -98,8 +98,7 @@ internal class EmployeeStoreFactory(private val storeFactory: StoreFactory) : Ko
                                 when (response) {
                                     is Either.Success ->{
                                         var getUser : User = User.defaultUser
-                                       userUseCase.execute().collect{
-                                               user ->
+                                       userUseCase.execute().collect { user ->
                                            withContext(Dispatchers.Main) {
                                                when (user) {
                                                    is Either.Success -> {
