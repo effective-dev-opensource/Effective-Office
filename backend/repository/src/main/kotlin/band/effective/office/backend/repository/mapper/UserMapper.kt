@@ -2,10 +2,12 @@ package band.effective.office.backend.repository.mapper
 
 import band.effective.office.backend.domain.model.User
 import band.effective.office.backend.repository.entity.UserEntity
+import org.springframework.stereotype.Component
 
 /**
  * Mapper for converting between User domain model and UserEntity JPA entity.
  */
+@Component
 object UserMapper {
     /**
      * Converts a UserEntity to a User domain model.

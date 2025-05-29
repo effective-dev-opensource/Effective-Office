@@ -8,6 +8,9 @@ springBoot = "3.5.0"
 springDependencyManagement = "1.1.7"
 springDoc = "2.8.8"
 
+# Security
+jwt = "0.11.5"
+
 # Database
 postgresql = "42.7.6"
 flyway = "11.8.2"
@@ -22,6 +25,8 @@ testcontainers = "1.20.2"
 jackson = "2.19.0"
 slf4j = "2.0.17"
 logback = "1.5.18"
+jakarta = "3.0.2"
+jakarta-servlet = "6.0.0"
 
 [libraries]
 # Kotlin
@@ -59,6 +64,14 @@ jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+jakarta = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta"}
+jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet"}
+
+# Security
+spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
+jwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jwt" }
+jwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jwt" }
+jwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jwt" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -75,3 +88,4 @@ spring-data = ["spring-boot-starter-data-jpa"]
 jackson = ["jackson-module-kotlin", "jackson-datatype-jsr310"]
 testing = ["spring-boot-starter-test", "junit-jupiter", "mockk"]
 testcontainers = ["testcontainers-junit-jupiter", "testcontainers-postgresql"]
+jwt = ["jwt-api", "jwt-impl", "jwt-jackson"]

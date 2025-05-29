@@ -204,10 +204,10 @@ When using Docker Compose, you can also configure the PostgreSQL container:
 
 ```bash
 # Running locally with custom database credentials
-SPRING_DATASOURCE_URL=jdbc:postgresql://custom-host:5432/mydb \
-SPRING_DATASOURCE_USERNAME=myuser \
-SPRING_DATASOURCE_PASSWORD=mypassword \
-./gradlew :app:bootRun --args='--spring.profiles.active=local'
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/effectiveoffice \
+SPRING_DATASOURCE_USERNAME=postgres \
+SPRING_DATASOURCE_PASSWORD=postgres \
+./gradlew :backend:app:bootRun --args='--spring.profiles.active=local'
 
 # Running with Docker Compose with custom database credentials
 SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/mydb \

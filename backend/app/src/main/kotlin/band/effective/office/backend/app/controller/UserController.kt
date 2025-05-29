@@ -7,6 +7,7 @@ import band.effective.office.backend.app.service.UserService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -30,7 +31,8 @@ class UserController(private val userService: UserService) {
     @GetMapping
     @Operation(
         summary = "Get all users",
-        description = "Returns a list of all users in the system"
+        description = "Returns a list of all users in the system",
+        security = [SecurityRequirement(name = "bearerAuth")]
     )
     @ApiResponse(responseCode = "200", description = "Successfully retrieved users")
     fun getAllUsers(): ResponseEntity<List<UserDto>> {
@@ -47,7 +49,8 @@ class UserController(private val userService: UserService) {
     @GetMapping("/{id}")
     @Operation(
         summary = "Get user by ID",
-        description = "Returns a user by their ID"
+        description = "Returns a user by their ID",
+        security = [SecurityRequirement(name = "bearerAuth")]
     )
     @ApiResponse(responseCode = "200", description = "Successfully retrieved user")
     @ApiResponse(responseCode = "404", description = "User not found")
@@ -57,7 +60,7 @@ class UserController(private val userService: UserService) {
     ): ResponseEntity<UserDto> {
         val user = userService.getUserById(id)
             ?: return ResponseEntity.notFound().build()
-        
+
         return ResponseEntity.ok(UserDto.fromDomain(user))
     }
 
@@ -70,7 +73,8 @@ class UserController(private val userService: UserService) {
     @GetMapping("/by-username/{username}")
     @Operation(
         summary = "Get user by username",
-        description = "Returns a user by their username"
+        description = "Returns a user by their username",
+        security = [SecurityRequirement(name = "bearerAuth")]
     )
     @ApiResponse(responseCode = "200", description = "Successfully retrieved user")
     @ApiResponse(responseCode = "404", description = "User not found")
@@ -80,7 +84,7 @@ class UserController(private val userService: UserService) {
     ): ResponseEntity<UserDto> {
         val user = userService.getUserByUsername(username)
             ?: return ResponseEntity.notFound().build()
-        
+
         return ResponseEntity.ok(UserDto.fromDomain(user))
     }
 
@@ -94,7 +98,8 @@ class UserController(private val userService: UserService) {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
         summary = "Create a new user",
-        description = "Creates a new user with the provided data"
+        description = "Creates a new user with the provided data",
+        security = [SecurityRequirement(name = "bearerAuth")]
     )
     @ApiResponse(responseCode = "201", description = "User successfully created")
     @ApiResponse(responseCode = "400", description = "Invalid input data")
@@ -116,7 +121,8 @@ class UserController(private val userService: UserService) {
     @PutMapping("/{id}")
     @Operation(
         summary = "Update an existing user",
-        description = "Updates an existing user with the provided data"
+        description = "Updates an existing user with the provided data",
+        security = [SecurityRequirement(name = "bearerAuth")]
     )
     @ApiResponse(responseCode = "200", description = "User successfully updated")
     @ApiResponse(responseCode = "404", description = "User not found")
@@ -124,16 +130,16 @@ class UserController(private val userService: UserService) {
     fun updateUser(
         @Parameter(description = "User ID", required = true)
         @PathVariable id: UUID,
-        
+
         @Parameter(description = "Updated user data", required = true)
         @Valid @RequestBody updateUserDto: UpdateUserDto
     ): ResponseEntity<UserDto> {
         val existingUser = userService.getUserById(id)
             ?: return ResponseEntity.notFound().build()
-        
+
         val updatedUser = userService.updateUser(id, updateUserDto.toDomain(id, existingUser))
             ?: return ResponseEntity.notFound().build()
-        
+
         return ResponseEntity.ok(UserDto.fromDomain(updatedUser))
     }
 
@@ -146,7 +152,8 @@ class UserController(private val userService: UserService) {
     @DeleteMapping("/{id}")
     @Operation(
         summary = "Delete a user",
-        description = "Deletes a user by their ID"
+        description = "Deletes a user by their ID",
+        security = [SecurityRequirement(name = "bearerAuth")]
     )
     @ApiResponse(responseCode = "204", description = "User successfully deleted")
     @ApiResponse(responseCode = "404", description = "User not found")
@@ -155,7 +162,7 @@ class UserController(private val userService: UserService) {
         @PathVariable id: UUID
     ): ResponseEntity<Void> {
         val deleted = userService.deleteUser(id)
-        
+
         return if (deleted) {
             ResponseEntity.noContent().build()
         } else {
@@ -171,7 +178,8 @@ class UserController(private val userService: UserService) {
     @GetMapping("/active")
     @Operation(
         summary = "Get all active users",
-        description = "Returns a list of all active users in the system"
+        description = "Returns a list of all active users in the system",
+        security = [SecurityRequirement(name = "bearerAuth")]
     )
     @ApiResponse(responseCode = "200", description = "Successfully retrieved active users")
     fun getActiveUsers(): ResponseEntity<List<UserDto>> {

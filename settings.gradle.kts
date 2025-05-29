@@ -4,5 +4,7 @@ include(":backend")
 include(
     "backend:app",
     "backend:domain",
-    "backend:repository"
+    "backend:repository",
+    "backend:feature",
+    "backend:feature:authorization"
 )
