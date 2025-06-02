@@ -1,6 +1,6 @@
-package band.effective.office.backend.domain.service
+package band.effective.office.backend.core.domain.service
 
-import band.effective.office.backend.domain.model.User
+import band.effective.office.backend.core.domain.model.User
 import java.util.UUID
 
 /**

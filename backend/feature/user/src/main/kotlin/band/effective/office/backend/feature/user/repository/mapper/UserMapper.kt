@@ -1,6 +1,6 @@
 package band.effective.office.backend.feature.user.repository.mapper
 
-import band.effective.office.backend.domain.model.User
+import band.effective.office.backend.core.domain.model.User
 import band.effective.office.backend.feature.user.repository.entity.UserEntity
 import org.springframework.stereotype.Component
 

@@ -1,13 +1,12 @@
 package band.effective.office.backend.feature.authorization.service.impl
 
-import band.effective.office.backend.domain.model.User
+import band.effective.office.backend.core.domain.model.User
 import band.effective.office.backend.feature.authorization.exception.InvalidTokenException
 import band.effective.office.backend.feature.authorization.exception.TokenExpiredException
 import band.effective.office.backend.feature.authorization.model.AccessToken
 import band.effective.office.backend.feature.authorization.model.RefreshToken
 import band.effective.office.backend.feature.authorization.model.TokenPair
 import band.effective.office.backend.feature.authorization.service.TokenProvider
-import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.MalformedJwtException
@@ -17,10 +16,8 @@ import io.jsonwebtoken.security.Keys
 import io.jsonwebtoken.security.SignatureException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.security.Key
 import java.time.Instant
 import java.util.Date
-import java.util.UUID
 import javax.crypto.SecretKey
 
 /**

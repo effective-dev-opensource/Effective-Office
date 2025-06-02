@@ -1,4 +1,4 @@
-package band.effective.office.backend.repository.config
+package band.effective.office.backend.core.repository.config
 
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.context.annotation.Configuration
@@ -10,6 +10,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
  */
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = ["band.effective.office.backend.repository"])
+@EnableJpaRepositories(basePackages = ["band.effective.office.backend.core.repository"])
 @EntityScan(basePackages = ["band.effective.office.backend.repository.entity"])
 class DatabaseConfig

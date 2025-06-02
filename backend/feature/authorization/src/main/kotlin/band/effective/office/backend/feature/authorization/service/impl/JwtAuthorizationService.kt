@@ -1,7 +1,7 @@
 package band.effective.office.backend.feature.authorization.service.impl
 
-import band.effective.office.backend.domain.model.User
-import band.effective.office.backend.domain.service.UserDomainService
+import band.effective.office.backend.core.domain.model.User
+import band.effective.office.backend.core.domain.service.UserDomainService
 import band.effective.office.backend.feature.authorization.exception.AuthenticationException
 import band.effective.office.backend.feature.authorization.model.TokenPair
 import band.effective.office.backend.feature.authorization.service.AuthorizationService

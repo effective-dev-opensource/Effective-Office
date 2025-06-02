@@ -1,8 +1,6 @@
 package band.effective.office.backend.feature.authorization.service
 
-import band.effective.office.backend.domain.model.User
-import band.effective.office.backend.feature.authorization.model.AccessToken
-import band.effective.office.backend.feature.authorization.model.RefreshToken
+import band.effective.office.backend.core.domain.model.User
 import band.effective.office.backend.feature.authorization.model.TokenPair
 
 /**
