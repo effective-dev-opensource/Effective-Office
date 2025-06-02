@@ -1,6 +1,7 @@
 package band.effective.office.backend.feature.authorization.controller
 
 import band.effective.office.backend.feature.authorization.dto.ErrorResponse
+import band.effective.office.backend.feature.authorization.dto.GoogleAuthRequest
 import band.effective.office.backend.feature.authorization.dto.LoginRequest
 import band.effective.office.backend.feature.authorization.dto.RefreshTokenRequest
 import band.effective.office.backend.feature.authorization.dto.TokenResponse
@@ -48,6 +49,34 @@ class AuthController(
         @Valid @RequestBody request: LoginRequest
     ): ResponseEntity<TokenResponse> {
         val tokenPair = authorizationService.authenticate(request.username, request.password)
+
+        return ResponseEntity.ok(
+            TokenResponse(
+                accessToken = tokenPair.accessToken.token,
+                refreshToken = tokenPair.refreshToken.token,
+                expiresIn = Duration.between(
+                    tokenPair.accessToken.expiresAt,
+                    java.time.Instant.now()
+                ).seconds.absoluteValue
+            )
+        )
+    }
+
+    /**
+     * Google authentication endpoint.
+     */
+    @PostMapping("/google")
+    @Operation(
+        summary = "Google authentication",
+        description = "Authenticates a user with a Google ID token and returns access and refresh tokens"
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully authenticated")
+    @ApiResponse(responseCode = "401", description = "Authentication failed")
+    fun googleAuth(
+        @Parameter(description = "Google ID token", required = true)
+        @Valid @RequestBody request: GoogleAuthRequest
+    ): ResponseEntity<TokenResponse> {
+        val tokenPair = authorizationService.authenticateWithGoogle(request.idToken)
 
         return ResponseEntity.ok(
             TokenResponse(

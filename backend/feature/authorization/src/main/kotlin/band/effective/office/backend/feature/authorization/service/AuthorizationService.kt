@@ -17,7 +17,16 @@ interface AuthorizationService {
      * @throws AuthenticationException If the credentials are invalid.
      */
     fun authenticate(username: String, password: String): TokenPair
-    
+
+    /**
+     * Authenticates a user with a Google ID token and returns a token pair.
+     *
+     * @param idToken The Google ID token.
+     * @return A token pair containing access and refresh tokens.
+     * @throws AuthenticationException If the ID token is invalid.
+     */
+    fun authenticateWithGoogle(idToken: String): TokenPair
+
     /**
      * Refreshes an access token using a refresh token.
      *
@@ -26,7 +35,7 @@ interface AuthorizationService {
      * @throws AuthenticationException If the refresh token is invalid or expired.
      */
     fun refreshToken(refreshToken: String): TokenPair
-    
+
     /**
      * Validates an access token and returns the associated user.
      *
@@ -35,7 +44,7 @@ interface AuthorizationService {
      * @throws AuthenticationException If the token is invalid or expired.
      */
     fun validateToken(accessToken: String): User
-    
+
     /**
      * Invalidates all tokens for a user (logout).
      *

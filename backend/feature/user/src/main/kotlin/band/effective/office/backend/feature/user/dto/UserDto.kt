@@ -1,4 +1,4 @@
-package band.effective.office.backend.app.dto
+package band.effective.office.backend.feature.user.dto
 
 import band.effective.office.backend.domain.model.User
 import jakarta.validation.constraints.Email

@@ -1,4 +1,4 @@
-package band.effective.office.backend.repository.entity
+package band.effective.office.backend.feature.user.repository.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

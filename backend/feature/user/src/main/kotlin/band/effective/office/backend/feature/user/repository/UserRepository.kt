@@ -1,6 +1,6 @@
-package band.effective.office.backend.repository
+package band.effective.office.backend.feature.user.repository
 
-import band.effective.office.backend.repository.entity.UserEntity
+import band.effective.office.backend.feature.user.repository.entity.UserEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.UUID

@@ -6,5 +6,6 @@ include(
     "backend:domain",
     "backend:repository",
     "backend:feature",
-    "backend:feature:authorization"
+    "backend:feature:authorization",
+    "backend:feature:user"
 )

@@ -1,8 +1,9 @@
-package band.effective.office.backend.app.service
+package band.effective.office.backend.feature.user.service
 
 import band.effective.office.backend.domain.model.User
-import band.effective.office.backend.repository.UserRepository
-import band.effective.office.backend.repository.mapper.UserMapper
+import band.effective.office.backend.domain.service.UserDomainService
+import band.effective.office.backend.feature.user.repository.UserRepository
+import band.effective.office.backend.feature.user.repository.mapper.UserMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -12,7 +13,7 @@ import java.util.UUID
  * Service for managing users.
  */
 @Service
-class UserService(private val userRepository: UserRepository) {
+class UserService(private val userRepository: UserRepository) : UserDomainService {
 
     /**
      * Get all users.
@@ -53,10 +54,34 @@ class UserService(private val userRepository: UserRepository) {
      * @return the created user
      */
     @Transactional
-    fun createUser(user: User): User {
+    override fun createUser(user: User): User {
         val entity = UserMapper.toEntity(user)
         val savedEntity = userRepository.save(entity)
         return UserMapper.toDomain(savedEntity)
+    }
+
+    /**
+     * Find a user by username.
+     * Implementation of UserDomainService.findByUsername.
+     *
+     * @param username The username to search for.
+     * @return The user if found, null otherwise.
+     */
+    @Transactional(readOnly = true)
+    override fun findByUsername(username: String): User? {
+        return getUserByUsername(username)
+    }
+
+    /**
+     * Find a user by ID.
+     * Implementation of UserDomainService.findById.
+     *
+     * @param id The user ID to search for.
+     * @return The user if found, null otherwise.
+     */
+    @Transactional(readOnly = true)
+    override fun findById(id: UUID): User? {
+        return getUserById(id)
     }
 
     /**
@@ -71,12 +96,12 @@ class UserService(private val userRepository: UserRepository) {
         if (!userRepository.existsById(id)) {
             return null
         }
-        
+
         val updatedUser = user.copy(
             id = id,
             updatedAt = LocalDateTime.now()
         )
-        
+
         val entity = UserMapper.toEntity(updatedUser)
         val savedEntity = userRepository.save(entity)
         return UserMapper.toDomain(savedEntity)
@@ -93,7 +118,7 @@ class UserService(private val userRepository: UserRepository) {
         if (!userRepository.existsById(id)) {
             return false
         }
-        
+
         userRepository.deleteById(id)
         return true
     }

@@ -8,9 +8,17 @@ import jakarta.validation.constraints.NotBlank
 data class LoginRequest(
     @field:NotBlank(message = "Username is required")
     val username: String,
-    
+
     @field:NotBlank(message = "Password is required")
     val password: String
+)
+
+/**
+ * DTO for Google authentication request.
+ */
+data class GoogleAuthRequest(
+    @field:NotBlank(message = "ID token is required")
+    val idToken: String
 )
 
 /**

@@ -1,9 +1,9 @@
-package band.effective.office.backend.app.controller
+package band.effective.office.backend.feature.user.controller
 
-import band.effective.office.backend.app.dto.CreateUserDto
-import band.effective.office.backend.app.dto.UpdateUserDto
-import band.effective.office.backend.app.dto.UserDto
-import band.effective.office.backend.app.service.UserService
+import band.effective.office.backend.feature.user.dto.CreateUserDto
+import band.effective.office.backend.feature.user.dto.UpdateUserDto
+import band.effective.office.backend.feature.user.dto.UserDto
+import band.effective.office.backend.feature.user.service.UserService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse

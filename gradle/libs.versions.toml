@@ -28,6 +28,10 @@ logback = "1.5.18"
 jakarta = "3.0.2"
 jakarta-servlet = "6.0.0"
 
+# Google
+googleApiClient = "1.33.0"
+googleOAuthClient = "1.33.3"
+
 [libraries]
 # Kotlin
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
@@ -73,6 +77,11 @@ jwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jwt" }
 jwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jwt" }
 jwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jwt" }
 
+# Google API Client
+google-api-client = { module = "com.google.api-client:google-api-client", version.ref = "googleApiClient" }
+google-http-client-gson = { module = "com.google.http-client:google-http-client-gson", version.ref = "googleApiClient" }
+google-oauth-client = { module = "com.google.oauth-client:google-oauth-client", version.ref = "googleOAuthClient" }
+
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
@@ -89,3 +98,4 @@ jackson = ["jackson-module-kotlin", "jackson-datatype-jsr310"]
 testing = ["spring-boot-starter-test", "junit-jupiter", "mockk"]
 testcontainers = ["testcontainers-junit-jupiter", "testcontainers-postgresql"]
 jwt = ["jwt-api", "jwt-impl", "jwt-jackson"]
+google-api = ["google-api-client", "google-http-client-gson", "google-oauth-client"]

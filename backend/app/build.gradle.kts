@@ -6,6 +6,7 @@ dependencies {
     implementation(project(":backend:domain"))
     implementation(project(":backend:repository"))
     implementation(project(":backend:feature:authorization"))
+    implementation(project(":backend:feature:user"))
 
     implementation("org.springframework:spring-tx")
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
