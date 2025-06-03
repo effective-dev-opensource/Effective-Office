@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":backend:domain"))
+    implementation(project(":backend:core:domain"))
     implementation(project(":backend:feature:user"))
 
     // Spring Security

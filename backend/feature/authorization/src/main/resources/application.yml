@@ -6,7 +6,7 @@ jwt:
 
 # Google OAuth Configuration
 google:
-  client-id: ${GOOGLE_CLIENT_ID:887306887525-pf8653olafacqlh7k1bfccsujkde3762.apps.googleusercontent.com}
+  client-id: ${GOOGLE_CLIENT_ID}
 
 # Spring Security Configuration
 spring:

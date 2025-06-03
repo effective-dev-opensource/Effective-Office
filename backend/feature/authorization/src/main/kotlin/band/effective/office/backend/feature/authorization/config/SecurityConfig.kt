@@ -33,6 +33,7 @@ class SecurityConfig(
                     .requestMatchers("/auth/**").permitAll()
                     .requestMatchers("/swagger-ui.html/**", "/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
                     .requestMatchers("/actuator/**").permitAll()
+                    .requestMatchers("/bookings/**").permitAll() // TODO for testing
                     .anyRequest().authenticated()
             }
             .addFilterBefore(

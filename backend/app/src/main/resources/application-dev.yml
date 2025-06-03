@@ -33,3 +33,6 @@ logging:
   level:
     org.hibernate.SQL: DEBUG
     band.effective.office.backend: DEBUG
+
+calendar:
+  provider: dummy
