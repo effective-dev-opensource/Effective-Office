@@ -72,3 +72,6 @@ coverage/
 *.db
 *.sqlite
 *.sqlite3
+
+/backend/app/src/main/resources/.env.properties
+/backend/app/src/main/resources/google-credentials.json

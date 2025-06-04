@@ -11,4 +11,5 @@ include(
     "backend:feature:booking:core",
     "backend:feature:booking:calendar:google",
     "backend:feature:booking:calendar:dummy",
+    "backend:feature:workspace:core",
 )

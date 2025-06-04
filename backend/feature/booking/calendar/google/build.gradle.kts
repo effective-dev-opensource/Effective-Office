@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation(project(":backend:core:domain"))
     implementation(project(":backend:feature:booking:core"))
+    implementation(project(":backend:feature:workspace:core"))
 
     implementation(libs.jakarta)
     implementation(libs.jakarta.servlet.api)
