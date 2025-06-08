@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlin.math.absoluteValue
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -33,7 +34,7 @@ internal fun WheelPicker(
     rowCount: Int,
     size: DpSize = DpSize(128.dp, 128.dp),
     selectorProperties: SelectorProperties = WheelPickerDefaults.selectorProperties(),
-    onScrollFinished: (snappedIndex: Int) -> Int? = { null },
+    onSnappedIndexChanged: (snappedIndex: Int) -> Unit = {},
     content: @Composable LazyItemScope.(index: Int) -> Unit,
 ) {
     val lazyListState = rememberLazyListState(startIndex)
@@ -42,14 +43,12 @@ internal fun WheelPicker(
 
     val flingBehavior = rememberSnapFlingBehavior(snapperLayoutInfo)
 
-    val isScrollInProgress = lazyListState.isScrollInProgress
-
-    LaunchedEffect(isScrollInProgress, count) {
-        if(!isScrollInProgress) {
-            onScrollFinished(calculateSnappedItemIndex(lazyListState, rowCount))?.let {
-                lazyListState.scrollToItem(it)
+    LaunchedEffect(lazyListState) {
+        snapshotFlow { calculateSnappedItemIndex(lazyListState, rowCount) }
+            .distinctUntilChanged()
+            .collect { index ->
+                onSnappedIndexChanged(index)
             }
-        }
     }
 
     Box(
