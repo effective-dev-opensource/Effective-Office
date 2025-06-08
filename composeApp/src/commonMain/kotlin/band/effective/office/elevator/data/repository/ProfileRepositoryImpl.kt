@@ -13,8 +13,11 @@ import band.effective.office.network.api.Api
 import band.effective.office.network.dto.UserDTO
 import band.effective.office.network.model.Either
 import band.effective.office.network.model.ErrorResponse
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import org.koin.core.component.KoinComponent
@@ -27,6 +30,13 @@ class ProfileRepositoryImpl(
 
     private val idPhoneNumber = OfficeElevatorConfig.integrationPhoneId
     private val idTelegram = OfficeElevatorConfig.integrationTelegramId
+
+    private val updateUserFlow: MutableSharedFlow<Unit> =
+    MutableSharedFlow(replay = 1, extraBufferCapacity = 1)
+
+    init {
+        updateUserFlow.tryEmit(Unit)
+    }
 
     private val lastResponse: MutableStateFlow<Either<ErrorWithData<User>, User>> =
         MutableStateFlow(
@@ -49,29 +59,34 @@ class ProfileRepositoryImpl(
             lastResponse.update { requestResult }
         }
         val dateForEmit = bdSource.getCurrentUserInfo().packageEither(requestResult)
+        updateUserFlow.tryEmit(Unit)
         emit(dateForEmit)
     }
 
     //TODO(Artem Gruzdev) maybe can easier this method
-    override suspend fun getUser(): Flow<Either<ErrorWithData<User>, User>> = flow {
-
-        val cashedUser = bdSource.getCurrentUserInfo()
-        if (cashedUser == null) {
-            emit(Either.Error(ErrorWithData(
-                error = ErrorResponse(code = 404, description = "you don`t login"),
-                saveData = null
-            )))
-        }
-        else {
-            val requestResult = api.getUser(cashedUser.id).convert(lastResponse.value)
-            val userFromApi = requestResult.getData()
-            if (userFromApi != null && userFromApi != cashedUser) {
-                bdSource.update(userFromApi)
-                lastResponse.update { requestResult }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override suspend fun getUser(): Flow<Either<ErrorWithData<User>, User>> = updateUserFlow.flatMapLatest {
+        flow {
+            val cashedUser = bdSource.getCurrentUserInfo()
+            if (cashedUser == null) {
+                emit(
+                    Either.Error(
+                        ErrorWithData(
+                            error = ErrorResponse(code = 404, description = "you don`t login"),
+                                    saveData = null
+                        )
+                    )
+                )
+            } else {
+                val requestResult = api.getUser(cashedUser.id).convert(lastResponse.value)
+                val userFromApi = requestResult.getData()
+                if (userFromApi != null && userFromApi != cashedUser) {
+                    bdSource.update(userFromApi)
+                    lastResponse.update { requestResult }
+                }
+                val dateForEmit = bdSource.getCurrentUserInfo().packageEither(requestResult)
+                        emit(dateForEmit)
             }
-
-            val dateForEmit = bdSource.getCurrentUserInfo().packageEither(requestResult)
-            emit(dateForEmit)
         }
     }
 
