@@ -7,6 +7,7 @@ interface ProfileStore : Store<ProfileStore.Intent, ProfileStore.State, ProfileS
 
     sealed interface Intent {
         object SignOutClicked : Intent
+        object FetchUserInfo : Intent
     }
 
     data class State(

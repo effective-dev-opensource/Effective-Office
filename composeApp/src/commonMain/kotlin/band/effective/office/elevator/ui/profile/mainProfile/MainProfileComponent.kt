@@ -3,6 +3,7 @@ package band.effective.office.elevator.ui.profile.mainProfile
 import band.effective.office.elevator.ui.profile.mainProfile.store.ProfileStore
 import band.effective.office.elevator.ui.profile.mainProfile.store.ProfileStoreFactory
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.essenty.lifecycle.doOnStart
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.labels
@@ -22,6 +23,12 @@ class MainProfileComponent(
         ProfileStoreFactory(
             storeFactory = storeFactory,
         ).create()
+    }
+
+    init {
+        lifecycle.doOnStart {
+            profileStore.accept(ProfileStore.Intent.FetchUserInfo)
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

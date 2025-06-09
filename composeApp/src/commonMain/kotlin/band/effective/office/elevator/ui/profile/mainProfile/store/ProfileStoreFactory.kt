@@ -26,44 +26,30 @@ internal class ProfileStoreFactory(
     private val authorizationUseCase: AuthorizationUseCase by inject()
     private val getUserUseCase: GetUserUseCase by inject()
 
-    @OptIn(ExperimentalMviKotlinApi::class)
     fun create(): ProfileStore =
         object : ProfileStore, Store<Intent, State, Label> by storeFactory.create(
             name = "ProfileStore",
             initialState = State(user = User.defaultUser),
-            bootstrapper = coroutineBootstrapper {
-                dispatch(Action.FetchUserInfo)
-            },
             executorFactory = ::ExecutorImpl,
             reducer = ReducerImpl
         ) {}
-
-    private sealed interface Action {
-        object FetchUserInfo : Action
-    }
 
     private sealed interface Msg {
         data class ProfileData(val user: User) : Msg
     }
 
     private inner class ExecutorImpl :
-        CoroutineExecutor<Intent, Action, State, Msg, Label>() {
+        CoroutineExecutor<Intent, Nothing, State, Msg, Label>() {
         override fun executeIntent(intent: Intent, getState: () -> State) {
             when (intent) {
                 is Intent.SignOutClicked -> doSignOut()
+                Intent.FetchUserInfo -> fetchUserInfo()
             }
         }
-
 
         private fun doSignOut() {
             authorizationUseCase.logout()
             publish(Label.OnSignedOut)
-        }
-
-        override fun executeAction(action: Action, getState: () -> State) {
-            when (action) {
-                Action.FetchUserInfo -> fetchUserInfo()
-            }
         }
 
         private fun fetchUserInfo() {
