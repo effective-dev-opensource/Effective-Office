@@ -45,7 +45,6 @@ fun WheelTimePicker(
         selectorProperties,
         onSnappedTime = { snappedTime, _ ->
             onSnappedTime(snappedTime.snappedLocalTime)
-            snappedTime.snappedIndex
         }
     )
 }
