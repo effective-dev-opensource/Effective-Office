@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     id(Plugins.Android.plugin)
     id(Plugins.MultiplatformCompose.plugin)
@@ -5,8 +7,10 @@ plugins {
     id(Plugins.Parcelize.plugin)
     id(Plugins.Libres.plugin)
     id(Plugins.GoogleServices.plugin)
+    id(Plugins.Sentry.plugin) version Plugins.Sentry.version
 }
 
+val sentryTabletDsnUrl: String = gradleLocalProperties(rootDir).getProperty("sentryTabletDsnUrl")
 android {
     namespace = "band.effective.office.tablet"
     compileSdk = 34
@@ -18,6 +22,7 @@ android {
 
         minSdk = 26
         targetSdk = 34
+        buildConfigField("String", "sentryTabletDsnUrl", sentryTabletDsnUrl)
     }
     sourceSets["main"].apply {
         manifest.srcFile("src/androidMain/AndroidManifest.xml")

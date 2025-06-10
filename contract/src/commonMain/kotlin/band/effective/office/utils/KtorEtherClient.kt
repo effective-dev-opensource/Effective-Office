@@ -6,7 +6,7 @@ import band.effective.office.network.model.ErrorResponse
 import effective_office.contract.BuildConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
@@ -21,12 +21,15 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
-import io.ktor.http.HttpHeaders
+import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.delay
+import io.sentry.kotlin.multiplatform.Sentry
 
 object KtorEtherClient {
     /**token for authorization*/
     var token = mutableListOf<String>(BuildConfig.apiKey)
+
     /**default http client with KtorEtherClient*/
     val httpClient by lazy {
 
@@ -43,6 +46,18 @@ object KtorEtherClient {
                         println("refreshed token = ${token.last()}")
                         BearerTokens(token.last(), "")
                     }
+                }
+            }
+            install(HttpRequestRetry) {
+                maxRetries = 3
+                retryIf { _, response ->
+                    !response.status.isSuccess()
+                }
+                retryOnExceptionIf { _, _ ->
+                    true
+                }
+                delayMillis { retry ->
+                    retry * 3000L
                 }
             }
             install(HttpTimeout) {
@@ -73,13 +88,43 @@ object KtorEtherClient {
         block: HttpRequestBuilder.() -> Unit = {},
     ): Either<ErrorResponse, T> =
         try {
-            when (method) {
-                RestMethod.Get -> client.get(urlString, block)
-                RestMethod.Post -> client.post(urlString, block)
-                RestMethod.Delete -> client.delete(urlString, block)
-                RestMethod.Put -> client.put(urlString, block)
-            }.body()
+            retryApiCall {
+                when (method) {
+                    RestMethod.Get -> client.get(urlString, block)
+                    RestMethod.Post -> client.post(urlString, block)
+                    RestMethod.Delete -> client.delete(urlString, block)
+                    RestMethod.Put -> client.put(urlString, block)
+                }.body()
+            }
         } catch (e: Exception) {
+            Sentry.captureMessage(e.message ?: "Error in securityResponse")
             Either.Error(ErrorResponse(code = 0, description = e.message ?: "Error"))
         }
+
+    /**
+     * Retry mechanism for unhandled exceptions
+     * @param retries number of retries
+     * @param delayMs delay between retries in milliseconds
+     * @param block suspended operation to retry
+     */
+    suspend inline fun <T> retryApiCall(
+        retries: Int = 3,
+        delayMs: Long = 3000L,
+        block: () -> T
+    ): T {
+        var currentDelay = delayMs
+        repeat(retries - 1) {
+            try {
+                return block()
+            } catch (e: Exception) {
+                delay(delayMs)
+                currentDelay += delayMs
+            }
+        }
+        return try {
+            block()
+        } catch (e: Exception) {
+            throw Exception("Failed in retry: ${e.message}")
+        }
+    }
 }

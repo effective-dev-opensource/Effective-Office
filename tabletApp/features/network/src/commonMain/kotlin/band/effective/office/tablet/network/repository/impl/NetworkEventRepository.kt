@@ -35,14 +35,15 @@ class NetworkEventRepository(
         }
         val finish = GregorianCalendar().apply { add(Calendar.DAY_OF_MONTH, 14) }
         val response = api.getWorkspacesWithBookings(
-                tag = "meeting",
-                freeFrom = start.timeInMillis,
-                freeUntil =  finish.timeInMillis
-            )
+            tag = "meeting",
+            freeFrom = start.timeInMillis,
+            freeUntil = finish.timeInMillis
+        )
         return when (response) {
             is Either.Error -> {
                 Either.Error(ErrorWithData(response.error, null))
             }
+
             is Either.Success -> {
                 Either.Success(response.data.map { it.toRoom() })
             }
@@ -67,7 +68,10 @@ class NetworkEventRepository(
         room: RoomInfo,
     ): Either<ErrorResponse, String> =
         api.deleteBooking(eventInfo.id)
-            .map({ it }, { "ok" })
+            .map(
+                errorMapper = { it },
+                successMapper = { "ok" },
+            )
 
     override suspend fun getBooking(
         eventInfo: EventInfo
@@ -84,13 +88,14 @@ class NetworkEventRepository(
             .map { Either.Success(emptyList()) }
 
     /**Map domain model to DTO*/
-    private fun EventInfo.toBookingRequestDTO(room: RoomInfo): BookingRequestDTO = BookingRequestDTO(
-        beginBooking = this.startTime.timeInMillis,
-        endBooking = this.finishTime.timeInMillis,
-        ownerEmail = this.organizer.email,
-        participantEmails = listOfNotNull(this.organizer.email),
-        workspaceId = room.id
-    )
+    private fun EventInfo.toBookingRequestDTO(room: RoomInfo): BookingRequestDTO =
+        BookingRequestDTO(
+            beginBooking = this.startTime.timeInMillis,
+            endBooking = this.finishTime.timeInMillis,
+            ownerEmail = this.organizer.email,
+            participantEmails = listOfNotNull(this.organizer.email),
+            workspaceId = room.id
+        )
 
     /**Map DTO to domain model*/
     private fun BookingResponseDTO.toEventInfo(): EventInfo = EventInfo(
