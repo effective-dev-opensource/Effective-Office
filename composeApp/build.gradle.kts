@@ -1,4 +1,5 @@
 import dev.icerock.gradle.MRVisibility.Public
+import org.jetbrains.kotlin.config.JvmTarget
 
 plugins {
     id(Plugins.Kotlin.plugin)
@@ -10,16 +11,11 @@ plugins {
     id(Plugins.Serialization.plugin)
     id(Plugins.Parcelize.plugin)
     id(Plugins.Moko.plugin)
+    id("org.jetbrains.kotlin.plugin.compose") version "2.1.0"
 }
 
 kotlin {
-    android {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
-            }
-        }
-    }
+    androidTarget()
 
     val iosArm64 = iosArm64()
     val iosX64 = iosX64()
@@ -29,7 +25,7 @@ kotlin {
         version = "2.0.2"
         summary = "Compose application framework"
         homepage = "https://github.com/Radch-enko"
-        ios.deploymentTarget = "11.0"
+        ios.deploymentTarget = "12.0"
         podfile = project.file("../iosApp/Podfile")
         framework {
             baseName = "ComposeApp"
@@ -38,7 +34,7 @@ kotlin {
             export(Dependencies.Decompose.decompose)
             export(Dependencies.Essenty.essenty)
         }
-        pod("GoogleSignIn") {}
+        pod("GoogleSignIn")
     }
     targets.getByName<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>("iosX64").compilations.forEach {
         it.kotlinOptions.freeCompilerArgs += arrayOf("-linker-options", "-lsqlite3")
@@ -46,6 +42,14 @@ kotlin {
     targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget> {
         binaries.all {
             freeCompilerArgs += "-Xlazy-ir-for-caches=disable"
+        }
+    }
+    kotlin.targets.removeAll {
+        it.name == "iosArm32"
+    }
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
     sourceSets {
@@ -92,13 +96,6 @@ kotlin {
             }
         }
 
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-                implementation("dev.icerock.moko:resources-test:0.24.0-beta-5")
-            }
-        }
-
         val androidMain by getting {
             dependsOn(commonMain)
             dependencies {
@@ -133,19 +130,9 @@ kotlin {
             iosSimulatorArm64Main.dependsOn(this)
             dependencies {
                 implementation(Dependencies.Ktor.Client.Darwin)
-                implementation(files("iosApp/GoogleAuthorization/GoogleAuthorization/Sources"))
+                //implementation(files("iosApp/GoogleAuthorization/GoogleAuthorization/Sources"))
                 implementation(Dependencies.SqlDelight.nativeDriver)
             }
-        }
-
-        val iosX64Test by getting
-        val iosArm64Test by getting
-        val iosSimulatorArm64Test by getting
-        val iosTest by creating {
-            dependsOn(commonTest)
-            iosX64Test.dependsOn(this)
-            iosArm64Test.dependsOn(this)
-            iosSimulatorArm64Test.dependsOn(this)
         }
     }
 }
@@ -153,11 +140,11 @@ kotlin {
 android {
 
     namespace = "band.effective.office.elevator"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
 
         applicationId = "band.effective.office.mobile"
         versionCode = 1
@@ -168,15 +155,15 @@ android {
         res.srcDirs("build/generated/moko/androidMain/src")
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     packagingOptions {
         resources.excludes.add("META-INF/**")
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.0"
+        kotlinCompilerExtensionVersion = "1.5.15"
     }
 
     signingConfigs {

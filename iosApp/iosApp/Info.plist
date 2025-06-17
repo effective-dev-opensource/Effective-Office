@@ -15,6 +15,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.googleusercontent.apps.503255112190-a3n1441gcnl7alamoqkvk9omtv5q97tl</string>
+				<string>com.googleusercontent.apps.887306887525-e0rvceet062785b4gjq9kh0kh5qfm4if</string>
 			</array>
 		</dict>
 	</array>
@@ -33,6 +34,8 @@
 	<dict/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 </dict>

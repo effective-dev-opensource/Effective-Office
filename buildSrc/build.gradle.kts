@@ -17,10 +17,10 @@ dependencies {
     implementation(Plugins.Android.implementation)
     implementation(Plugins.Shadow.implementation) // NOTE(radchenko): generates jar for server builds
     implementation(Plugins.Kotlin.implementation)
-    implementation(Plugins.Kotlin.implementation)
     implementation(Plugins.Ktor.implementation)
     implementation(Plugins.ApacheCompress.implementation) // NOTE(radchenko): needs for `ktor` to `docker`
     implementation(Plugins.MultiplatformCompose.implementation)
+    implementation(Plugins.CocoaPods.implementation)
     implementation(Plugins.BuildConfig.implementation)
     implementation(Plugins.Serialization.implementation)
     implementation(Plugins.Moko.implementation)
