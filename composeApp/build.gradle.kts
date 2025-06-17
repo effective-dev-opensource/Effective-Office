@@ -188,7 +188,7 @@ android {
         create("release") {
             keyAlias = System.getenv()["OFFICE_ELEVATOR_RELEASE_ALIAS"]
             keyPassword = System.getenv()["OFFICE_ELEVATOR_RELEASE_KEY_PASSWORD"]
-            storeFile = file("${rootDir}/keystore/effective-office.jks")
+            storeFile = file("${rootDir}/keystore/main.keystore")
             storePassword = System.getenv()["OFFICE_ELEVATOR_RELEASE_STORE_PASSWORD"]
         }
     }
@@ -229,12 +229,12 @@ buildConfig {
     )
     buildConfigField(
         "String",
-        "webClient", "\"503255112190-4flfuu86ihrpismfl70nuae6u6n5gk4p.apps.googleusercontent.com\""
+        "webClient", "\"887306887525-3ommiuta4ppvc7rf169auml9sad4j7ug.apps.googleusercontent.com\""
     )
     buildConfigField(
         "String",
         "iosClient",
-        "\"503255112190-a3n1441gcnl7alamoqkvk9omtv5q97tl.apps.googleusercontent.com\""
+        "\"887306887525-e0rvceet062785b4gjq9kh0kh5qfm4if.apps.googleusercontent.com\""
     )
 }
 
