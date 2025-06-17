@@ -10,6 +10,8 @@ import platform.UIKit.UIAlertController
 import platform.Foundation.NSURL
 import platform.UIKit.UIApplication
 import platform.Foundation.*
+import platform.darwin.dispatch_async
+import platform.darwin.dispatch_get_main_queue
 
 actual fun showToast(message: String) {
     Napier.e { message }
@@ -28,11 +30,24 @@ actual fun makeCall(phoneNumber: String) {
 }
 
 actual fun pickTelegram(telegramNick: String) {
-    val urlString = "https://telegram.me/$telegramNick"
-    val url = NSURL.URLWithString(urlString)
-    url?.let{
-        val application = UIApplication.sharedApplication
-        application.openURL(url)
+    if (telegramNick.isBlank()) return
+
+    val appUrl = NSURL(string = "tg://resolve?domain=$telegramNick")
+    val webUrl = NSURL(string = "https://t.me/$telegramNick")
+    val application = UIApplication.sharedApplication
+
+    val urlToOpen = if (application.canOpenURL(appUrl)) {
+        appUrl
+    } else {
+        webUrl
+    }
+
+    dispatch_async(dispatch_get_main_queue()) {
+        application.openURL(
+            url = urlToOpen,
+            options = emptyMap<Any?, Any?>(),
+            completionHandler = null
+        )
     }
 }
 

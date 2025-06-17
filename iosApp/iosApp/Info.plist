@@ -18,6 +18,11 @@
 			</array>
 		</dict>
 	</array>
+	<key>LSApplicationQueriesSchemes</key>
+    <array>
+            <string>tg</string>
+            <string>telegram</string>
+    </array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>New item</key>
