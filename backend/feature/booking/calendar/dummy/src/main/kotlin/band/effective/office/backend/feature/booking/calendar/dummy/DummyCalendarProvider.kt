@@ -101,4 +101,17 @@ class DummyCalendarProvider : CalendarProvider {
         // For simplicity in this dummy implementation, we'll just search all bookings
         return bookings.values.find { it.id == id }
     }
+
+    override fun findAllEvents(from: Instant, to: Instant?): List<Booking> {
+        logger.debug(
+            "Finding all dummy events from {} to {}",
+            from,
+            to ?: "infinity"
+        )
+
+        return bookings.values.filter { booking ->
+            booking.beginBooking >= from &&
+            (to == null || booking.endBooking <= to)
+        }
+    }
 }

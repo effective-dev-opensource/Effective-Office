@@ -108,4 +108,15 @@ class BookingService(
         return calendarProvider.findEventsByUser(userId, from, to)
             .filter { it.workspace.id == workspaceId }
     }
+
+    /**
+     * Gets all bookings within a time range.
+     *
+     * @param from The start of the time range
+     * @param to The end of the time range (optional)
+     * @return A list of all bookings within the time range
+     */
+    fun getAllBookings(from: Instant, to: Instant? = null): List<Booking> {
+        return calendarProvider.findAllEvents(from, to)
+    }
 }

@@ -33,7 +33,7 @@ class GoogleCalendarConfig(
     @Value("\${calendar.credentials.file}")
     private lateinit var credentialsFile: String
 
-    private val JSON_FACTORY: JsonFactory = GsonFactory.getDefaultInstance()
+    private val jsonFactory: JsonFactory = GsonFactory.getDefaultInstance()
 
     /**
      * Creates a Google Calendar API client with OAuth2 credentials.
@@ -58,7 +58,7 @@ class GoogleCalendarConfig(
 
     @Bean
     fun calendar(httpTransport: HttpTransport, googleCredentials: GoogleCredentials): Calendar {
-        return Calendar.Builder(httpTransport, JSON_FACTORY, HttpCredentialsAdapter(googleCredentials))
+        return Calendar.Builder(httpTransport, jsonFactory, HttpCredentialsAdapter(googleCredentials))
             .setApplicationName(applicationName)
             .build()
     }

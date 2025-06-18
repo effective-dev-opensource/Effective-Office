@@ -11,8 +11,8 @@ import java.util.*
  * @property count The quantity of this utility
  */
 data class Utility(
-    var id: UUID,
-    var name: String,
-    var iconUrl: String,
-    var count: Int
+    val id: UUID,
+    val name: String,
+    val iconUrl: String,
+    val count: Int
 )

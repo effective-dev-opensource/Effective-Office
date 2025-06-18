@@ -9,6 +9,6 @@ import java.util.*
  * @property name The name of the workspace zone
  */
 data class WorkspaceZone(
-    var id: UUID,
-    var name: String
+    val id: UUID,
+    val name: String
 )

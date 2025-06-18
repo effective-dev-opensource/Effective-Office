@@ -83,6 +83,6 @@ class WorkspaceCalendarIdProvider(
             }
         }
 
-        return calendarIds.values.toList() + defaultCalendar
+        return calendarIds.values.toList()
     }
 }

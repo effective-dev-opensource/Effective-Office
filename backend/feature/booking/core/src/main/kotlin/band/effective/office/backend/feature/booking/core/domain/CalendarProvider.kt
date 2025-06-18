@@ -59,4 +59,13 @@ interface CalendarProvider {
      * @return The booking if found, null otherwise
      */
     fun findEventById(id: UUID): Booking?
+
+    /**
+     * Finds all events across all workspaces within a time range.
+     *
+     * @param from The start of the time range
+     * @param to The end of the time range (optional)
+     * @return A list of all bookings within the time range
+     */
+    fun findAllEvents(from: Instant, to: Instant? = null): List<Booking>
 }

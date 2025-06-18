@@ -177,6 +177,31 @@ class GoogleCalendarProvider(
         return null
     }
 
+    override fun findAllEvents(from: Instant, to: Instant?): List<Booking> {
+        logger.debug(
+            "Finding all events from {} to {}",
+            from,
+            to ?: "infinity"
+        )
+
+        // Get all calendar IDs
+        val calendarIds = calendarIdProvider.getAllCalendarIds()
+
+        // Query all calendars for events within the time range
+        val bookings = mutableListOf<Booking>()
+        for (calendarId in calendarIds) {
+            try {
+                val events = listEvents(calendarId, from, to)
+                logger.debug("findAllEvents -> events: {}", events.map { it.id.toString() })
+                bookings.addAll(events.map { convertToBooking(it, calendarId) })
+            } catch (e: Exception) {
+                logger.warn("Failed to search for events in calendar {}: {}", calendarId, e.message)
+            }
+        }
+
+        return bookings
+    }
+
     // Helper methods
 
     private fun getCalendarIdByWorkspace(workspaceId: UUID): String {

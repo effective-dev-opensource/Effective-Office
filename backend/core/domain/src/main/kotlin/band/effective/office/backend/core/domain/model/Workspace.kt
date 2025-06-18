@@ -12,9 +12,9 @@ import java.util.UUID
  * @property zone The zone where the workspace is located
  */
 data class Workspace(
-    var id: UUID,
-    var name: String,
-    var tag: String,
-    var utilities: List<Utility>,
-    var zone: WorkspaceZone? = null
+    val id: UUID,
+    val name: String,
+    val tag: String,
+    val utilities: List<Utility>,
+    val zone: WorkspaceZone? = null
 )

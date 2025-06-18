@@ -118,9 +118,7 @@ class BookingController(
             }
 
             else -> {
-                // TODO In a real implementation, we would need a method to get all bookings
-                // For now, we'll return an empty list
-                emptyList()
+                bookingService.getAllBookings(from, to)
             }
         }
 
