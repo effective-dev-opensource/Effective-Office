@@ -3,8 +3,6 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":backend:core:domain"))
-
     implementation(libs.jakarta)
     implementation(libs.jakarta.servlet.api)
 

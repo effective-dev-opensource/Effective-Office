@@ -3,7 +3,6 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":backend:core:domain"))
     implementation(project(":backend:feature:booking:core"))
 
     implementation(libs.jakarta)

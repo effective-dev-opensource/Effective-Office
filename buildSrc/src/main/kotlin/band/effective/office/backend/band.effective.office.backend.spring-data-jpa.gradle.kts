@@ -4,6 +4,9 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":backend:core:domain"))
+    implementation(project(":backend:core:data"))
+
     api("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")

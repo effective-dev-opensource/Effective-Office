@@ -5,6 +5,7 @@ include(
     "backend:app",
     "backend:core:domain",
     "backend:core:repository",
+    "backend:core:data",
     "backend:feature",
     "backend:feature:authorization",
     "backend:feature:user",
@@ -12,5 +13,4 @@ include(
     "backend:feature:booking:calendar:google",
     "backend:feature:booking:calendar:dummy",
     "backend:feature:workspace",
-//    "backend:feature:workspace:core",
 )
