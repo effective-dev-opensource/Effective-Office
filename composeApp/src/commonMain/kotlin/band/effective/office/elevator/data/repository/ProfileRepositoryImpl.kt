@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import org.koin.core.component.KoinComponent
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 
 
 class ProfileRepositoryImpl(
@@ -52,26 +54,26 @@ class ProfileRepositoryImpl(
         emit(dateForEmit)
     }
 
-    //TODO(Artem Gruzdev) maybe can easier this method
-    override suspend fun getUser(): Flow<Either<ErrorWithData<User>, User>> = flow {
+    override suspend fun getUser(): Flow<Either<ErrorWithData<User>, User>> {
 
-        val cashedUser = bdSource.getCurrentUserInfo()
-        if (cashedUser == null) {
-            emit(Either.Error(ErrorWithData(
-                error = ErrorResponse(code = 404, description = "you don`t login"),
-                saveData = null
-            )))
-        }
-        else {
-            val requestResult = api.getUser(cashedUser.id).convert(lastResponse.value)
-            val userFromApi = requestResult.getData()
-            if (userFromApi != null && userFromApi != cashedUser) {
-                bdSource.update(userFromApi)
-                lastResponse.update { requestResult }
+        refreshUser()
+
+        return bdSource.getUserFlow().map { user ->
+            if (user != null) {
+                Either.Success(user)
+            } else {
+                Either.Error(ErrorWithData(ErrorResponse(404, "User not found"), null))
             }
+        }
+    }
 
-            val dateForEmit = bdSource.getCurrentUserInfo().packageEither(requestResult)
-            emit(dateForEmit)
+    private suspend fun refreshUser() {
+        val cachedUser = bdSource.getUserFlow().firstOrNull()
+        if (cachedUser != null) {
+            val requestResult = api.getUser(cachedUser.id)
+            if (requestResult is Either.Success) {
+                bdSource.update(requestResult.data.toUser())
+            }
         }
     }
 
