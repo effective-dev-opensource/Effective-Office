@@ -5,6 +5,7 @@ import band.effective.office.backend.core.domain.service.UserDomainService
 import band.effective.office.backend.core.domain.service.WorkspaceDomainService
 import band.effective.office.backend.feature.booking.core.domain.CalendarProvider
 import band.effective.office.backend.feature.booking.core.domain.model.Booking
+import band.effective.office.backend.feature.booking.core.exception.OverlappingBookingException
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.util.DateTime
 import com.google.api.services.calendar.Calendar
@@ -40,8 +41,13 @@ class GoogleCalendarProvider(
 
         val workspaceCalendarId = getCalendarIdByWorkspace(booking.workspace.id)
         logger.debug("workspaceCalendarId: {}", workspaceCalendarId)
+
+        // Check if the booking overlaps with existing events before creating it
+        if (!checkBookingAvailability(booking, workspaceCalendarId)) {
+            throw OverlappingBookingException("Workspace ${booking.workspace.id} is unavailable at the requested time")
+        }
+
         val event = convertToGoogleEvent(booking)
-        logger.debug("event: {}", event)
 
         val savedEvent = runCatching {
             calendar.events().insert(workspaceCalendarId, event).execute()
@@ -50,15 +56,6 @@ class GoogleCalendarProvider(
             return@onFailure
         }.getOrNull()
         if (savedEvent == null) throw NullPointerException("Failed to create event")
-
-        logger.debug("savedEvent: {}", savedEvent)
-
-        // Check if the event was successfully created in the workspace calendar
-        if (!checkEventAvailability(savedEvent, workspaceCalendarId)) {
-            // If not available, delete the event and throw an exception
-            deleteEventByBooking(booking)
-            throw WorkspaceUnavailableException("Workspace ${booking.workspace.name} is unavailable at the requested time")
-        }
 
         // Return the booking with the external event ID set
         return booking.copy(externalEventId = savedEvent.id)
@@ -71,25 +68,23 @@ class GoogleCalendarProvider(
             ?: throw IllegalArgumentException("Booking must have an external event ID to be updated")
 
         val workspaceCalendarId = getCalendarIdByWorkspace(booking.workspace.id)
-        val event = convertToGoogleEvent(booking)
 
-        val updatedEvent = calendar.events().update(defaultCalendar, externalEventId, event).execute()
-
-        // Check if the updated event is available in the workspace calendar
-        if (!checkEventAvailability(updatedEvent, workspaceCalendarId)) {
-            // If not available, revert to the previous version and throw an exception
-            val previousEvent = calendar.events().get(defaultCalendar, externalEventId).execute()
-            calendar.events().update(defaultCalendar, externalEventId, previousEvent).execute()
-            throw WorkspaceUnavailableException("Workspace ${booking.workspace.name} is unavailable at the requested time")
+        // Check if the booking overlaps with existing events before updating it
+        if (!checkBookingAvailability(booking, workspaceCalendarId)) {
+            throw OverlappingBookingException("Workspace ${booking.workspace.id} is unavailable at the requested time")
         }
 
-        return booking
+        val event = convertToGoogleEvent(booking)
+        val updatedEvent = calendar.events().update(defaultCalendar, externalEventId, event).execute()
+
+        return booking.copy(externalEventId = updatedEvent.id)
     }
 
     override fun deleteEvent(booking: Booking) {
         logger.debug("Deleting event for booking: {}", booking)
 
-        booking.externalEventId ?: throw IllegalArgumentException("Booking must have an external event ID to be deleted")
+        booking.externalEventId
+            ?: throw IllegalArgumentException("Booking must have an external event ID to be deleted")
 
         deleteEventByBooking(booking)
     }
@@ -99,6 +94,7 @@ class GoogleCalendarProvider(
             val calendarId = getCalendarIdByWorkspace(booking.workspace.id)
             calendar.events().delete(calendarId, booking.externalEventId).execute()
         } catch (e: GoogleJsonResponseException) {
+            logger.error("Failed to delete event: {}", e.details)
             if (e.statusCode != 404 && e.statusCode != 410) {
                 throw e
             }
@@ -315,43 +311,28 @@ class GoogleCalendarProvider(
     }
 
     /**
-     * Checks if a workspace is available at the requested time.
+     * Checks if a booking overlaps with existing events in the workspace calendar.
      *
-     * @param event The event to check availability for
+     * @param booking The booking to check availability for
      * @param workspaceCalendarId The calendar ID of the workspace
-     * @return True if the workspace is available, false otherwise
+     * @return True if the booking doesn't overlap with existing events, false otherwise
      */
-    private fun checkEventAvailability(event: Event, workspaceCalendarId: String): Boolean {
+    private fun checkBookingAvailability(booking: Booking, workspaceCalendarId: String): Boolean {
+        val startTime = booking.beginBooking
+        val endTime = booking.endBooking
 
-        // Get the start and end time of the event
-        val startTime = Instant.ofEpochMilli(event.start.dateTime.value)
-        val endTime = Instant.ofEpochMilli(event.end.dateTime.value)
-
-        // Get all events in the workspace calendar during this time period
         val events = listEvents(workspaceCalendarId, startTime, endTime)
 
-        // Check if there are any overlapping events
-        // Exclude the event itself if it's already in the calendar
-        val overlappingEvents = events.filter { existingEvent ->
-            // Skip the event itself
-            if (existingEvent.id == event.id) {
-                return@filter false
-            }
+        if (events.isEmpty()) return true
 
-            // Check if the events overlap
-            val existingStartTime = Instant.ofEpochMilli(existingEvent.start.dateTime.value)
-            val existingEndTime = Instant.ofEpochMilli(existingEvent.end.dateTime.value)
-
-            // Events overlap if one starts before the other ends and ends after the other starts
-            (startTime.isBefore(existingEndTime) && endTime.isAfter(existingStartTime))
+        return events.none { existingEvent ->
+            val existingStart = Instant.ofEpochMilli(existingEvent.start.dateTime.value)
+            val existingEnd = Instant.ofEpochMilli(existingEvent.end.dateTime.value)
+            val isOverlapping = startTime < existingEnd && existingStart < endTime
+            logger.debug("Overlapping matches: $isOverlapping | $startTime < $existingEnd && $existingStart < $endTime")
+            isOverlapping
         }
-
-        // The workspace is available if there are no overlapping events
-        return overlappingEvents.isEmpty()
     }
-
-    // Exception class for workspace unavailability
-    class WorkspaceUnavailableException(message: String) : RuntimeException(message)
 }
 
 /**
