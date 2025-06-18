@@ -246,8 +246,13 @@ class GoogleCalendarProvider(
         val event = Event()
             .setSummary("Booking: ${booking.workspace.tag} - ${booking.owner.firstName} ${booking.owner.lastName}")
             .setDescription("Booking created by ${booking.owner.firstName} ${booking.owner.lastName}\nBooking ID: ${booking.id}")
-            .setStart(EventDateTime().setDateTime(DateTime(booking.beginBooking.toEpochMilli())))
-            .setEnd(EventDateTime().setDateTime(DateTime(booking.endBooking.toEpochMilli())))
+            .setStart(createEventDateTime(booking.beginBooking.toEpochMilli()))
+            .setEnd(createEventDateTime(booking.endBooking.toEpochMilli()))
+
+        // Add recurrence if present
+        booking.recurrence?.let { recurrence ->
+            event.recurrence = RecurrenceRuleConverter.toGoogleRecurrenceRule(recurrence)
+        }
 
         // Add attendees
         val attendees = booking.participants.map { user ->
@@ -298,6 +303,7 @@ class GoogleCalendarProvider(
             workspace = workspace,
             beginBooking = Instant.ofEpochMilli(event.start.dateTime.value),
             endBooking = Instant.ofEpochMilli(event.end.dateTime.value),
+            recurrence = RecurrenceRuleConverter.fromGoogleRecurrenceRule(event.recurrence),
             externalEventId = event.id
         )
     }
@@ -356,6 +362,19 @@ class GoogleCalendarProvider(
             val isOverlapping = startTime < existingEnd && existingStart < endTime
             logger.debug("Overlapping matches: $isOverlapping | $startTime < $existingEnd && $existingStart < $endTime")
             isOverlapping
+        }
+    }
+
+    /**
+     * Creates an EventDateTime object with proper time zone information.
+     *
+     * @param timestamp The timestamp in milliseconds
+     * @return An EventDateTime object with the timestamp and time zone set
+     */
+    private fun createEventDateTime(timestamp: Long): EventDateTime {
+        return EventDateTime().apply {
+            dateTime = DateTime(timestamp)
+            timeZone = java.util.TimeZone.getDefault().id
         }
     }
 }
