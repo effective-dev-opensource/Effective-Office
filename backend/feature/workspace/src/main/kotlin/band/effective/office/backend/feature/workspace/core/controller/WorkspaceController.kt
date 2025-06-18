@@ -1,5 +1,7 @@
 package band.effective.office.backend.feature.workspace.core.controller
 
+import band.effective.office.backend.core.domain.model.Workspace
+import band.effective.office.backend.core.domain.model.WorkspaceZone
 import band.effective.office.backend.feature.workspace.core.dto.WorkspaceDTO
 import band.effective.office.backend.feature.workspace.core.dto.WorkspaceZoneDTO
 import band.effective.office.backend.feature.workspace.core.service.WorkspaceService
@@ -24,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/workspaces")
 @Tag(name = "Workspaces", description = "API for managing workspaces")
 class WorkspaceController(
-    private val workspaceService: WorkspaceService
+    private val workspaceService: WorkspaceService,
 ) {
 
     /**
@@ -77,11 +79,12 @@ class WorkspaceController(
         @Parameter(description = "End of the time range for free workspaces", example = "2023-01-01T02:00:00Z")
         @RequestParam(name = "free_until", required = false) freeUntil: Instant?
     ): ResponseEntity<List<WorkspaceDTO>> {
-        val workspaces = if (freeFrom != null && freeUntil != null) {
-            workspaceService.findAllFreeByPeriod(tag, freeFrom, freeUntil)
+        val workspaces = workspaceService.findAllByTag(tag)
+        /*val workspaces = if (freeFrom != null && freeUntil != null) {
+            // TODO workspaceService.findAllFreeByPeriod(tag, freeFrom, freeUntil)
         } else {
             workspaceService.findAllByTag(tag)
-        }
+        }*/
 
         return ResponseEntity.ok(workspaces.map { convertToDto(it) })
     }
@@ -106,7 +109,7 @@ class WorkspaceController(
     /**
      * Convert a domain Workspace to a WorkspaceDTO.
      */
-    private fun convertToDto(workspace: band.effective.office.backend.feature.workspace.core.domain.model.Workspace): WorkspaceDTO {
+    private fun convertToDto(workspace: Workspace): WorkspaceDTO {
         return WorkspaceDTO(
             id = workspace.id.toString(),
             name = workspace.name,
@@ -131,7 +134,7 @@ class WorkspaceController(
     /**
      * Convert a domain WorkspaceZone to a WorkspaceZoneDTO.
      */
-    private fun convertZoneToDto(zone: band.effective.office.backend.feature.workspace.core.domain.model.WorkspaceZone): WorkspaceZoneDTO {
+    private fun convertZoneToDto(zone: WorkspaceZone): WorkspaceZoneDTO {
         return WorkspaceZoneDTO(
             id = zone.id.toString(),
             name = zone.name

@@ -15,25 +15,25 @@ import java.util.UUID
 class UserEntity(
     @Id
     val id: UUID = UUID.randomUUID(),
-    
-    @Column(nullable = false, unique = true, length = 50)
+
+    @Column(nullable = false, unique = false, length = 255)
     val username: String,
-    
-    @Column(nullable = false, unique = true)
+
+    @Column(nullable = false, unique = true, length = 255)
     val email: String,
-    
-    @Column(name = "first_name", nullable = false)
+
+    @Column(name = "first_name", nullable = false, length = 255)
     val firstName: String,
-    
-    @Column(name = "last_name", nullable = false)
+
+    @Column(name = "last_name", nullable = false, length = 255)
     val lastName: String,
-    
+
     @Column(name = "created_at", nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
-    
+
     @Column(name = "updated_at", nullable = false)
     val updatedAt: LocalDateTime = LocalDateTime.now(),
-    
+
     @Column(nullable = false)
     val active: Boolean = true
 )

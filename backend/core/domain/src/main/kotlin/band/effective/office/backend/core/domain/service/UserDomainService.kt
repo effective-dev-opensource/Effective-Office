@@ -17,6 +17,14 @@ interface UserDomainService {
     fun findByUsername(username: String): User?
 
     /**
+     * Find a user by email.
+     *
+     * @param email The email to search for.
+     * @return The user if found, null otherwise.
+     */
+    fun findByEmail(email: String): User?
+
+    /**
      * Find a user by ID.
      *
      * @param id The user ID to search for.

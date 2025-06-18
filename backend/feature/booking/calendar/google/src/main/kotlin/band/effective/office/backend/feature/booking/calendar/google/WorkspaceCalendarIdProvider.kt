@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component
 @Component
 @Primary
 class WorkspaceCalendarIdProvider(
-    private val workspaceService: WorkspaceDomainService
+    private val workspaceDomainService: WorkspaceDomainService,
 ) : CalendarIdProvider {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -44,10 +44,8 @@ class WorkspaceCalendarIdProvider(
 
         // Try to get the workspace from the WorkspaceService
         try {
-            val workspace = workspaceService.findById(workspaceId)
+            val workspace = workspaceDomainService.findById(workspaceId)
             if (workspace != null) {
-                // In a real implementation, we would get the calendar ID from the workspace
-                // For now, we'll use the workspace name as the calendar ID
                 val calendarId = workspace.name
 
                 // Cache the calendar ID for future use
@@ -71,7 +69,7 @@ class WorkspaceCalendarIdProvider(
     override fun getAllCalendarIds(): List<String> {
         // Get all workspaces with the "meeting" tag
         val meetingWorkspaces: List<Workspace> = try {
-            workspaceService.findAllByTag("meeting")
+            workspaceDomainService.findAllByTag("meeting")
         } catch (e: Exception) {
             logger.warn("Failed to get meeting workspaces: {}", e.message)
             emptyList()
@@ -80,7 +78,7 @@ class WorkspaceCalendarIdProvider(
         // Add calendar IDs for all meeting workspaces
         meetingWorkspaces.forEach { workspace ->
             val workspaceId = workspace.id
-            if (workspaceId != null && !calendarIds.containsKey(workspaceId)) {
+            if (!calendarIds.containsKey(workspaceId)) {
                 calendarIds[workspaceId] = workspace.name
             }
         }

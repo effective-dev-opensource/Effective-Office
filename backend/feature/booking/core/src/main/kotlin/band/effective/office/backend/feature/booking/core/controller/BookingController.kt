@@ -1,7 +1,7 @@
 package band.effective.office.backend.feature.booking.core.controller
 
 import band.effective.office.backend.core.domain.service.UserDomainService
-import band.effective.office.backend.feature.booking.core.domain.model.Workspace
+import band.effective.office.backend.core.domain.service.WorkspaceDomainService
 import band.effective.office.backend.feature.booking.core.dto.BookingDto
 import band.effective.office.backend.feature.booking.core.dto.CreateBookingDto
 import band.effective.office.backend.feature.booking.core.dto.UpdateBookingDto
@@ -33,9 +33,8 @@ import org.springframework.web.bind.annotation.RestController
 @Tag(name = "Bookings", description = "API for managing bookings")
 class BookingController(
     private val bookingService: BookingService,
-    private val userService: UserDomainService
-    // In a real implementation, we would need a service for retrieving Workspace objects
-    // private val workspaceService: WorkspaceService
+    private val userService: UserDomainService,
+    private val workspaceService: WorkspaceDomainService,
 ) {
 
     /**
@@ -105,7 +104,7 @@ class BookingController(
             }
 
             else -> {
-                // In a real implementation, we would need a method to get all bookings
+                // TODO In a real implementation, we would need a method to get all bookings
                 // For now, we'll return an empty list
                 emptyList()
             }
@@ -142,16 +141,8 @@ class BookingController(
             userService.findById(userId)
         }
 
-        // In a real implementation, we would get the workspace from a service
-        // val workspace = workspaceService.getWorkspaceById(createBookingDto.workspaceId)
-        //     ?: return ResponseEntity.notFound().build()
-
-        // For now, create a stub workspace
-        val workspace = Workspace(
-            id = createBookingDto.workspaceId,
-            name = createBookingDto.workspaceId.toString(),
-            tag = "meeting"
-        )
+        val workspace = workspaceService.findById(createBookingDto.workspaceId)
+            ?: return ResponseEntity.notFound().build()
 
         // Convert DTO to a domain model and create the booking
         val booking = createBookingDto.toDomain(owner, participants, workspace)

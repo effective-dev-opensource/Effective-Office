@@ -1,6 +1,7 @@
 package band.effective.office.backend.feature.booking.core.domain.model
 
 import band.effective.office.backend.core.domain.model.User
+import band.effective.office.backend.core.domain.model.Workspace
 import java.time.Instant
 import java.util.UUID
 

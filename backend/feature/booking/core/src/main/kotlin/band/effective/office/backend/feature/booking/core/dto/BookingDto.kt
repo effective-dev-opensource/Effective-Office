@@ -1,9 +1,11 @@
 package band.effective.office.backend.feature.booking.core.dto
 
 import band.effective.office.backend.core.domain.model.User
+import band.effective.office.backend.core.domain.model.Utility
+import band.effective.office.backend.core.domain.model.Workspace
+import band.effective.office.backend.core.domain.model.WorkspaceZone
 import band.effective.office.backend.feature.booking.core.domain.model.Booking
 import band.effective.office.backend.feature.booking.core.domain.model.RecurrenceModel
-import band.effective.office.backend.feature.booking.core.domain.model.Workspace
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.Instant
@@ -152,7 +154,7 @@ data class UtilityDto(
         /**
          * Converts a domain model to a DTO.
          */
-        fun fromDomain(utility: band.effective.office.backend.feature.booking.core.domain.model.Utility): UtilityDto {
+        fun fromDomain(utility: Utility): UtilityDto {
             return UtilityDto(
                 id = utility.id,
                 name = utility.name,
@@ -178,7 +180,7 @@ data class WorkspaceZoneDto(
         /**
          * Converts a domain model to a DTO.
          */
-        fun fromDomain(zone: band.effective.office.backend.feature.booking.core.domain.model.WorkspaceZone): WorkspaceZoneDto {
+        fun fromDomain(zone: WorkspaceZone): WorkspaceZoneDto {
             return WorkspaceZoneDto(
                 id = zone.id,
                 name = zone.name

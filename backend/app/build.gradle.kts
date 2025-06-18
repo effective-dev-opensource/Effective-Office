@@ -10,7 +10,8 @@ dependencies {
     implementation(project(":backend:feature:booking:core"))
     implementation(project(":backend:feature:booking:calendar:google"))
     implementation(project(":backend:feature:booking:calendar:dummy"))
-    implementation(project(":backend:feature:workspace:core"))
+//    implementation(project(":backend:feature:workspace:core"))
+    implementation(project(":backend:feature:workspace"))
 
     implementation("org.springframework:spring-tx")
     implementation(libs.springdoc.openapi.starter.webmvc.ui)

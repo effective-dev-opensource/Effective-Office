@@ -1,6 +1,6 @@
 package band.effective.office.backend.core.domain.model
 
-import java.util.*
+import java.util.UUID
 
 /**
  * Domain model representing a workspace in the office.
@@ -12,7 +12,7 @@ import java.util.*
  * @property zone The zone where the workspace is located
  */
 data class Workspace(
-    var id: UUID?,
+    var id: UUID,
     var name: String,
     var tag: String,
     var utilities: List<Utility>,

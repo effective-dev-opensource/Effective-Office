@@ -75,3 +75,5 @@ coverage/
 
 /backend/app/src/main/resources/.env.properties
 /backend/app/src/main/resources/google-credentials.json
+/oldBackendExample
+/scripts

@@ -1,8 +1,8 @@
 package band.effective.office.backend.feature.booking.core.dto
 
 import band.effective.office.backend.core.domain.model.User
+import band.effective.office.backend.core.domain.model.Workspace
 import band.effective.office.backend.feature.booking.core.domain.model.Booking
-import band.effective.office.backend.feature.booking.core.domain.model.Workspace
 import com.fasterxml.jackson.annotation.JsonFormat
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid

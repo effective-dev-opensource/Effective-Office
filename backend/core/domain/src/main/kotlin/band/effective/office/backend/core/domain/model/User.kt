@@ -11,9 +11,9 @@ import java.util.UUID
  */
 data class User(
     val id: UUID = UUID.randomUUID(),
-    
+
     @field:NotBlank(message = "Username is required")
-    @field:Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    @field:Size(min = 3, max = 255, message = "Username must be between 3 and 50 characters")
     val username: String,
     
     @field:NotBlank(message = "Email is required")
