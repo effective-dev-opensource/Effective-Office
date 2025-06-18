@@ -1,6 +1,7 @@
 package band.effective.office.elevator.ui.employee.allEmployee.store
 
 
+import band.effective.office.elevator.MainRes
 import band.effective.office.elevator.domain.models.EmployeeInfo
 import band.effective.office.elevator.domain.models.User
 import band.effective.office.elevator.domain.useCase.EmployeeUseCase
@@ -21,7 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-
+import kotlinx.coroutines.flow.firstOrNull
 internal class EmployeeStoreFactory(private val storeFactory: StoreFactory) : KoinComponent {
 
     private val employeesInfo: EmployeeUseCase by inject()
@@ -94,26 +95,29 @@ internal class EmployeeStoreFactory(private val storeFactory: StoreFactory) : Ko
             when (action) {
                 Action.UpdateEmployeesInfo -> {
                     scope.launch(Dispatchers.IO) {
+                        var currentUserId: String? = null
+                        val userResult = userUseCase.execute().firstOrNull()
+                        when (userResult) {
+                            is Either.Success -> {
+                                currentUserId = userResult.data.id
+                            }
+                            else -> {}
+                        }
+
                         employeesInfo.invoke().collect { response ->
                             withContext(Dispatchers.Main) {
                                 when (response) {
-                                    is Either.Success ->{
-                                        var getUser : User = User.defaultUser
-                                       userUseCase.execute().collect{
-                                               user ->
-                                           withContext(Dispatchers.Main) {
-                                               when (user) {
-                                                   is Either.Success -> {
-                                                       getUser = user.data
-                                                   }
-                                                   else -> {}
-                                               }
-                                           }
+                                    is Either.Success -> {
+
+                                        val filteredEmployees = if (currentUserId != null) {
+                                            response.data.filter { it.id != currentUserId }
+                                        } else {
+                                            response.data
                                         }
-                                        dispatch(Msg.InitListEmployees(employeesInfo = response.data.filter { it.id != getUser.id }))
+                                        dispatch(Msg.InitListEmployees(employeesInfo = filteredEmployees))
                                     }
                                     is Either.Error -> {
-                                        // TODO show error on screen
+                                        publish(EmployeeStore.Label.ShowError(message = MainRes.strings.something_went_wrong))
                                         Napier.e { "error get employees: ${response.error}" }
                                     }
                                 }

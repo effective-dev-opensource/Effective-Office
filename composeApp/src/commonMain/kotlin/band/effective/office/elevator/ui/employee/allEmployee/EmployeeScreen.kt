@@ -4,6 +4,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -45,10 +47,12 @@ import band.effective.office.elevator.textInBorderGray
 import band.effective.office.elevator.theme_light_onPrimary
 import band.effective.office.elevator.ui.employee.allEmployee.models.mappers.EmployeeCard
 import band.effective.office.elevator.ui.employee.allEmployee.store.EmployeeStore
+import band.effective.office.elevator.ui.main.SnackBarErrorMessage
 import com.seiko.imageloader.model.ImageRequest
 import com.seiko.imageloader.rememberImagePainter
 import dev.icerock.moko.resources.compose.painterResource
 import dev.icerock.moko.resources.compose.stringResource
+import kotlinx.coroutines.delay
 
 @Composable
 fun EmployeeScreen(component: EmployeeComponent) {
@@ -58,6 +62,8 @@ fun EmployeeScreen(component: EmployeeComponent) {
     val employeesCount = employState.countShowedEmployeeCards
     val userMessageState = employState.query
 
+    var errorMessage by remember { mutableStateOf(MainRes.strings.something_went_wrong) }
+    var isErrorMessageVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(component) {
         component.employLabel.collect { label ->
@@ -67,16 +73,30 @@ fun EmployeeScreen(component: EmployeeComponent) {
                         label.employee
                     )
                 )
+                is EmployeeStore.Label.ShowError -> {
+                    errorMessage = label.message
+                    isErrorMessageVisible = true
+                    delay(3000)
+                    isErrorMessageVisible = false
+                }
             }
         }
     }
-    EmployeeScreenContent(
-        isLoading = employState.isLoading,
-        employeesData = employeesData,
-        employeesCount = employeesCount,
-        userMessageState = userMessageState,
-        onCardClick = { component.onEvent(EmployeeStore.Intent.OnClickOnEmployee(it)) },
-        onTextFieldUpdate = { component.onEvent(EmployeeStore.Intent.OnTextFieldUpdate(it)) })
+    Box(modifier = Modifier.fillMaxSize()) {
+        EmployeeScreenContent(
+            isLoading = employState.isLoading,
+            employeesData = employeesData,
+            employeesCount = employeesCount,
+            userMessageState = userMessageState,
+            onCardClick = { component.onEvent(EmployeeStore.Intent.OnClickOnEmployee(it)) },
+            onTextFieldUpdate = { component.onEvent(EmployeeStore.Intent.OnTextFieldUpdate(it)) },
+        )
+        SnackBarErrorMessage(
+            message = stringResource(errorMessage),
+            isVisible = isErrorMessageVisible,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
 }
 
 @Composable

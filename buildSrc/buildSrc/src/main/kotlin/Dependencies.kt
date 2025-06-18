@@ -146,5 +146,6 @@ object Dependencies {
         const val nativeDriver = "app.cash.sqldelight:native-driver:${Versions.sqlDelight}"
         const val androidDriver = "app.cash.sqldelight:android-driver:${Versions.sqlDelight}"
         const val primitiveadaper = "app.cash.sqldelight:primitive-adapters:${Versions.sqlDelight}"
+        const val coroutinesExtensions = "app.cash.sqldelight:coroutines-extensions:${Versions.sqlDelight}"
     }
 }
