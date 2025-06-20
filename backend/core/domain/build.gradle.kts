@@ -1,5 +1,5 @@
 plugins {
-    id("band.effective.office.backend.kotlin-common")
+    id("band.effective.office.backend.spring-boot-common")
 }
 
 dependencies {

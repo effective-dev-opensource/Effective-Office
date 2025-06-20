@@ -16,7 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    private val authorizationService: AuthorizationService
+    private val jwtAuthenticationFilter: JwtAuthenticationFilter
 ) {
 
     /**
@@ -32,15 +32,11 @@ class SecurityConfig(
                 authorize
                     .requestMatchers("/auth/**").permitAll()
                     .requestMatchers("/swagger-ui.html/**", "/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                    .requestMatchers("/api/swagger-ui.html/**", "/api/swagger-ui/**", "/api/api-docs/**", "/api/v3/api-docs/**").permitAll()
                     .requestMatchers("/actuator/**").permitAll()
-                    .requestMatchers("/bookings/**").permitAll() // TODO for testing
-                    .requestMatchers("/workspaces/**").permitAll() // TODO for testing
                     .anyRequest().authenticated()
             }
-            .addFilterBefore(
-                JwtAuthenticationFilter(authorizationService),
-                UsernamePasswordAuthenticationFilter::class.java
-            )
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
     }

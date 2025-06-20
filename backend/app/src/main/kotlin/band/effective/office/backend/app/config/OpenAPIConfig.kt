@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration
     name = "bearerAuth",
     type = SecuritySchemeType.HTTP,
     scheme = "bearer",
-    bearerFormat = "JWT",
+    bearerFormat = "Token",
     `in` = SecuritySchemeIn.HEADER
 )
 class OpenAPIConfig {
@@ -47,7 +47,7 @@ class OpenAPIConfig {
                         io.swagger.v3.oas.models.security.SecurityScheme()
                             .type(io.swagger.v3.oas.models.security.SecurityScheme.Type.HTTP)
                             .scheme("bearer")
-                            .bearerFormat("JWT")
+                            .bearerFormat("Token")
                             .`in`(io.swagger.v3.oas.models.security.SecurityScheme.In.HEADER)
                     )
             )

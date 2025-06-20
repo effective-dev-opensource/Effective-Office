@@ -1,54 +1,54 @@
 package band.effective.office.backend.feature.authorization.service
 
-import band.effective.office.backend.core.domain.model.User
-import band.effective.office.backend.feature.authorization.model.TokenPair
+import band.effective.office.backend.core.data.ErrorDto
+import band.effective.office.backend.feature.authorization.core.AuthorizationChain
+import band.effective.office.backend.feature.authorization.core.AuthorizationResult
+import band.effective.office.backend.feature.authorization.exception.AuthorizationException
+import band.effective.office.backend.feature.authorization.exception.AuthorizationErrorCodes
+import band.effective.office.backend.feature.authorization.exception.UnauthorizedException
+import jakarta.servlet.http.HttpServletRequest
+import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.stereotype.Service
+import org.springframework.web.bind.annotation.ExceptionHandler
 
 /**
- * Service interface for authorization operations.
- * This interface defines the contract for any authorization implementation.
+ * Service that handles authorization using the authorization chain.
  */
-interface AuthorizationService {
-    /**
-     * Authenticates a user with the given credentials and returns a token pair.
-     *
-     * @param username The username of the user.
-     * @param password The password of the user.
-     * @return A token pair containing access and refresh tokens.
-     * @throws AuthenticationException If the credentials are invalid.
-     */
-    fun authenticate(username: String, password: String): TokenPair
+@Service
+class AuthorizationService(
+    private val authorizationChain: AuthorizationChain
+) {
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     /**
-     * Authenticates a user with a Google ID token and returns a token pair.
+     * Attempts to authorize the request using the authorization chain.
      *
-     * @param idToken The Google ID token.
-     * @return A token pair containing access and refresh tokens.
-     * @throws AuthenticationException If the ID token is invalid.
+     * @param request The HTTP request to authorize
+     * @return The authorization result
+     * @throws UnauthorizedException if authorization fails
      */
-    fun authenticateWithGoogle(idToken: String): TokenPair
+    fun authorize(request: HttpServletRequest): AuthorizationResult {
+        logger.debug("Attempting to authorize request: {}", request.requestURI)
 
-    /**
-     * Refreshes an access token using a refresh token.
-     *
-     * @param refreshToken The refresh token.
-     * @return A new token pair containing fresh access and refresh tokens.
-     * @throws AuthenticationException If the refresh token is invalid or expired.
-     */
-    fun refreshToken(refreshToken: String): TokenPair
+        // Use the authorization chain to authorize the request
+        val result = authorizationChain.authorize(request)
 
-    /**
-     * Validates an access token and returns the associated user.
-     *
-     * @param accessToken The access token to validate.
-     * @return The user associated with the token.
-     * @throws AuthenticationException If the token is invalid or expired.
-     */
-    fun validateToken(accessToken: String): User
+        if (result.success) {
+            logger.debug("Request authorized successfully")
+            return result
+        } else {
+            logger.debug("Request not authorized: {}", result.errorMessage)
 
-    /**
-     * Invalidates all tokens for a user (logout).
-     *
-     * @param userId The ID of the user.
-     */
-    fun invalidateTokens(userId: String)
+            // If there's an error code and message, throw a specific exception
+            if (result.errorCode != null) {
+                throw UnauthorizedException(result.errorMessage ?: "Unauthorized")
+            }
+
+            // Otherwise, throw a generic unauthorized exception
+            throw UnauthorizedException("Unauthorized")
+        }
+    }
+
 }
