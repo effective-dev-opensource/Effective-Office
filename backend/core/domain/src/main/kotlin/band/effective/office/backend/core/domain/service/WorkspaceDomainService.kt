@@ -1,8 +1,8 @@
 package band.effective.office.backend.core.domain.service
 
+import band.effective.office.backend.core.domain.model.CalendarId
 import band.effective.office.backend.core.domain.model.Workspace
 import band.effective.office.backend.core.domain.model.WorkspaceZone
-import java.time.Instant
 import java.util.UUID
 
 /**
@@ -32,4 +32,14 @@ interface WorkspaceDomainService {
      * @return List of all [WorkspaceZone]
      */
     fun findAllZones(): List<WorkspaceZone>
+
+    /**
+     * Finds a calendar ID by workspace ID
+     *
+     * @param workspaceId The ID of the workspace
+     * @return The calendar ID if found, null otherwise
+     */
+    fun findCalendarIdByWorkspaceId(workspaceId: UUID): CalendarId?
+
+    fun findAllCalendarIds(): List<CalendarId>
 }
