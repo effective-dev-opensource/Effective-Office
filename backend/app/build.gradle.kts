@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":backend:core:data"))
     implementation(project(":backend:core:domain"))
     implementation(project(":backend:core:repository"))
     implementation(project(":backend:feature:user"))
