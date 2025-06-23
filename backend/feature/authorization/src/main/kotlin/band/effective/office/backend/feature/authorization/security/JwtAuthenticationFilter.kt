@@ -29,6 +29,19 @@ class JwtAuthenticationFilter(
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     /**
+     * Checks if the request is for Swagger UI or API docs.
+     *
+     * @param requestURI The request URI to check
+     * @return True if the request is for Swagger UI or API docs, false otherwise
+     */
+    private fun isSwaggerUIRequest(requestURI: String): Boolean { // TODO fix this hacky code
+        return requestURI.contains("/swagger-ui") ||
+               requestURI.contains("/api-docs") ||
+               requestURI.contains("/v3/api-docs") ||
+                requestURI.contains("/notifications")
+    }
+
+    /**
      * Filters incoming requests and attempts to authenticate them.
      *
      * @param request The HTTP request
@@ -40,6 +53,14 @@ class JwtAuthenticationFilter(
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
+        // Check if the request is for Swagger UI or API docs
+        val requestURI = request.requestURI
+        if (isSwaggerUIRequest(requestURI)) {
+            logger.debug("Skipping authorization for Swagger UI request: {}", requestURI)
+            filterChain.doFilter(request, response)
+            return
+        }
+
         try {
             // Attempt to authorize the request
             val result = authorizationService.authorize(request)

@@ -13,4 +13,6 @@ include(
     "backend:feature:booking:calendar:google",
     "backend:feature:booking:calendar:dummy",
     "backend:feature:workspace",
+    "backend:feature:calendar-subscription",
+    "backend:feature:notifications",
 )

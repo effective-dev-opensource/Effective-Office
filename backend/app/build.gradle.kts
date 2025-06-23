@@ -11,6 +11,8 @@ dependencies {
     implementation(project(":backend:feature:booking:calendar:dummy"))
     implementation(project(":backend:feature:workspace"))
     implementation(project(":backend:feature:authorization"))
+    implementation(project(":backend:feature:calendar-subscription"))
+    implementation(project(":backend:feature:notifications"))
 
     implementation("org.springframework:spring-tx")
     implementation(libs.springdoc.openapi.starter.webmvc.ui)

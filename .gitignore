@@ -77,3 +77,4 @@ coverage/
 /backend/app/src/main/resources/google-credentials.json
 /oldBackendExample
 /scripts
+/backend/app/src/main/resources/firebase-credentials.json
