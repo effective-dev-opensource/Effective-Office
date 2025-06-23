@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController
  * REST controller for managing bookings.
  */
 @RestController
-@RequestMapping("/bookings")
+@RequestMapping("/v1/bookings")
 @Tag(name = "Bookings", description = "API for managing bookings")
 class BookingController(
     private val bookingService: BookingService,

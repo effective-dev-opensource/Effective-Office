@@ -19,7 +19,7 @@ import java.util.UUID
  * REST controller for managing users.
  */
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/v1/users")
 @Tag(name = "Users", description = "API for managing users")
 class UserController(private val userService: UserService) {
 

@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController
  * REST controller for managing workspaces.
  */
 @RestController
-@RequestMapping("/workspaces")
+@RequestMapping("/v1/workspaces")
 @Tag(name = "Workspaces", description = "API for managing workspaces")
 class WorkspaceController(
     private val workspaceService: WorkspaceService,
