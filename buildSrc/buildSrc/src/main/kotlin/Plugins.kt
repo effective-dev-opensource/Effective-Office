@@ -71,8 +71,13 @@ object Plugins {
         const val plugin = "app.cash.sqldelight"
     }
 
-    object GoogleServices{
+    object GoogleServices {
         const val implementation = "com.google.gms:google-services:4.3.15"
         const val plugin = "com.google.gms.google-services"
+    }
+
+    object Sentry {
+        const val version = "0.10.0"
+        const val plugin = "io.sentry.kotlin.multiplatform.gradle"
     }
 }

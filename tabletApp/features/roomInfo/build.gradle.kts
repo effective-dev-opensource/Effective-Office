@@ -4,6 +4,7 @@ plugins {
     id(Plugins.Kotlin.plugin)
     id(Plugins.Parcelize.plugin)
     id(Plugins.Libres.plugin)
+    id(Plugins.Sentry.plugin) version Plugins.Sentry.version
 }
 
 android {

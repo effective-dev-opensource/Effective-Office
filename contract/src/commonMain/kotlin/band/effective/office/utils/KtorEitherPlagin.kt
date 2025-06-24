@@ -6,6 +6,7 @@ import band.effective.office.network.model.ErrorResponse
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.statement.request
 import io.ktor.utils.io.readUTF8Line
+import io.sentry.kotlin.multiplatform.Sentry
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
@@ -32,6 +33,13 @@ val KtorEitherPlugin = createClientPlugin("KtorEitherPlugin") {
                 "KtorEitherPluginError: ${response.request.method} ${response.request.url} ${response.status.value}: ${response.status.description}\n" +
                         "${content.readUTF8Line()}"
             )
+            val errorMessage = """
+                KtorEitherPluginError: ${response.request.method} ${response.request.url}
+                Status: ${response.status.value} - ${response.status.description}
+                Response Body: ${content.readUTF8Line()}
+            """.trimIndent()
+            // For send to Sentry
+            Sentry.captureMessage(errorMessage)
             Either.Error(ErrorResponse.getResponse(response.status.value))
         }
     }

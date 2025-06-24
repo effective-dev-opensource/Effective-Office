@@ -7,6 +7,7 @@ plugins {
     id(Plugins.BuildConfig.plugin)
     id(Plugins.Serialization.plugin)
     id(Plugins.CocoaPods.plugin)
+    id(Plugins.Sentry.plugin) version Plugins.Sentry.version
 }
 
 android {
