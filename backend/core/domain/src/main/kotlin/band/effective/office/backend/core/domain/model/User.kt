@@ -15,20 +15,26 @@ data class User(
     @field:NotBlank(message = "Username is required")
     @field:Size(min = 3, max = 255, message = "Username must be between 3 and 50 characters")
     val username: String,
-    
+
     @field:NotBlank(message = "Email is required")
     @field:Email(message = "Email should be valid")
     val email: String,
-    
+
     @field:NotBlank(message = "First name is required")
     val firstName: String,
-    
+
     @field:NotBlank(message = "Last name is required")
     val lastName: String,
-    
+
     val createdAt: LocalDateTime = LocalDateTime.now(),
-    
+
     val updatedAt: LocalDateTime = LocalDateTime.now(),
-    
-    val active: Boolean = true
+
+    val active: Boolean = true,
+
+    val role: String = "",
+
+    val avatarUrl: String = "",
+
+    val tag: String = ""
 )

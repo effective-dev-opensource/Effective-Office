@@ -92,7 +92,7 @@ class DummyCalendarProvider : CalendarProvider {
 
         // In this dummy implementation, we don't have recurring events, so returnInstances has no effect
         return bookings.values.filter { booking ->
-            (booking.owner.id == userId || booking.participants.any { it.id == userId }) &&
+            (booking.owner?.id == userId || booking.participants.any { it.id == userId }) &&
             booking.beginBooking >= from &&
             (to == null || booking.endBooking <= to)
         }

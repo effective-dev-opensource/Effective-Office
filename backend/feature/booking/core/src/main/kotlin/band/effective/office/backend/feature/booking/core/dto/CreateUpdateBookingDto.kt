@@ -41,7 +41,7 @@ data class CreateBookingDto(
      * as the DTO only contains their IDs.
      */
     fun toDomain(
-        owner: User,
+        owner: User?,
         participants: List<User>,
         workspace: Workspace
     ): Booking {

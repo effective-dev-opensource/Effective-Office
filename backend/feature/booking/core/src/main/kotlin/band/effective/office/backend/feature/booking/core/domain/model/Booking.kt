@@ -17,7 +17,7 @@ import java.util.UUID
  */
 data class Booking(
     val id: UUID = UUID.randomUUID(),
-    val owner: User,
+    val owner: User?,
     val participants: List<User> = emptyList(),
     val workspace: Workspace,
     val beginBooking: Instant,

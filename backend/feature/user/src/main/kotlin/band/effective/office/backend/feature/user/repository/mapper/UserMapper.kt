@@ -21,7 +21,10 @@ object UserMapper {
             lastName = entity.lastName,
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
-            active = entity.active
+            active = entity.active,
+            role = entity.role,
+            avatarUrl = entity.avatarUrl,
+            tag = entity.tag
         )
     }
 
@@ -37,7 +40,10 @@ object UserMapper {
             lastName = domain.lastName,
             createdAt = domain.createdAt,
             updatedAt = domain.updatedAt,
-            active = domain.active
+            active = domain.active,
+            role = domain.role,
+            avatarUrl = domain.avatarUrl,
+            tag = domain.tag
         )
     }
 }

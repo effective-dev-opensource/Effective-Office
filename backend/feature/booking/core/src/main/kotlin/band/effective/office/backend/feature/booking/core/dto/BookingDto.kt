@@ -49,7 +49,7 @@ data class BookingDto(
          */
         fun fromDomain(booking: Booking): BookingDto {
             return BookingDto(
-                owner = UserDto.fromDomain(booking.owner),
+                owner = booking.owner?.let {  UserDto.fromDomain(it) },
                 participants = booking.participants.map { UserDto.fromDomain(it) },
                 workspace = WorkspaceDto.fromDomain(booking.workspace),
                 id = booking.id.toString(),
@@ -99,12 +99,12 @@ data class UserDto(
             return UserDto(
                 id = user.id.toString(),
                 fullName = "${user.firstName} ${user.lastName}",
-                active = true, // Assuming all users are active
-                role = "USER", // Default role
-                avatarUrl = "", // Default empty avatar URL
-                integrations = null, // No integrations by default
+                active = user.active,
+                role = user.role,
+                avatarUrl = user.avatarUrl,
+                integrations = null, // TODO No integrations by default
                 email = user.email,
-                tag = "" // Default empty tag
+                tag = user.tag,
             )
         }
     }

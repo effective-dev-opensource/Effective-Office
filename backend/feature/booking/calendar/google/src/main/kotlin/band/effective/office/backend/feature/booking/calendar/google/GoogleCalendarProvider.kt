@@ -259,8 +259,11 @@ class GoogleCalendarProvider(
 
     private fun convertToGoogleEvent(booking: Booking): Event {
         val event = Event()
-            .setSummary("Booking: ${booking.workspace.tag} - ${booking.owner.firstName} ${booking.owner.lastName}")
-            .setDescription("Booking created by ${booking.owner.firstName} ${booking.owner.lastName}\nBooking ID: ${booking.id}")
+            .setSummary("${booking.workspace.id} - workspace id (${booking.workspace.zone} - ${booking.workspace.name})")
+            .setDescription(
+                "\nBooking ID: ${booking.id}" +
+                    "\n${booking.owner?.let { owner -> "Booking created by ${owner.id} - organizer id  [ ${owner.email} ]" }}"
+            )
             .setStart(createEventDateTime(booking.beginBooking.toEpochMilli()))
             .setEnd(createEventDateTime(booking.endBooking.toEpochMilli()))
 
@@ -276,7 +279,7 @@ class GoogleCalendarProvider(
         event.attendees = attendees
 
         // Add the owner as the organizer
-        event.organizer = Event.Organizer().setEmail(booking.owner.email)
+        booking.owner?.email?.let { event.organizer = Event.Organizer().setEmail(it) }
 
         return event
     }
@@ -341,8 +344,9 @@ class GoogleCalendarProvider(
             id = UUID.randomUUID(),
             username = email.substringBefore("@"),
             email = email,
-            firstName = "Unknown",
-            lastName = "User"
+            firstName = "Service",
+            lastName = "Account",
+            tag = "employee" // TODO to enum
         )
 
         // Save the new user

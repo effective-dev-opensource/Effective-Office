@@ -1,7 +1,6 @@
 package band.effective.office.backend.feature.booking.core.controller
 
 import band.effective.office.backend.core.data.ErrorDto
-import band.effective.office.backend.core.domain.model.User
 import band.effective.office.backend.core.domain.service.UserDomainService
 import band.effective.office.backend.core.domain.service.WorkspaceDomainService
 import band.effective.office.backend.feature.booking.core.dto.BookingDto
@@ -193,18 +192,9 @@ class BookingController(
         @Valid @RequestBody createBookingDto: CreateBookingDto
     ): ResponseEntity<BookingDto> {
         // Get the owner user by email if provided, otherwise create a system user
-        val owner = if (createBookingDto.ownerEmail != null) {
+        val owner = createBookingDto.ownerEmail?.let {
             userService.findByEmail(createBookingDto.ownerEmail)
                 ?: throw UserNotFoundException("Owner with email ${createBookingDto.ownerEmail} not found")
-        } else {
-            // Create a system user as the owner
-            User(
-                id = UUID.randomUUID(),
-                username = "system",
-                email = "system@example.com",
-                firstName = "System",
-                lastName = "User"
-            )
         }
 
         // Get the participants by email
