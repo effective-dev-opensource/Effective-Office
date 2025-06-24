@@ -21,7 +21,6 @@ class FirebaseConfig(
 
     @Bean
     fun objectMapper(): ObjectMapper {
-        println("[firebaseCredentials] finded: $firebaseCredentials")
         return ObjectMapper()
             .registerModule(com.fasterxml.jackson.module.kotlin.KotlinModule.Builder().build())
             .registerModule(com.fasterxml.jackson.datatype.jsr310.JavaTimeModule())

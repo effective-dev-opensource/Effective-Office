@@ -57,15 +57,13 @@ class GoogleCalendarProvider(
         }.getOrNull()
         if (savedEvent == null) throw NullPointerException("Failed to create event")
 
-        // Return the booking with the external event ID set
-        return booking.copy(externalEventId = savedEvent.id)
+        return booking.copy(id = savedEvent.id)
     }
 
     override fun updateEvent(booking: Booking): Booking {
         logger.debug("Updating event for booking: {}", booking)
 
-        val externalEventId = booking.externalEventId
-            ?: throw IllegalArgumentException("Booking must have an external event ID to be updated")
+        val eventId = booking.id
 
         val workspaceCalendarId = getCalendarIdByWorkspace(booking.workspace.id)
 
@@ -75,31 +73,28 @@ class GoogleCalendarProvider(
         }
 
         val event = convertToGoogleEvent(booking)
-        val updatedEvent = calendar.events().update(defaultCalendar, externalEventId, event).execute()
+        val updatedEvent = calendar.events().update(workspaceCalendarId, eventId, event).execute()
 
-        return booking.copy(externalEventId = updatedEvent.id)
+        return booking.copy(id = updatedEvent.id)
     }
 
     override fun deleteEvent(booking: Booking) {
         logger.debug("Deleting event for booking: {}", booking)
-
-        booking.externalEventId
-            ?: throw IllegalArgumentException("Booking must have an external event ID to be deleted")
-
-        deleteEventByBooking(booking)
+        val eventId = booking.id
+        deleteEventByBooking(booking, eventId)
     }
 
-    private fun deleteEventByBooking(booking: Booking) {
+    private fun deleteEventByBooking(booking: Booking, eventId: String) {
         try {
             val calendarId = getCalendarIdByWorkspace(booking.workspace.id)
-            calendar.events().delete(calendarId, booking.externalEventId).execute()
+            calendar.events().delete(calendarId, eventId).execute()
         } catch (e: GoogleJsonResponseException) {
             logger.error("Failed to delete event: {}", e.details)
             if (e.statusCode != 404 && e.statusCode != 410) {
                 throw e
             }
             // If the event doesn't exist (404) or has been deleted (410), ignore the exception
-            logger.warn("Event with ID {} not found or already deleted", booking.externalEventId)
+            logger.warn("Event with ID {} not found or already deleted", eventId)
         }
     }
 
@@ -152,32 +147,22 @@ class GoogleCalendarProvider(
         return bookings
     }
 
-    override fun findEventById(id: UUID): Booking? {
+    override fun findEventById(id: String): Booking? {
         logger.debug("Finding event with ID {}", id)
 
-        // Search for events with the booking ID in the description
-        // We need to search in all calendars because we don't know which calendar the event is in
+        // Get all calendar IDs
         val calendarIds = workspaceDomainService.findAllCalendarIds().map { it.calendarId }
-
-        // Search for events with the booking ID in the description
-        // We'll search for events in the last year to limit the search
-        val oneYearAgo = Instant.now().minusSeconds(365 * 24 * 60 * 60) // TODO
 
         for (calendarId in calendarIds) {
             try {
-                // Search for events with the booking ID in the description
-                val events = listEvents(calendarId, oneYearAgo, null)
-
-                // Find the event with the exact booking ID
-                val event = events.firstOrNull { event ->
-                    event.description?.contains(id.toString()) == true
-                }
-
+                // Try to get the event directly by ID
+                val event = calendar.events().get(calendarId, id).execute()
                 if (event != null) {
                     return convertToBooking(event, calendarId)
                 }
             } catch (e: Exception) {
-                logger.warn("Failed to search for events in calendar {}: {}", calendarId, e.message)
+                // If the event is not found in this calendar, try the next one
+                logger.debug("Event with ID {} not found in calendar {}", id, calendarId)
             }
         }
 
@@ -259,10 +244,9 @@ class GoogleCalendarProvider(
 
     private fun convertToGoogleEvent(booking: Booking): Event {
         val event = Event()
-            .setSummary("${booking.workspace.id} - workspace id (${booking.workspace.zone} - ${booking.workspace.name})")
+            .setSummary("Meet${booking.owner?.let { " ${it.firstName} ${it.lastName}" }.orEmpty() }")
             .setDescription(
-                "\nBooking ID: ${booking.id}" +
-                    "\n${booking.owner?.let { owner -> "Booking created by ${owner.id} - organizer id  [ ${owner.email} ]" }}"
+                "${booking.owner?.email} - почта организатора"
             )
             .setStart(createEventDateTime(booking.beginBooking.toEpochMilli()))
             .setEnd(createEventDateTime(booking.endBooking.toEpochMilli()))
@@ -287,8 +271,19 @@ class GoogleCalendarProvider(
     private fun convertToBooking(event: Event, calendarId: String? = null): Booking {
         // Get the organizer's email and find the corresponding user
         logger.debug("event.organizer?.email: ${event.organizer?.email}")
-        val organizerEmail = event.organizer.email ?: "unknown@example.com"
-        val owner = findOrCreateUserByEmail(organizerEmail)
+        val organizer = event.organizer.email
+
+        // Check if the user found by organizer email is a system user
+        val user = userDomainService.findByEmail(organizer)
+        val email = if (user != null && user.tag == "system") {
+            logger.trace("[toBookingDTO] organizer email derived from event description")
+            event.description?.substringBefore(" ") ?: ""
+        } else {
+            logger.trace("[toBookingDTO] organizer email derived from event.organizer field")
+            organizer
+        }
+
+        val owner = findOrCreateUserByEmail(email)
 
         // Get the attendees' emails and find the corresponding users
         val participants = event.attendees?.mapNotNull { attendee ->
@@ -304,24 +299,22 @@ class GoogleCalendarProvider(
             throw IllegalStateException("Workspace not found for calendar ID: $calendarId")
         }
 
-        // Extract booking ID from event description or use a random UUID if not found
-        val bookingIdStr = event.description?.let {
-            val regex = "Booking ID: ([0-9a-f-]+)".toRegex()
+        // Extract recurring booking ID from event description if it exists
+        val recurringBookingIdStr = event.description?.let {
+            val regex = "Recurring Booking ID: ([0-9a-f-]+)".toRegex()
             val matchResult = regex.find(it)
             matchResult?.groupValues?.get(1)
         }
 
-        val bookingId = bookingIdStr?.let { UUID.fromString(it) } ?: UUID.randomUUID()
-
         return Booking(
-            id = bookingId,
+            id = event.id,
             owner = owner,
             participants = participants,
             workspace = workspace,
             beginBooking = Instant.ofEpochMilli(event.start.dateTime.value),
             endBooking = Instant.ofEpochMilli(event.end.dateTime.value),
             recurrence = RecurrenceRuleConverter.fromGoogleRecurrenceRule(event.recurrence),
-            externalEventId = event.id
+            recurringBookingId = recurringBookingIdStr
         )
     }
 
@@ -375,6 +368,7 @@ class GoogleCalendarProvider(
         if (events.isEmpty()) return true
 
         return events.none { existingEvent ->
+            if (booking.id == existingEvent.id) return@none false
             val existingStart = Instant.ofEpochMilli(existingEvent.start.dateTime.value)
             val existingEnd = Instant.ofEpochMilli(existingEvent.end.dateTime.value)
             val isOverlapping = startTime < existingEnd && existingStart < endTime

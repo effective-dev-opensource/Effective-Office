@@ -71,13 +71,7 @@ class BookingController(
         @Parameter(description = "Booking ID", required = true)
         @PathVariable id: String
     ): ResponseEntity<BookingDto> {
-        val bookingId = try {
-            UUID.fromString(id)
-        } catch (e: IllegalArgumentException) {
-            throw BookingNotFoundException("Invalid booking ID format: $id , error:${e.message}")
-        }
-
-        val booking = bookingService.getBookingById(bookingId)
+        val booking = bookingService.getBookingById(id)
             ?: throw BookingNotFoundException("Booking with ID $id not found")
 
         return ResponseEntity.ok(BookingDto.fromDomain(booking))
@@ -266,10 +260,7 @@ class BookingController(
         @Parameter(description = "Updated booking data", required = true)
         @Valid @RequestBody updateBookingDto: UpdateBookingDto
     ): ResponseEntity<BookingDto> {
-        val bookingId = runCatching { UUID.fromString(id) }.getOrNull()
-            ?: throw BookingNotFoundException("Invalid booking ID format: $id")
-
-        val existingBooking = bookingService.getBookingById(bookingId)
+        val existingBooking = bookingService.getBookingById(id)
             ?: throw BookingNotFoundException("Booking with ID $id not found")
 
         // Get the participants by email
@@ -282,8 +273,25 @@ class BookingController(
                 }
         }
 
+        // Get the owner user by email if provided, otherwise create a system user
+        val owner = updateBookingDto.ownerEmail?.let {
+            userService.findByEmail(updateBookingDto.ownerEmail)
+                ?: throw UserNotFoundException("Owner with email ${updateBookingDto.ownerEmail} not found")
+        }
+
+        // Convert workspaceId from String to UUID
+        val workspaceUuid = try {
+            UUID.fromString(updateBookingDto.workspaceId)
+        } catch (e: IllegalArgumentException) {
+            throw WorkspaceNotFoundException("Invalid workspace ID format: ${updateBookingDto.workspaceId}")
+        }
+
+        val workspace = workspaceService.findById(workspaceUuid)
+            ?: throw WorkspaceNotFoundException("Workspace with ID ${updateBookingDto.workspaceId} not found")
+
+
         // Convert DTO to a domain model and update the booking
-        val booking = updateBookingDto.toDomain(existingBooking, participants)
+        val booking = updateBookingDto.toDomain(existingBooking, participants, owner, workspace)
         val updatedBooking = bookingService.updateBooking(booking)
 
         return ResponseEntity.ok(BookingDto.fromDomain(updatedBooking))
@@ -312,10 +320,7 @@ class BookingController(
         @Parameter(description = "Booking ID", required = true)
         @PathVariable id: String
     ): ResponseEntity<Void> {
-        val bookingId = runCatching { UUID.fromString(id) }.getOrNull()
-            ?: throw BookingNotFoundException("Invalid booking ID format: $id")
-
-        val booking = bookingService.getBookingById(bookingId)
+        val booking = bookingService.getBookingById(id)
             ?: throw BookingNotFoundException("Booking with ID $id not found")
 
         bookingService.deleteBooking(booking)

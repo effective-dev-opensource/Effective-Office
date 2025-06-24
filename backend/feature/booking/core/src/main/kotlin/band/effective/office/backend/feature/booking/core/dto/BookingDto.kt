@@ -52,11 +52,11 @@ data class BookingDto(
                 owner = booking.owner?.let {  UserDto.fromDomain(it) },
                 participants = booking.participants.map { UserDto.fromDomain(it) },
                 workspace = WorkspaceDto.fromDomain(booking.workspace),
-                id = booking.id.toString(),
+                id = booking.id,
                 beginBooking = booking.beginBooking.toEpochMilli(),
                 endBooking = booking.endBooking.toEpochMilli(),
                 recurrence = booking.recurrence?.let { RecurrenceDto.fromDomain(it) },
-                recurringBookingId = booking.recurringBookingId?.toString()
+                recurringBookingId = booking.recurringBookingId
             )
         }
     }

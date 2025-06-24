@@ -2,6 +2,8 @@ package band.effective.office.backend.feature.workspace.core.controller
 
 import band.effective.office.backend.core.domain.model.Workspace
 import band.effective.office.backend.core.domain.model.WorkspaceZone
+import band.effective.office.backend.feature.booking.core.dto.BookingDto
+import band.effective.office.backend.feature.booking.core.service.BookingService
 import band.effective.office.backend.feature.workspace.core.dto.WorkspaceDTO
 import band.effective.office.backend.feature.workspace.core.dto.WorkspaceZoneDTO
 import band.effective.office.backend.feature.workspace.core.service.WorkspaceService
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController
 @Tag(name = "Workspaces", description = "API for managing workspaces")
 class WorkspaceController(
     private val workspaceService: WorkspaceService,
+    private val bookingService: BookingService,
 ) {
 
     /**
@@ -110,6 +113,15 @@ class WorkspaceController(
      * Convert a domain Workspace to a WorkspaceDTO.
      */
     private fun convertToDto(workspace: Workspace): WorkspaceDTO {
+        // Get bookings for the workspace for the next 1 day
+        val now = Instant.now()
+        val oneDayLater = now.plusSeconds(24 * 60 * 60) // 1 day in seconds
+        val bookings = bookingService.getBookingsByWorkspace(
+            workspaceId = workspace.id,
+            from = now,
+            to = oneDayLater
+        )
+
         return WorkspaceDTO(
             id = workspace.id.toString(),
             name = workspace.name,
@@ -127,7 +139,8 @@ class WorkspaceController(
                     name = zone.name
                 )
             },
-            tag = workspace.tag
+            tag = workspace.tag,
+            bookings = bookings.map { BookingDto.fromDomain(it) }
         )
     }
 

@@ -61,6 +61,13 @@ data class CreateBookingDto(
  */
 @Schema(description = "Data for updating an existing booking")
 data class UpdateBookingDto(
+    @Schema(description = "Email of the user updating the booking", example = "john.doe@example.com")
+    val ownerEmail: String?,
+
+    @field:NotNull(message = "Workspace ID is required")
+    @Schema(description = "ID of the workspace being booked", example = "123e4567-e89b-12d3-a456-426614174000")
+    val workspaceId: String,
+
     @Schema(description = "Emails of users participating in the booking", example = "[\"jane.doe@example.com\"]")
     val participantEmails: List<String> = emptyList(),
 
@@ -81,10 +88,14 @@ data class UpdateBookingDto(
      */
     fun toDomain(
         existingBooking: Booking,
-        participants: List<User>
+        participants: List<User>,
+        owner: User?,
+        workspace: Workspace,
     ): Booking {
         return existingBooking.copy(
+            owner = owner,
             participants = participants,
+            workspace = workspace,
             beginBooking = beginBooking?.let { Instant.ofEpochMilli(it) } ?: existingBooking.beginBooking,
             endBooking = endBooking?.let { Instant.ofEpochMilli(it) } ?: existingBooking.endBooking,
             recurrence = recurrence?.let { RecurrenceDto.toDomain(it) } ?: existingBooking.recurrence

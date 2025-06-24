@@ -57,10 +57,10 @@ interface CalendarProvider {
     /**
      * Finds an event by its ID.
      *
-     * @param id The ID of the booking
+     * @param id The ID of the booking (Google event ID)
      * @return The booking if found, null otherwise
      */
-    fun findEventById(id: UUID): Booking?
+    fun findEventById(id: String): Booking?
 
     /**
      * Finds all events across all workspaces within a time range.

@@ -47,10 +47,10 @@ class BookingService(
     /**
      * Deletes a booking by its ID.
      *
-     * @param id The ID of the booking to delete
+     * @param id The ID of the booking to delete (Google event ID)
      * @return true if the booking was deleted, false if it wasn't found
      */
-    fun deleteBookingById(id: UUID): Boolean {
+    fun deleteBookingById(id: String): Boolean {
         val booking = getBookingById(id) ?: return false
         calendarProvider.deleteEvent(booking)
         return true
@@ -59,10 +59,10 @@ class BookingService(
     /**
      * Gets a booking by its ID.
      *
-     * @param id The ID of the booking
+     * @param id The ID of the booking (Google event ID)
      * @return The booking if found, null otherwise
      */
-    fun getBookingById(id: UUID): Booking? {
+    fun getBookingById(id: String): Booking? {
         return calendarProvider.findEventById(id)
     }
 

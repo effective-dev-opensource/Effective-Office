@@ -27,7 +27,7 @@ class DummyCalendarProvider : CalendarProvider {
         val externalEventId = "dummy-event-${UUID.randomUUID()}"
 
         // Store the booking with the external event ID
-        val bookingWithExternalId = booking.copy(externalEventId = externalEventId)
+        val bookingWithExternalId = booking.copy(id = externalEventId)
         bookings[externalEventId] = bookingWithExternalId
 
         logger.debug("Created dummy event with ID: {}", externalEventId)
@@ -37,8 +37,7 @@ class DummyCalendarProvider : CalendarProvider {
     override fun updateEvent(booking: Booking): Booking {
         logger.debug("Updating dummy event for booking: {}", booking)
 
-        val externalEventId = booking.externalEventId 
-            ?: throw IllegalArgumentException("Booking must have an external event ID to be updated")
+        val externalEventId = booking.id
 
         // Check if the booking exists
         if (!bookings.containsKey(externalEventId)) {
@@ -55,9 +54,7 @@ class DummyCalendarProvider : CalendarProvider {
     override fun deleteEvent(booking: Booking) {
         logger.debug("Deleting dummy event for booking: {}", booking)
 
-        val externalEventId = booking.externalEventId 
-            ?: throw IllegalArgumentException("Booking must have an external event ID to be deleted")
-
+        val externalEventId = booking.id
         // Remove the booking
         bookings.remove(externalEventId)
 
@@ -98,7 +95,7 @@ class DummyCalendarProvider : CalendarProvider {
         }
     }
 
-    override fun findEventById(id: UUID): Booking? {
+    override fun findEventById(id: String): Booking? {
         logger.debug("Finding dummy event with ID {}", id)
 
         // In a real implementation, we would map the booking ID to the external event ID
