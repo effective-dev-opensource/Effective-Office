@@ -41,5 +41,12 @@ interface WorkspaceDomainService {
      */
     fun findCalendarIdByWorkspaceId(workspaceId: UUID): CalendarId?
 
+    fun findCalendarEntityById(calendarId: String): CalendarId?
+
+    /**
+     * Returns all calendar IDs
+     *
+     * @return List of all calendar IDs
+     */
     fun findAllCalendarIds(): List<CalendarId>
 }

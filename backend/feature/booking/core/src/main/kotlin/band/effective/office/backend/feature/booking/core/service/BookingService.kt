@@ -72,10 +72,11 @@ class BookingService(
      * @param workspaceId The ID of the workspace
      * @param from The start of the time range
      * @param to The end of the time range (optional)
+     * @param returnInstances Whether to return recurring bookings as non-recurrent instances (default: true)
      * @return A list of bookings for the workspace within the time range
      */
-    fun getBookingsByWorkspace(workspaceId: UUID, from: Instant, to: Instant? = null): List<Booking> {
-        return calendarProvider.findEventsByWorkspace(workspaceId, from, to)
+    fun getBookingsByWorkspace(workspaceId: UUID, from: Instant, to: Instant? = null, returnInstances: Boolean = true): List<Booking> {
+        return calendarProvider.findEventsByWorkspace(workspaceId, from, to, returnInstances)
     }
 
     /**
@@ -84,10 +85,11 @@ class BookingService(
      * @param userId The ID of the user
      * @param from The start of the time range
      * @param to The end of the time range (optional)
+     * @param returnInstances Whether to return recurring bookings as non-recurrent instances (default: true)
      * @return A list of bookings for the user within the time range
      */
-    fun getBookingsByUser(userId: UUID, from: Instant, to: Instant? = null): List<Booking> {
-        return calendarProvider.findEventsByUser(userId, from, to)
+    fun getBookingsByUser(userId: UUID, from: Instant, to: Instant? = null, returnInstances: Boolean = true): List<Booking> {
+        return calendarProvider.findEventsByUser(userId, from, to, returnInstances)
     }
 
     /**
@@ -97,15 +99,17 @@ class BookingService(
      * @param workspaceId The ID of the workspace
      * @param from The start of the time range
      * @param to The end of the time range (optional)
+     * @param returnInstances Whether to return recurring bookings as non-recurrent instances (default: true)
      * @return A list of bookings for the user and workspace within the time range
      */
     fun getBookingsByUserAndWorkspace(
         userId: UUID,
         workspaceId: UUID,
         from: Instant,
-        to: Instant? = null
+        to: Instant? = null,
+        returnInstances: Boolean = true
     ): List<Booking> {
-        return calendarProvider.findEventsByUser(userId, from, to)
+        return calendarProvider.findEventsByUser(userId, from, to, returnInstances)
             .filter { it.workspace.id == workspaceId }
     }
 
@@ -114,9 +118,10 @@ class BookingService(
      *
      * @param from The start of the time range
      * @param to The end of the time range (optional)
+     * @param returnInstances Whether to return recurring bookings as non-recurrent instances (default: true)
      * @return A list of all bookings within the time range
      */
-    fun getAllBookings(from: Instant, to: Instant? = null): List<Booking> {
-        return calendarProvider.findAllEvents(from, to)
+    fun getAllBookings(from: Instant, to: Instant? = null, returnInstances: Boolean = true): List<Booking> {
+        return calendarProvider.findAllEvents(from, to, returnInstances)
     }
 }

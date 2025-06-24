@@ -1,6 +1,7 @@
 package band.effective.office.backend.feature.booking.core.controller
 
 import band.effective.office.backend.core.data.ErrorDto
+import band.effective.office.backend.core.domain.model.User
 import band.effective.office.backend.core.domain.service.UserDomainService
 import band.effective.office.backend.core.domain.service.WorkspaceDomainService
 import band.effective.office.backend.feature.booking.core.dto.BookingDto
@@ -20,6 +21,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.UUID
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -67,9 +70,15 @@ class BookingController(
     )
     fun getBookingById(
         @Parameter(description = "Booking ID", required = true)
-        @PathVariable id: UUID
+        @PathVariable id: String
     ): ResponseEntity<BookingDto> {
-        val booking = bookingService.getBookingById(id)
+        val bookingId = try {
+            UUID.fromString(id)
+        } catch (e: IllegalArgumentException) {
+            throw BookingNotFoundException("Invalid booking ID format: $id , error:${e.message}")
+        }
+
+        val booking = bookingService.getBookingById(bookingId)
             ?: throw BookingNotFoundException("Booking with ID $id not found")
 
         return ResponseEntity.ok(BookingDto.fromDomain(booking))
@@ -82,43 +91,68 @@ class BookingController(
      * @param workspaceId filter by workspace ID
      * @param from start of the time range
      * @param to end of the time range
+     * @param returnInstances whether to return recurring bookings as non-recurrent instances
      * @return list of bookings matching the filters
      */
     @GetMapping
     @Operation(
         summary = "Get all bookings",
-        description = "Returns a list of bookings with optional filters",
+        description = "Returns a list of bookings with optional filters. If not specified, the time range defaults to today.",
         security = [SecurityRequirement(name = "bearerAuth")]
     )
     @ApiResponse(responseCode = "200", description = "Successfully retrieved bookings")
     fun getBookings(
         @Parameter(description = "Filter by user ID")
-        @RequestParam(required = false) userId: UUID?,
-
+        @RequestParam(required = false) userId: String?,
         @Parameter(description = "Filter by workspace ID")
-        @RequestParam(required = false) workspaceId: UUID?,
-
-        @Parameter(description = "Start of the time range", example = "2023-01-01T00:00:00Z")
-        @RequestParam(required = true) from: Instant,
-
-        @Parameter(description = "End of the time range", example = "2023-01-31T23:59:59Z")
-        @RequestParam(required = false) to: Instant?
+        @RequestParam(required = false) workspaceId: String?,
+        @Parameter(description = "Start of the time range in milliseconds since epoch", example = "1672531200000")
+        @RequestParam(required = false) from: Long? = null,
+        @Parameter(description = "End of the time range in milliseconds since epoch", example = "1675209599000")
+        @RequestParam(required = false) to: Long? = null,
+        @Parameter(description = "Whether to return recurring bookings as non-recurrent instances", example = "true")
+        @RequestParam(required = false, defaultValue = "true") returnInstances: Boolean
     ): ResponseEntity<List<BookingDto>> {
+        // Convert String IDs to UUIDs if provided
+        val userUuid = userId?.let {
+            runCatching { UUID.fromString(userId) }.getOrNull()
+                ?: throw UserNotFoundException("Invalid username ID format: $it")
+        }
+
+        val workspaceUuid = workspaceId?.let {
+            runCatching { UUID.fromString(workspaceId) }.getOrNull()
+                ?: throw WorkspaceNotFoundException("Invalid workspace ID format: $it")
+        }
+
+        // If from is not provided, default to the start of today
+        val effectiveFrom = from?.let { Instant.ofEpochMilli(it) }
+            ?: LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()
+
+        // If to is not provided, default to the end of today
+        val effectiveTo = to?.let { Instant.ofEpochMilli(it) }
+            ?: LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).minusSeconds(1).toInstant()
+
         val bookings = when {
-            userId != null && workspaceId != null -> {
-                bookingService.getBookingsByUserAndWorkspace(userId, workspaceId, from, to)
+            userUuid != null && workspaceUuid != null -> {
+                bookingService.getBookingsByUserAndWorkspace(
+                    userUuid,
+                    workspaceUuid,
+                    effectiveFrom,
+                    effectiveTo,
+                    returnInstances
+                )
             }
 
-            userId != null -> {
-                bookingService.getBookingsByUser(userId, from, to)
+            userUuid != null -> {
+                bookingService.getBookingsByUser(userUuid, effectiveFrom, effectiveTo, returnInstances)
             }
 
-            workspaceId != null -> {
-                bookingService.getBookingsByWorkspace(workspaceId, from, to)
+            workspaceUuid != null -> {
+                bookingService.getBookingsByWorkspace(workspaceUuid, effectiveFrom, effectiveTo, returnInstances)
             }
 
             else -> {
-                bookingService.getAllBookings(from, to)
+                bookingService.getAllBookings(effectiveFrom, effectiveTo, returnInstances)
             }
         }
 
@@ -158,20 +192,43 @@ class BookingController(
         @Parameter(description = "Booking data", required = true)
         @Valid @RequestBody createBookingDto: CreateBookingDto
     ): ResponseEntity<BookingDto> {
-        // Get the owner user
-        val owner = userService.findById(createBookingDto.ownerId)
-            ?: throw UserNotFoundException("Owner with ID ${createBookingDto.ownerId} not found")
-
-        // Get the participants
-        val participants = createBookingDto.participantIds.map { userId ->
-            userService.findById(userId)
-                ?: throw UserNotFoundException("Participant with ID $userId not found")
+        // Get the owner user by email if provided, otherwise create a system user
+        val owner = if (createBookingDto.ownerEmail != null) {
+            userService.findByEmail(createBookingDto.ownerEmail)
+                ?: throw UserNotFoundException("Owner with email ${createBookingDto.ownerEmail} not found")
+        } else {
+            // Create a system user as the owner
+            User(
+                id = UUID.randomUUID(),
+                username = "system",
+                email = "system@example.com",
+                firstName = "System",
+                lastName = "User"
+            )
         }
 
-        val workspace = workspaceService.findById(createBookingDto.workspaceId)
+        // Get the participants by email
+        val participants = createBookingDto.participantEmails.mapNotNull { email ->
+            userService.findByEmail(email)
+                ?: run {
+                    // Log warning but don't fail if participant not found
+                    println("Warning: Participant with email $email not found")
+                    null
+                }
+        }
+
+        // Convert workspaceId from String to UUID
+        val workspaceUuid = try {
+            UUID.fromString(createBookingDto.workspaceId)
+        } catch (e: IllegalArgumentException) {
+            throw WorkspaceNotFoundException("Invalid workspace ID format: ${createBookingDto.workspaceId}")
+        }
+
+        val workspace = workspaceService.findById(workspaceUuid)
             ?: throw WorkspaceNotFoundException("Workspace with ID ${createBookingDto.workspaceId} not found")
 
-        if (createBookingDto.beginBooking.isAfter(createBookingDto.endBooking)) {
+        // Compare timestamps
+        if (createBookingDto.beginBooking >= createBookingDto.endBooking) {
             throw InvalidTimeRangeException()
         }
 
@@ -214,19 +271,25 @@ class BookingController(
     )
     fun updateBooking(
         @Parameter(description = "Booking ID", required = true)
-        @PathVariable id: UUID,
+        @PathVariable id: String,
 
         @Parameter(description = "Updated booking data", required = true)
         @Valid @RequestBody updateBookingDto: UpdateBookingDto
     ): ResponseEntity<BookingDto> {
-        // Get the existing booking
-        val existingBooking = bookingService.getBookingById(id)
+        val bookingId = runCatching { UUID.fromString(id) }.getOrNull()
+            ?: throw BookingNotFoundException("Invalid booking ID format: $id")
+
+        val existingBooking = bookingService.getBookingById(bookingId)
             ?: throw BookingNotFoundException("Booking with ID $id not found")
 
-        // Get the participants
-        val participants = updateBookingDto.participantIds.map { userId ->
-            userService.findById(userId)
-                ?: throw UserNotFoundException("Participant with ID $userId not found")
+        // Get the participants by email
+        val participants = updateBookingDto.participantEmails.mapNotNull { email ->
+            userService.findByEmail(email)
+                ?: run {
+                    // Log warning but don't fail if participant not found
+                    println("Warning: Participant with email $email not found")
+                    null
+                }
         }
 
         // Convert DTO to a domain model and update the booking
@@ -257,9 +320,12 @@ class BookingController(
     )
     fun deleteBooking(
         @Parameter(description = "Booking ID", required = true)
-        @PathVariable id: UUID
+        @PathVariable id: String
     ): ResponseEntity<Void> {
-        val booking = bookingService.getBookingById(id)
+        val bookingId = runCatching { UUID.fromString(id) }.getOrNull()
+            ?: throw BookingNotFoundException("Invalid booking ID format: $id")
+
+        val booking = bookingService.getBookingById(bookingId)
             ?: throw BookingNotFoundException("Booking with ID $id not found")
 
         bookingService.deleteBooking(booking)

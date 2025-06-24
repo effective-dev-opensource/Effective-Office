@@ -7,6 +7,13 @@ import java.util.UUID
 
 /**
  * Represents a booking of a workspace.
+ * 
+ * A booking is created by a user (owner) for a specific workspace and time period.
+ * It can optionally have participants, a recurrence pattern, and an external event ID
+ * from a calendar provider.
+ * 
+ * For recurring bookings, the recurringBookingId field links individual booking instances
+ * to their parent recurring booking.
  */
 data class Booking(
     val id: UUID = UUID.randomUUID(),
@@ -16,5 +23,6 @@ data class Booking(
     val beginBooking: Instant,
     val endBooking: Instant,
     val recurrence: RecurrenceModel? = null,
-    val externalEventId: String? = null // ID returned by the calendar provider
+    val externalEventId: String? = null, // ID returned by the calendar provider
+    val recurringBookingId: UUID? = null // ID of the recurring booking this booking belongs to
 )

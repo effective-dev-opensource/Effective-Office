@@ -17,4 +17,12 @@ interface CalendarIdRepository : JpaRepository<CalendarIdEntity, UUID> {
      * @return the calendar ID entity if found, null otherwise
      */
     fun findByWorkspaceId(workspaceId: UUID): CalendarIdEntity?
+
+    /**
+     * Find a calendar ID entity by calendar ID string.
+     *
+     * @param calendarId the calendar ID string to search for
+     * @return the calendar ID entity if found, null otherwise
+     */
+    fun findByCalendarId(calendarId: String): CalendarIdEntity?
 }

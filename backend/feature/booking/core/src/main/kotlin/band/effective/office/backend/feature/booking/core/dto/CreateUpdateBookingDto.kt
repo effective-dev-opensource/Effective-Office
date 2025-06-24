@@ -3,38 +3,33 @@ package band.effective.office.backend.feature.booking.core.dto
 import band.effective.office.backend.core.domain.model.User
 import band.effective.office.backend.core.domain.model.Workspace
 import band.effective.office.backend.feature.booking.core.domain.model.Booking
-import com.fasterxml.jackson.annotation.JsonFormat
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
 import java.time.Instant
-import java.util.UUID
 
 /**
  * Data Transfer Object for creating a new booking.
  */
 @Schema(description = "Data for creating a new booking")
 data class CreateBookingDto(
-    @field:NotNull(message = "Owner ID is required")
-    @Schema(description = "ID of the user creating the booking", example = "123e4567-e89b-12d3-a456-426614174000")
-    val ownerId: UUID,
+    @Schema(description = "Email of the user creating the booking", example = "john.doe@example.com")
+    val ownerEmail: String?,
 
-    @Schema(description = "IDs of users participating in the booking", example = "[\"123e4567-e89b-12d3-a456-426614174000\"]")
-    val participantIds: List<UUID> = emptyList(),
+    @Schema(description = "Emails of users participating in the booking", example = "[\"jane.doe@example.com\"]")
+    val participantEmails: List<String> = emptyList(),
 
     @field:NotNull(message = "Workspace ID is required")
     @Schema(description = "ID of the workspace being booked", example = "123e4567-e89b-12d3-a456-426614174000")
-    val workspaceId: UUID,
+    val workspaceId: String,
 
     @field:NotNull(message = "Begin booking time is required")
-    @Schema(description = "Start time of the booking", example = "2023-01-01T10:00:00Z")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
-    val beginBooking: Instant,
+    @Schema(description = "Start time of the booking in milliseconds since epoch", example = "1672531200000")
+    val beginBooking: Long,
 
     @field:NotNull(message = "End booking time is required")
-    @Schema(description = "End time of the booking", example = "2023-01-01T11:00:00Z")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
-    val endBooking: Instant,
+    @Schema(description = "End time of the booking in milliseconds since epoch", example = "1672534800000")
+    val endBooking: Long,
 
     @Valid
     @Schema(description = "Recurrence pattern for the booking")
@@ -54,8 +49,8 @@ data class CreateBookingDto(
             owner = owner,
             participants = participants,
             workspace = workspace,
-            beginBooking = beginBooking,
-            endBooking = endBooking,
+            beginBooking = Instant.ofEpochMilli(beginBooking),
+            endBooking = Instant.ofEpochMilli(endBooking),
             recurrence = recurrence?.let { RecurrenceDto.toDomain(it) }
         )
     }
@@ -66,16 +61,14 @@ data class CreateBookingDto(
  */
 @Schema(description = "Data for updating an existing booking")
 data class UpdateBookingDto(
-    @Schema(description = "IDs of users participating in the booking", example = "[\"123e4567-e89b-12d3-a456-426614174000\"]")
-    val participantIds: List<UUID> = emptyList(),
+    @Schema(description = "Emails of users participating in the booking", example = "[\"jane.doe@example.com\"]")
+    val participantEmails: List<String> = emptyList(),
 
-    @Schema(description = "Start time of the booking", example = "2023-01-01T10:00:00Z")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
-    val beginBooking: Instant? = null,
+    @Schema(description = "Start time of the booking in milliseconds since epoch", example = "1672531200000")
+    val beginBooking: Long? = null,
 
-    @Schema(description = "End time of the booking", example = "2023-01-01T11:00:00Z")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
-    val endBooking: Instant? = null,
+    @Schema(description = "End time of the booking in milliseconds since epoch", example = "1672534800000")
+    val endBooking: Long? = null,
 
     @Valid
     @Schema(description = "Recurrence pattern for the booking")
@@ -92,8 +85,8 @@ data class UpdateBookingDto(
     ): Booking {
         return existingBooking.copy(
             participants = participants,
-            beginBooking = beginBooking ?: existingBooking.beginBooking,
-            endBooking = endBooking ?: existingBooking.endBooking,
+            beginBooking = beginBooking?.let { Instant.ofEpochMilli(it) } ?: existingBooking.beginBooking,
+            endBooking = endBooking?.let { Instant.ofEpochMilli(it) } ?: existingBooking.endBooking,
             recurrence = recurrence?.let { RecurrenceDto.toDomain(it) } ?: existingBooking.recurrence
         )
     }

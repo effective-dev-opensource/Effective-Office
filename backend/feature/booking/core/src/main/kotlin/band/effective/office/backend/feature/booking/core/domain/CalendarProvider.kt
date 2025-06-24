@@ -38,9 +38,10 @@ interface CalendarProvider {
      * @param workspaceId The ID of the workspace
      * @param from The start of the time range
      * @param to The end of the time range (optional)
+     * @param returnInstances Whether to return recurring bookings as non-recurrent instances (default: true)
      * @return A list of bookings for the workspace within the time range
      */
-    fun findEventsByWorkspace(workspaceId: UUID, from: Instant, to: Instant? = null): List<Booking>
+    fun findEventsByWorkspace(workspaceId: UUID, from: Instant, to: Instant? = null, returnInstances: Boolean = true): List<Booking>
 
     /**
      * Finds all events for a user within a time range.
@@ -48,9 +49,10 @@ interface CalendarProvider {
      * @param userId The ID of the user
      * @param from The start of the time range
      * @param to The end of the time range (optional)
+     * @param returnInstances Whether to return recurring bookings as non-recurrent instances (default: true)
      * @return A list of bookings for the user within the time range
      */
-    fun findEventsByUser(userId: UUID, from: Instant, to: Instant? = null): List<Booking>
+    fun findEventsByUser(userId: UUID, from: Instant, to: Instant? = null, returnInstances: Boolean = true): List<Booking>
 
     /**
      * Finds an event by its ID.
@@ -65,7 +67,8 @@ interface CalendarProvider {
      *
      * @param from The start of the time range
      * @param to The end of the time range (optional)
+     * @param returnInstances Whether to return recurring bookings as non-recurrent instances (default: true)
      * @return A list of all bookings within the time range
      */
-    fun findAllEvents(from: Instant, to: Instant? = null): List<Booking>
+    fun findAllEvents(from: Instant, to: Instant? = null, returnInstances: Boolean = true): List<Booking>
 }

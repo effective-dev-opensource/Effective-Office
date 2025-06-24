@@ -1,6 +1,7 @@
 package band.effective.office.backend.feature.booking.calendar.google
 
 import band.effective.office.backend.core.domain.model.User
+import band.effective.office.backend.core.domain.model.Workspace
 import band.effective.office.backend.core.domain.service.UserDomainService
 import band.effective.office.backend.core.domain.service.WorkspaceDomainService
 import band.effective.office.backend.feature.booking.core.domain.CalendarProvider
@@ -26,7 +27,6 @@ import org.springframework.stereotype.Component
 @ConditionalOnProperty(name = ["calendar.provider"], havingValue = "google")
 class GoogleCalendarProvider(
     private val calendar: Calendar,
-    private val calendarIdProvider: CalendarIdProvider,
     private val userDomainService: UserDomainService,
     private val workspaceDomainService: WorkspaceDomainService
 ) : CalendarProvider {
@@ -103,38 +103,45 @@ class GoogleCalendarProvider(
         }
     }
 
-    override fun findEventsByWorkspace(workspaceId: UUID, from: Instant, to: Instant?): List<Booking> {
+    override fun findEventsByWorkspace(
+        workspaceId: UUID,
+        from: Instant,
+        to: Instant?,
+        returnInstances: Boolean
+    ): List<Booking> {
         logger.debug(
-            "Finding events for workspace with ID {} from {} to {}",
+            "Finding events for workspace with ID {} from {} to {}, returnInstances: {}",
             workspaceId,
             from,
-            to ?: "infinity"
+            to ?: "infinity",
+            returnInstances
         )
 
         val workspaceCalendarId = getCalendarIdByWorkspace(workspaceId)
-        val events = listEvents(workspaceCalendarId, from, to)
+        val events = listEvents(workspaceCalendarId, from, to, returnInstances = returnInstances)
 
         return events.map { convertToBooking(it, workspaceCalendarId) }
     }
 
-    override fun findEventsByUser(userId: UUID, from: Instant, to: Instant?): List<Booking> {
+    override fun findEventsByUser(userId: UUID, from: Instant, to: Instant?, returnInstances: Boolean): List<Booking> {
         logger.debug(
-            "Finding events for user with ID {} from {} to {}",
+            "Finding events for user with ID {} from {} to {}, returnInstances: {}",
             userId,
             from,
-            to ?: "infinity"
+            to ?: "infinity",
+            returnInstances
         )
 
         // Get the user's email from the user domain service
         val userEmail = getUserEmailById(userId)
 
         // Get all calendar IDs
-        val calendarIds = calendarIdProvider.getAllCalendarIds()
+        val calendarIds = workspaceDomainService.findAllCalendarIds().map { it.calendarId }
 
         // Query all calendars for events with the user as an attendee or organizer
         val bookings = mutableListOf<Booking>()
         for (calendarId in calendarIds) {
-            val events = listEvents(calendarId, from, to, userEmail)
+            val events = listEvents(calendarId, from, to, userEmail, returnInstances)
             val filteredEvents = events.filter { event ->
                 event.organizer?.email == userEmail ||
                         event.attendees?.any { it.email == userEmail } == true
@@ -150,7 +157,7 @@ class GoogleCalendarProvider(
 
         // Search for events with the booking ID in the description
         // We need to search in all calendars because we don't know which calendar the event is in
-        val calendarIds = calendarIdProvider.getAllCalendarIds()
+        val calendarIds = workspaceDomainService.findAllCalendarIds().map { it.calendarId }
 
         // Search for events with the booking ID in the description
         // We'll search for events in the last year to limit the search
@@ -177,21 +184,22 @@ class GoogleCalendarProvider(
         return null
     }
 
-    override fun findAllEvents(from: Instant, to: Instant?): List<Booking> {
+    override fun findAllEvents(from: Instant, to: Instant?, returnInstances: Boolean): List<Booking> {
         logger.debug(
-            "Finding all events from {} to {}",
+            "Finding all events from {} to {}, returnInstances: {}",
             from,
-            to ?: "infinity"
+            to ?: "infinity",
+            returnInstances
         )
 
         // Get all calendar IDs
-        val calendarIds = calendarIdProvider.getAllCalendarIds()
+        val calendarIds = workspaceDomainService.findAllCalendarIds().map { it.calendarId }
 
         // Query all calendars for events within the time range
         val bookings = mutableListOf<Booking>()
         for (calendarId in calendarIds) {
             try {
-                val events = listEvents(calendarId, from, to)
+                val events = listEvents(calendarId, from, to, returnInstances = returnInstances)
                 logger.debug("findAllEvents -> events: {}", events.map { it.id.toString() })
                 bookings.addAll(events.map { convertToBooking(it, calendarId) })
             } catch (e: Exception) {
@@ -206,17 +214,24 @@ class GoogleCalendarProvider(
 
     private fun getCalendarIdByWorkspace(workspaceId: UUID): String {
         return try {
-            calendarIdProvider.getCalendarIdByWorkspace(workspaceId)
+            val calendarId = workspaceDomainService.findCalendarIdByWorkspaceId(workspaceId)
+            calendarId?.calendarId ?: defaultCalendar
         } catch (e: Exception) {
             logger.warn("Failed to get calendar ID for workspace {}, using default calendar", workspaceId)
             defaultCalendar
         }
     }
 
-    private fun listEvents(calendarId: String, from: Instant, to: Instant?, q: String? = null): List<Event> {
+    private fun listEvents(
+        calendarId: String,
+        from: Instant,
+        to: Instant?,
+        q: String? = null,
+        returnInstances: Boolean = true
+    ): List<Event> {
         val eventsRequest = calendar.events().list(calendarId)
             .setTimeMin(DateTime(from.toEpochMilli()))
-            .setSingleEvents(true)
+            .setSingleEvents(returnInstances)
 
         if (to != null) {
             eventsRequest.timeMax = DateTime(to.toEpochMilli())
@@ -277,15 +292,14 @@ class GoogleCalendarProvider(
             findOrCreateUserByEmail(attendee.email)
         } ?: emptyList()
 
-        // Use the calendar ID (which is the workspace name) to find the workspace
-        // If calendarId is not provided, fall back to extracting from event summary
-        val workspaceName = calendarId ?: event.summary?.substringAfter("Booking: ") ?: "Unknown Workspace"
-
-        // Try to find a workspace with this name
-        // In a real implementation, we might have a more robust way to map events to workspaces
-        val workspace = workspaceDomainService.findAllByTag("meeting")
-            .firstOrNull { it.name == workspaceName }
-            ?: throw IllegalStateException("Workspace with name $workspaceName not found")
+        val workspace: Workspace = if (calendarId != null) {
+            val calendarEntity = workspaceDomainService.findCalendarEntityById(calendarId)
+            if (calendarEntity == null) throw IllegalStateException("CalendarEntity not found for calendar ID: $calendarId")
+            val foundWorkspace = workspaceDomainService.findById(calendarEntity.workspaceId)
+            foundWorkspace ?: throw IllegalStateException("Workspace not found for ID: ${calendarEntity.workspaceId}")
+        } else {
+            throw IllegalStateException("Workspace not found for calendar ID: $calendarId")
+        }
 
         // Extract booking ID from event description or use a random UUID if not found
         val bookingIdStr = event.description?.let {

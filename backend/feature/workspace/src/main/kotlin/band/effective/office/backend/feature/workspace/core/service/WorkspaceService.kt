@@ -62,6 +62,10 @@ class WorkspaceService(
         return calendarIdRepository.findByWorkspaceId(workspaceId)?.let { CalendarIdMapper.toDomain(it) }
     }
 
+    override fun findCalendarEntityById(calendarId: String): CalendarId? {
+        return calendarIdRepository.findByCalendarId(calendarId)?.let { return CalendarIdMapper.toDomain(it) }
+    }
+
     override fun findAllCalendarIds(): List<CalendarId> {
         return calendarIdRepository.findAll().map { CalendarIdMapper.toDomain(it) }
     }

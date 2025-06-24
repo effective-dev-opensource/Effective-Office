@@ -6,21 +6,21 @@ import band.effective.office.backend.core.domain.model.Workspace
 import band.effective.office.backend.core.domain.model.WorkspaceZone
 import band.effective.office.backend.feature.booking.core.domain.model.Booking
 import band.effective.office.backend.feature.booking.core.domain.model.RecurrenceModel
-import com.fasterxml.jackson.annotation.JsonFormat
 import io.swagger.v3.oas.annotations.media.Schema
-import java.time.Instant
-import java.util.UUID
 
 /**
  * Data Transfer Object for a booking.
+ *
+ * This DTO represents a booking of a workspace, including information about the owner,
+ * participants, workspace, time period, and recurrence pattern.
+ *
+ * For recurring bookings, the recurringBookingId field links individual booking instances
+ * to their parent recurring booking.
  */
 @Schema(description = "Booking information")
 data class BookingDto(
-    @Schema(description = "Booking ID", example = "123e4567-e89b-12d3-a456-426614174000")
-    val id: UUID,
-
     @Schema(description = "User who created the booking")
-    val owner: UserDto,
+    val owner: UserDto?,
 
     @Schema(description = "Users participating in the booking")
     val participants: List<UserDto> = emptyList(),
@@ -28,19 +28,20 @@ data class BookingDto(
     @Schema(description = "Workspace being booked")
     val workspace: WorkspaceDto,
 
-    @Schema(description = "Start time of the booking", example = "2023-01-01T10:00:00Z")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
-    val beginBooking: Instant,
+    @Schema(description = "Booking ID", example = "123e4567-e89b-12d3-a456-426614174000")
+    val id: String,
 
-    @Schema(description = "End time of the booking", example = "2023-01-01T11:00:00Z")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
-    val endBooking: Instant,
+    @Schema(description = "Start time of the booking in milliseconds since epoch", example = "1672531200000")
+    val beginBooking: Long,
+
+    @Schema(description = "End time of the booking in milliseconds since epoch", example = "1672534800000")
+    val endBooking: Long,
 
     @Schema(description = "Recurrence pattern for the booking")
     val recurrence: RecurrenceDto? = null,
 
-    @Schema(description = "External event ID from the calendar provider")
-    val externalEventId: String? = null
+    @Schema(description = "ID of the recurring booking this booking belongs to")
+    val recurringBookingId: String? = null
 ) {
     companion object {
         /**
@@ -48,14 +49,14 @@ data class BookingDto(
          */
         fun fromDomain(booking: Booking): BookingDto {
             return BookingDto(
-                id = booking.id,
                 owner = UserDto.fromDomain(booking.owner),
                 participants = booking.participants.map { UserDto.fromDomain(it) },
                 workspace = WorkspaceDto.fromDomain(booking.workspace),
-                beginBooking = booking.beginBooking,
-                endBooking = booking.endBooking,
+                id = booking.id.toString(),
+                beginBooking = booking.beginBooking.toEpochMilli(),
+                endBooking = booking.endBooking.toEpochMilli(),
                 recurrence = booking.recurrence?.let { RecurrenceDto.fromDomain(it) },
-                externalEventId = booking.externalEventId
+                recurringBookingId = booking.recurringBookingId?.toString()
             )
         }
     }
@@ -67,19 +68,28 @@ data class BookingDto(
 @Schema(description = "User information")
 data class UserDto(
     @Schema(description = "User ID", example = "123e4567-e89b-12d3-a456-426614174000")
-    val id: UUID,
+    val id: String,
 
-    @Schema(description = "Username", example = "johndoe")
-    val username: String,
+    @Schema(description = "Full name", example = "John Doe")
+    val fullName: String,
+
+    @Schema(description = "Whether the user is active", example = "true")
+    val active: Boolean,
+
+    @Schema(description = "User role", example = "USER")
+    val role: String,
+
+    @Schema(description = "URL of the user's avatar", example = "https://example.com/avatars/johndoe.png")
+    val avatarUrl: String,
+
+    @Schema(description = "User's integrations")
+    val integrations: List<IntegrationDto>?,
 
     @Schema(description = "Email address", example = "john.doe@example.com")
     val email: String,
 
-    @Schema(description = "First name", example = "John")
-    val firstName: String,
-
-    @Schema(description = "Last name", example = "Doe")
-    val lastName: String
+    @Schema(description = "User tag", example = "developer")
+    val tag: String
 ) {
     companion object {
         /**
@@ -87,15 +97,30 @@ data class UserDto(
          */
         fun fromDomain(user: User): UserDto {
             return UserDto(
-                id = user.id,
-                username = user.username,
+                id = user.id.toString(),
+                fullName = "${user.firstName} ${user.lastName}",
+                active = true, // Assuming all users are active
+                role = "USER", // Default role
+                avatarUrl = "", // Default empty avatar URL
+                integrations = null, // No integrations by default
                 email = user.email,
-                firstName = user.firstName,
-                lastName = user.lastName
+                tag = "" // Default empty tag
             )
         }
     }
 }
+
+/**
+ * Data Transfer Object for an integration.
+ */
+@Schema(description = "Integration information")
+data class IntegrationDto(
+    @Schema(description = "Integration type", example = "GOOGLE")
+    val type: String,
+
+    @Schema(description = "Integration ID", example = "google123")
+    val id: String
+)
 
 /**
  * Data Transfer Object for a workspace in a booking context.
@@ -103,19 +128,22 @@ data class UserDto(
 @Schema(description = "Workspace information")
 data class WorkspaceDto(
     @Schema(description = "Workspace ID", example = "123e4567-e89b-12d3-a456-426614174000")
-    val id: UUID,
+    val id: String,
 
     @Schema(description = "Workspace name", example = "Meeting Room A")
     val name: String,
-
-    @Schema(description = "Workspace tag", example = "meeting")
-    val tag: String,
 
     @Schema(description = "Utilities available in the workspace")
     val utilities: List<UtilityDto> = emptyList(),
 
     @Schema(description = "Zone where the workspace is located")
-    val zone: WorkspaceZoneDto? = null
+    val zone: WorkspaceZoneDto? = null,
+
+    @Schema(description = "Workspace tag", example = "meeting")
+    val tag: String,
+
+    @Schema(description = "Bookings for this workspace")
+    val bookings: List<BookingDto>? = null
 ) {
     companion object {
         /**
@@ -123,11 +151,12 @@ data class WorkspaceDto(
          */
         fun fromDomain(workspace: Workspace): WorkspaceDto {
             return WorkspaceDto(
-                id = workspace.id,
+                id = workspace.id.toString(),
                 name = workspace.name,
-                tag = workspace.tag,
                 utilities = workspace.utilities.map { UtilityDto.fromDomain(it) },
-                zone = workspace.zone?.let { WorkspaceZoneDto.fromDomain(it) }
+                zone = workspace.zone?.let { WorkspaceZoneDto.fromDomain(it) },
+                tag = workspace.tag,
+                bookings = null // No bookings by default
             )
         }
     }
@@ -139,7 +168,7 @@ data class WorkspaceDto(
 @Schema(description = "Utility information")
 data class UtilityDto(
     @Schema(description = "Utility ID", example = "123e4567-e89b-12d3-a456-426614174000")
-    val id: UUID,
+    val id: String,
 
     @Schema(description = "Utility name", example = "Projector")
     val name: String,
@@ -156,7 +185,7 @@ data class UtilityDto(
          */
         fun fromDomain(utility: Utility): UtilityDto {
             return UtilityDto(
-                id = utility.id,
+                id = utility.id.toString(),
                 name = utility.name,
                 iconUrl = utility.iconUrl,
                 count = utility.count
@@ -171,7 +200,7 @@ data class UtilityDto(
 @Schema(description = "Workspace zone information")
 data class WorkspaceZoneDto(
     @Schema(description = "Zone ID", example = "123e4567-e89b-12d3-a456-426614174000")
-    val id: UUID,
+    val id: String,
 
     @Schema(description = "Zone name", example = "Floor 1")
     val name: String
@@ -182,7 +211,7 @@ data class WorkspaceZoneDto(
          */
         fun fromDomain(zone: WorkspaceZone): WorkspaceZoneDto {
             return WorkspaceZoneDto(
-                id = zone.id,
+                id = zone.id.toString(),
                 name = zone.name
             )
         }
