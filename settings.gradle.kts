@@ -1,7 +1,7 @@
 rootProject.name = "effective-office"
 
 pluginManagement {
-
+    includeBuild("build-logic")
     repositories {
         google()
         gradlePluginPortal()
@@ -16,6 +16,7 @@ dependencyResolutionManagement {
         maven(url = "https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven(url = "https://androidx.dev/storage/compose-compiler/repository")
     }
+
 }
 plugins {
     //https://github.com/JetBrains/compose-hot-reload?tab=readme-ov-file#set-up-automatic-provisioning-of-the-jetbrains-runtime-jbr-via-gradle
@@ -39,5 +40,9 @@ include(
     "backend:feature:calendar-subscription",
     "backend:feature:notifications",
 
-    "clients:tablet:composeApp"
+    "clients:tablet:composeApp",
+    "clients:tablet:core:ui",
+    "clients:tablet:core:domain",
+    "clients:tablet:core:data",
+    "clients:tablet:feature:main",
 )

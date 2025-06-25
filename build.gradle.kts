@@ -1,9 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.jetbrains.kotlin.multiplatform").apply(false)
-    id("org.jetbrains.compose").apply(false)
-    id("com.android.application").apply(false)
+    alias(libs.plugins.multiplatform).apply(false)
+    alias(libs.plugins.compose).apply(false)
+    alias(libs.plugins.android.application).apply(false)
     //id("org.jetbrains.kotlin.plugin.serialization").apply(false)
 //    alias(libs.plugins.buildConfig).apply(false)
 }

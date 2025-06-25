@@ -32,6 +32,17 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import band.effective.office.composeapp.generated.resources.IndieFlower_Regular
+import band.effective.office.composeapp.generated.resources.Res
+import band.effective.office.composeapp.generated.resources.cyclone
+import band.effective.office.composeapp.generated.resources.ic_cyclone
+import band.effective.office.composeapp.generated.resources.ic_dark_mode
+import band.effective.office.composeapp.generated.resources.ic_light_mode
+import band.effective.office.composeapp.generated.resources.ic_rotate_right
+import band.effective.office.composeapp.generated.resources.open_github
+import band.effective.office.composeapp.generated.resources.run
+import band.effective.office.composeapp.generated.resources.stop
+import band.effective.office.composeapp.generated.resources.theme
 import band.effective.office.tablet.theme.AppTheme
 import band.effective.office.tablet.theme.LocalThemeIsDark
 import kotlinx.coroutines.isActive
