@@ -35,5 +35,14 @@ class UserEntity(
     val updatedAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(nullable = false)
-    val active: Boolean = true
+    val active: Boolean = true,
+
+    @Column(nullable = false, length = 50)
+    val role: String = "",
+
+    @Column(name = "avatar_url", nullable = false, length = 255)
+    val avatarUrl: String = "",
+
+    @Column(nullable = false, length = 50)
+    val tag: String = ""
 )

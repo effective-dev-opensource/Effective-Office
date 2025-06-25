@@ -27,7 +27,7 @@ class DummyCalendarProvider : CalendarProvider {
         val externalEventId = "dummy-event-${UUID.randomUUID()}"
 
         // Store the booking with the external event ID
-        val bookingWithExternalId = booking.copy(externalEventId = externalEventId)
+        val bookingWithExternalId = booking.copy(id = externalEventId)
         bookings[externalEventId] = bookingWithExternalId
 
         logger.debug("Created dummy event with ID: {}", externalEventId)
@@ -37,8 +37,7 @@ class DummyCalendarProvider : CalendarProvider {
     override fun updateEvent(booking: Booking): Booking {
         logger.debug("Updating dummy event for booking: {}", booking)
 
-        val externalEventId = booking.externalEventId 
-            ?: throw IllegalArgumentException("Booking must have an external event ID to be updated")
+        val externalEventId = booking.id
 
         // Check if the booking exists
         if (!bookings.containsKey(externalEventId)) {
@@ -55,23 +54,23 @@ class DummyCalendarProvider : CalendarProvider {
     override fun deleteEvent(booking: Booking) {
         logger.debug("Deleting dummy event for booking: {}", booking)
 
-        val externalEventId = booking.externalEventId 
-            ?: throw IllegalArgumentException("Booking must have an external event ID to be deleted")
-
+        val externalEventId = booking.id
         // Remove the booking
         bookings.remove(externalEventId)
 
         logger.debug("Deleted dummy event with ID: {}", externalEventId)
     }
 
-    override fun findEventsByWorkspace(workspaceId: UUID, from: Instant, to: Instant?): List<Booking> {
+    override fun findEventsByWorkspace(workspaceId: UUID, from: Instant, to: Instant?, returnInstances: Boolean): List<Booking> {
         logger.debug(
-            "Finding dummy events for workspace with ID {} from {} to {}",
+            "Finding dummy events for workspace with ID {} from {} to {}, returnInstances: {}",
             workspaceId,
             from,
-            to ?: "infinity"
+            to ?: "infinity",
+            returnInstances
         )
 
+        // In this dummy implementation, we don't have recurring events, so returnInstances has no effect
         return bookings.values.filter { booking ->
             booking.workspace.id == workspaceId &&
             booking.beginBooking >= from &&
@@ -79,22 +78,24 @@ class DummyCalendarProvider : CalendarProvider {
         }
     }
 
-    override fun findEventsByUser(userId: UUID, from: Instant, to: Instant?): List<Booking> {
+    override fun findEventsByUser(userId: UUID, from: Instant, to: Instant?, returnInstances: Boolean): List<Booking> {
         logger.debug(
-            "Finding dummy events for user with ID {} from {} to {}",
+            "Finding dummy events for user with ID {} from {} to {}, returnInstances: {}",
             userId,
             from,
-            to ?: "infinity"
+            to ?: "infinity",
+            returnInstances
         )
 
+        // In this dummy implementation, we don't have recurring events, so returnInstances has no effect
         return bookings.values.filter { booking ->
-            (booking.owner.id == userId || booking.participants.any { it.id == userId }) &&
+            (booking.owner?.id == userId || booking.participants.any { it.id == userId }) &&
             booking.beginBooking >= from &&
             (to == null || booking.endBooking <= to)
         }
     }
 
-    override fun findEventById(id: UUID): Booking? {
+    override fun findEventById(id: String): Booking? {
         logger.debug("Finding dummy event with ID {}", id)
 
         // In a real implementation, we would map the booking ID to the external event ID
@@ -102,13 +103,15 @@ class DummyCalendarProvider : CalendarProvider {
         return bookings.values.find { it.id == id }
     }
 
-    override fun findAllEvents(from: Instant, to: Instant?): List<Booking> {
+    override fun findAllEvents(from: Instant, to: Instant?, returnInstances: Boolean): List<Booking> {
         logger.debug(
-            "Finding all dummy events from {} to {}",
+            "Finding all dummy events from {} to {}, returnInstances: {}",
             from,
-            to ?: "infinity"
+            to ?: "infinity",
+            returnInstances
         )
 
+        // In this dummy implementation, we don't have recurring events, so returnInstances has no effect
         return bookings.values.filter { booking ->
             booking.beginBooking >= from &&
             (to == null || booking.endBooking <= to)

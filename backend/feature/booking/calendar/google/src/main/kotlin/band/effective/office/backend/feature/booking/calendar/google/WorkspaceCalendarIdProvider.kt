@@ -42,11 +42,10 @@ class WorkspaceCalendarIdProvider(
             return cachedCalendarId
         }
 
-        // Try to get the workspace from the WorkspaceService
         try {
-            val workspace = workspaceDomainService.findById(workspaceId)
-            if (workspace != null) {
-                val calendarId = workspace.name
+            val foundCalendarId = workspaceDomainService.findCalendarIdByWorkspaceId(workspaceId)
+            if (foundCalendarId != null) {
+                val calendarId = foundCalendarId.calendarId
 
                 // Cache the calendar ID for future use
                 calendarIds[workspaceId] = calendarId
@@ -54,7 +53,7 @@ class WorkspaceCalendarIdProvider(
                 return calendarId
             }
         } catch (e: Exception) {
-            logger.warn("Failed to get workspace with ID {}: {}", workspaceId, e.message)
+            logger.warn("Failed to get calendar ID for workspace with ID {}: {}", workspaceId, e.message)
         }
 
         // If we couldn't get the workspace, or it doesn't have a calendar ID, return the default
@@ -78,7 +77,24 @@ class WorkspaceCalendarIdProvider(
         // Add calendar IDs for all meeting workspaces
         meetingWorkspaces.forEach { workspace ->
             val workspaceId = workspace.id
-            if (!calendarIds.containsKey(workspaceId)) {
+
+            // Skip if we already have this workspace in the cache
+            if (calendarIds.containsKey(workspaceId)) {
+                return@forEach
+            }
+
+            try {
+                // First try to get the calendar ID from the repository
+                val calendarIdObj = workspaceDomainService.findCalendarIdByWorkspaceId(workspaceId)
+                if (calendarIdObj != null) {
+                    calendarIds[workspaceId] = calendarIdObj.calendarId
+                } else {
+                    // If no calendar ID is found, use the workspace name as fallback
+                    calendarIds[workspaceId] = workspace.name
+                }
+            } catch (e: Exception) {
+                logger.warn("Failed to get calendar ID for workspace {}: {}", workspaceId, e.message)
+                // Use workspace name as fallback
                 calendarIds[workspaceId] = workspace.name
             }
         }
