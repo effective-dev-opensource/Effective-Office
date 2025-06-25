@@ -16,6 +16,10 @@ android {
 //        res.srcDirs("src/androidMain/resources")
 //        res.srcDir("build/generated/libres/android/resources")
 //    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
 }
 
 kotlin {
