@@ -66,6 +66,12 @@ koin = "4.1.0"
 multiplatformSettings = "1.3.0"
 buildkonfig = "0.15.1"
 
+## Datetime
+datetime = "0.7.0"
+
+## Decompose
+decompose = "3.3.0"
+
 [libraries]
 # Common
 ## Kotlin
@@ -164,6 +170,13 @@ multiplatformSettings = { module = "com.russhwolf:multiplatform-settings-no-arg"
 
 ## Coroutines
 coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
+
+## Datetime
+kotlinx-datetime = { module="org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
+
+## Decompose
+decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
+decompose-compose-jetbrains = { module = "com.arkivanov.decompose:extensions-compose-jetbrains", version.ref = "decompose" }
 
 [plugins]
 # Common

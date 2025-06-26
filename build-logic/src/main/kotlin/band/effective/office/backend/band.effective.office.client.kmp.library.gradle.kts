@@ -18,6 +18,12 @@ kotlin {
             isStatic = true
         }
     }
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.findLibrary("napier").get())
+        }
+    }
 }
 
 android {

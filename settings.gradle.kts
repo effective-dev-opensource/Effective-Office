@@ -45,4 +45,6 @@ include(
     "clients:tablet:core:domain",
     "clients:tablet:core:data",
     "clients:tablet:feature:main",
+    "clients:tablet:feature:roominfo",
+    "clients:tablet:feature:selectroom",
 )

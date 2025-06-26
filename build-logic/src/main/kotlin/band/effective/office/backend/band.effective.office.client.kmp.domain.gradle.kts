@@ -1,3 +1,4 @@
+import band.effective.office.backend.libs
 import gradle.kotlin.dsl.accessors._628e4eb050456810d51173b39b973811.kotlin
 import gradle.kotlin.dsl.accessors._628e4eb050456810d51173b39b973811.sourceSets
 
@@ -8,7 +9,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            //getLibraryFromLibsToml("kotlinx.datetime")
+            implementation(libs.findLibrary("kotlinx.datetime").get())
         }
     }
 }
