@@ -47,4 +47,5 @@ include(
     "clients:tablet:feature:main",
     "clients:tablet:feature:roominfo",
     "clients:tablet:feature:selectroom",
+    "clients:tablet:feature:settings",
 )

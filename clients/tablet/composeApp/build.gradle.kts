@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose") version "2.1.21"
     id("org.jetbrains.compose")
     id("com.android.application")
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.21"
 }
 
 kotlin {
@@ -28,10 +29,18 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
 
+            implementation(libs.decompose)
+            implementation(libs.decompose.compose.jetbrains)
+
+            implementation(libs.kotlin.coroutines.core)
+
             implementation(project(":clients:tablet:core:data"))
             implementation(project(":clients:tablet:core:domain"))
             implementation(project(":clients:tablet:core:ui"))
             implementation(project(":clients:tablet:feature:main"))
+            implementation(project(":clients:tablet:feature:settings"))
+            implementation(project(":clients:tablet:feature:roominfo"))
+            implementation(project(":clients:tablet:feature:selectroom"))
         }
 
         androidMain.dependencies {

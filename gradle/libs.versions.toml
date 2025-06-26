@@ -71,6 +71,8 @@ datetime = "0.7.0"
 
 ## Decompose
 decompose = "3.3.0"
+essenty = "2.5.0"
+essenty-ios = "0.2.4"
 
 [libraries]
 # Common
@@ -176,7 +178,10 @@ kotlinx-datetime = { module="org.jetbrains.kotlinx:kotlinx-datetime", version.re
 
 ## Decompose
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
-decompose-compose-jetbrains = { module = "com.arkivanov.decompose:extensions-compose-jetbrains", version.ref = "decompose" }
+decompose-compose-jetbrains = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
+essenty-lifecycle = { module = "com.arkivanov.essenty:lifecycle", version.ref = "essenty" }
+essenty-state-keeper = { module = "com.arkivanov.essenty:state-keeper", version.ref = "essenty" }
+essenty-darwin-runtime = { module = "com.arkivanov.parcelize.darwin:runtime", version.ref = "essenty-ios" }
 
 [plugins]
 # Common
