@@ -176,8 +176,11 @@ private fun ProfileEditScreenContent(
                                 text = phoneNumberText.value,
                                 error = isErrorPhone,
                                 visualTransformation = PhoneMaskTransformation,
-                                keyboardType = KeyboardType.Phone,
-                                onValueChange = { phoneNumberText.value = it }
+                            onValueChange = { phoneNumberText.value = it },
+                            filterInput = { newText ->
+                                newText
+                                    .filter { it.isDigit() }
+                                    .take(10)}
                             )
                         }
 
