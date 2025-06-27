@@ -167,6 +167,10 @@ private fun AuthorizationPhoneComponent(
                         AuthorizationPhoneStore.Intent.PhoneNumberChanged(phoneNumber = it)
                     )
                 },
+                filterInput = { newText ->
+                    newText
+                        .filter { it.isDigit() }
+                        .take(10)},
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
