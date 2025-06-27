@@ -44,16 +44,20 @@ fun UserInfoTextField(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     text: String,
     keyboardType: KeyboardType = KeyboardType.Text,
-    onValueChange: (String) -> Unit
+    onValueChange: (String) -> Unit,
+    filterInput: (String) -> String = { it }
 ) {
     var textValue by remember { mutableStateOf(text) }
 
     OutlinedTextField(
         value = textValue,
         modifier = modifier.fillMaxWidth(),
-        onValueChange = {
-            textValue = it
-            onValueChange(it)
+        onValueChange = { input ->
+            val filtered = filterInput(input)
+            if (filtered != textValue) {
+                textValue = filtered
+                onValueChange(filtered)
+            }
         },
         shape = RoundedCornerShape(12.dp),
         singleLine = true,
