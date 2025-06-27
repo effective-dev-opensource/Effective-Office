@@ -40,6 +40,8 @@ include(
     "backend:feature:calendar-subscription",
     "backend:feature:notifications",
 
+    "clients:core:data",
+
     "clients:tablet:composeApp",
     "clients:tablet:core:ui",
     "clients:tablet:core:domain",

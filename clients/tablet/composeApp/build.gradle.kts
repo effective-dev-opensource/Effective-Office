@@ -1,3 +1,4 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
@@ -5,6 +6,7 @@ plugins {
     id("org.jetbrains.compose")
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.21"
+    alias(libs.plugins.buildkonfig)
 }
 
 kotlin {
@@ -34,6 +36,12 @@ kotlin {
 
             implementation(libs.kotlin.coroutines.core)
 
+            implementation(libs.bundles.koin)
+
+            implementation(libs.napier)
+
+            implementation(project(":clients:core:data"))
+
             implementation(project(":clients:tablet:core:data"))
             implementation(project(":clients:tablet:core:domain"))
             implementation(project(":clients:tablet:core:ui"))
@@ -46,6 +54,7 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.uiTooling)
             implementation(libs.androidx.activityCompose)
+            implementation(libs.koin.android)
         }
     }
 }
@@ -63,5 +72,35 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildFeatures {
+            buildConfig = true
+        }
+
+        compileOptions {
+            sourceCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = JavaVersion.VERSION_17
+        }
+    }
+}
+
+val apiUrlRelease: String = gradleLocalProperties(rootDir, providers).getProperty("api.url.release")
+val apiUrlDebug: String = gradleLocalProperties(rootDir, providers).getProperty("api.url.debug")
+
+buildkonfig {
+    packageName = "band.effective.office.tablet"
+    exposeObjectWithName = "BuildKonfig"
+    defaultConfigs {
+        buildConfigField(
+            com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
+            "API_URL_RELEASE",
+            apiUrlRelease,
+        )
+
+        buildConfigField(
+            com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
+            "API_URL_DEBUG",
+            apiUrlDebug,
+        )
     }
 }

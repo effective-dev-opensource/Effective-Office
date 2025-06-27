@@ -39,7 +39,7 @@ googleOAuthClient = "1.33.3"
 # Client
 ## Android
 android-compileSdk = "35"
-android-minSdk = "24"
+android-minSdk = "26"
 android-targetSdk = "35"
 agp = "8.9.3"
 

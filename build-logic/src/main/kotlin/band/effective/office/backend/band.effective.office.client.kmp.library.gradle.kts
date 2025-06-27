@@ -1,5 +1,4 @@
 import band.effective.office.backend.libs
-import gradle.kotlin.dsl.accessors._628e4eb050456810d51173b39b973811.kotlin
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
