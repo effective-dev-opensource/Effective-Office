@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="room_occupancy_date">Занято до ${time}</string>
+    <string name="room_occupancy_time">· До конца ${duration}</string>
+    <string name="free_room_occupancy_date">Свободна до ${time}</string>
+    <string name="free_room_occupancy_time">· До начала ${duration}</string>
+    <string name="stop_meeting_button">Освободить</string>
+    <string name="tv_property">TV</string>
+    <string name="usb_property">USB</string>
+    <string name="electric_socket_property_nominative">Розетка</string>
+    <string name="electric_socket_property_genitive">Розетки</string>
+    <string name="electric_socket_property_plural">Розеток</string>
+    <string name="hour_nominative">час</string>
+    <string name="hour_genitive">часа</string>
+    <string name="hour_plural">часов</string>
+    <string name="minuit_nominative">минута</string>
+    <string name="minuit_genitive">минуты</string>
+    <string name="minuit_plural">минут</string>
+    <string name="booking_view_title">Занять</string>
+    <string name="booking_button_text">Занять ${roomName}</string>
+    <string name="busy_duration_string">До конца</string>
+    <string name="see_free_room">Смотреть другие переговорки</string>
+    <string name="on_today_string">на сегодня</string>
+    <string name="start_date_time">${date} с ${time}</string>
+    <string name="current_length_string">${currentLength} мин</string>
+    <string name="list_organizers_title">Занятое время</string>
+    <string name="event_list_title">Занятое время</string>
+    <string name="no_select_organizer_alert">Выберите организатора</string>
+    <string name="no_correct_time">В это время будет другая бронь</string>
+    <string name="connection_lost">Нет подключения к интернету</string>
+    <string name="disconnect">Нет соединения с сервером</string>
+    <string name="reset">Перезагрузите приложение</string>
+    <string name="reset_button">Перезагрузить приложение</string>
+    <string name="exit">Выход</string>
+    <string name="rooms">Переговорки</string>
+    <string name="choose_room">Выбрать ${nameRoom}</string>
+    <string name="free_now">Сейчас свободна</string>
+    <string name="data_not_upd">Данные брони могут быть неактуальны</string>
+    <string name="fastbooking_button">${time} мин</string>
+    <string name="fastbooking_title">Занять любую переговорку на:</string>
+    <string name="empty_slot">Свободно ${freeTime} мин</string>
+    <string name="event_slot">Занято ${organizer}</string>
+    <string name="multislot">${size} брони</string>
+    <string name="cancel">Отмена</string>
+    <string name="loading_slot">Слот загружается</string>
+    <string name="loading_slot_for_time">Загрузка слота на время: ${start} - ${finish}</string>
+</resources>

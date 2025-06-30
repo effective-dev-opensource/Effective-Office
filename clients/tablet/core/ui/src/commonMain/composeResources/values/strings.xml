@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="disconnect">Нет соединения с сервером</string>
+    <string name="reset">Перезагрузите приложение</string>
+    <string name="reset_button">Перезагрузить приложение</string>
+    <string name="select_date_tine_title">Когда</string>
+    <string name="select_length_title">На сколько</string>
+    <string name="select_organizer_title">Организатор</string>
+    <string name="start_date_time">${date} с ${time}</string>
+    <string name="minus_date_button_string">- 15 мин</string>
+    <string name="plus_date_button_string">+ 30 мин</string>
+    <string name="short_minuets">мин</string>
+    <string name="short_hours">ч</string>
+    <string name="selectbox_organizer_title">Выберите организатора</string>
+    <string name="selectbox_organizer_error">Неверный организатор, попробуйте еще раз</string>
+    <string name="timepicker_view_title"> Занять с </string>
+    <string name="apply_date_time_for_booking"> Подтвердить </string>
+</resources>
