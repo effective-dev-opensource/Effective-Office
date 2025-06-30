@@ -1,6 +1,7 @@
 package band.effective.office.tablet.di
 
-import band.effective.office.client.core.data.di.dataModule
+import band.effective.office.tablet.core.data.di.dataModule
+import band.effective.office.tablet.core.domain.di.domainModule
 import org.koin.core.context.startKoin
 
 class KoinInitializer {
@@ -8,7 +9,8 @@ class KoinInitializer {
         startKoin {
             modules(
                 appModule,
-                dataModule
+                dataModule,
+                domainModule,
             )
         }
     }

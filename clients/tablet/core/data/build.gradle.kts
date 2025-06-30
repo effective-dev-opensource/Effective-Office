@@ -5,6 +5,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":clients:tablet:core:domain"))
             implementation(libs.bundles.koin)
         }
     }

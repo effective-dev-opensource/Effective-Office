@@ -9,6 +9,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(libs.findLibrary("kotlinx.datetime").get())
             implementation(libs.findBundle("ktor.client").get())
             implementation(libs.findLibrary("kotlin.coroutines.core").get())
             implementation(libs.findLibrary("kotlinx.serialization.json").get())

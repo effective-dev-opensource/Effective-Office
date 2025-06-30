@@ -23,6 +23,10 @@ kotlin {
             implementation(libs.findLibrary("napier").get())
         }
     }
+
+    sourceSets.all {
+        languageSettings.optIn("kotlin.time.ExperimentalTime")
+    }
 }
 
 android {

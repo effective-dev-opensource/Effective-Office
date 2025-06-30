@@ -5,11 +5,14 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.0")
+            implementation(libs.kotlinx.datetime)
             implementation(libs.kotlin.coroutines.core)
+            implementation(libs.settings)
+            implementation(libs.bundles.koin)
         }
         androidMain.dependencies {
             implementation(libs.coroutines.android)
+            implementation(libs.koin.android)
         }
     }
 }
