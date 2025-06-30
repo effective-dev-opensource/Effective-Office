@@ -1,10 +1,9 @@
 package band.effective.office.tablet.feature.main
 
 import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-data class State @OptIn(ExperimentalTime::class) constructor(
+data class State(
     val isLoad: Boolean,
     val isData: Boolean,
     val isError: Boolean,
@@ -17,7 +16,6 @@ data class State @OptIn(ExperimentalTime::class) constructor(
     val selectedDate: Instant,
 ) {
     companion object {
-        @OptIn(ExperimentalTime::class)
         val defaultState =
             State(
                 isLoad = true,

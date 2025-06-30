@@ -13,9 +13,9 @@ import band.effective.office.tablet.core.data.repository.LocalEventStoreReposito
 import band.effective.office.tablet.core.data.repository.NetworkEventRepository
 import band.effective.office.tablet.core.data.repository.OrganizerRepositoryImpl
 import band.effective.office.tablet.core.domain.repository.BookingRepository
+import band.effective.office.tablet.core.domain.repository.EventManagerRepository
 import band.effective.office.tablet.core.domain.repository.LocalBookingRepository
 import band.effective.office.tablet.core.domain.repository.OrganizerRepository
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 /**
@@ -29,17 +29,11 @@ val dataModule = module {
     factory { Collector("") }
 
     // API implementations
-    single<BookingApi> {
-        BookingApiImpl(baseUrl = get(named("ApiUrl")))
-    }
+    single<BookingApi> { BookingApiImpl() }
 
-    single<UserApi> {
-        UserApiImpl(baseUrl = get(named("ApiUrl")))
-    }
+    single<UserApi> { UserApiImpl() }
 
-    single<WorkspaceApi> {
-        WorkspaceApiImpl(baseUrl = get(named("ApiUrl")))
-    }
+    single<WorkspaceApi> { WorkspaceApiImpl() }
 
     // Repository implementations
     single<OrganizerRepository> {
@@ -54,7 +48,7 @@ val dataModule = module {
         LocalEventStoreRepository()
     }
 
-    single {
+    single<EventManagerRepository> {
         EventManager(networkEventRepository = get(), localEventStoreRepository = get())
     }
 }

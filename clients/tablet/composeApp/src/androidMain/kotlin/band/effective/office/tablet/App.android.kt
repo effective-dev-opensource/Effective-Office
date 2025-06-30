@@ -11,9 +11,7 @@ class AppActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         val root = RootComponent(componentContext = defaultComponentContext())
-
         setContent { App(root) }
     }
 }

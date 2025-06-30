@@ -1,5 +1,8 @@
 package band.effective.office.tablet.core.domain.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class RoomInfo(
     val name: String,
     val capacity: Int,

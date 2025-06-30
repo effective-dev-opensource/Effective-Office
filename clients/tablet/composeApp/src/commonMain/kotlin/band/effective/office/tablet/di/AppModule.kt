@@ -9,4 +9,7 @@ val appModule = module {
     single(qualifier = named("ApiUrl")) {
         if (isDebug) BuildKonfig.API_URL_DEBUG else BuildKonfig.API_URL_RELEASE
     }
+    single<String>(qualifier = named("ApiKey")) {
+        BuildKonfig.API_KEY
+    }
 }

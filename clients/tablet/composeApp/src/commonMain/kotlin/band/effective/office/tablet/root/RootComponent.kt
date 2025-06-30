@@ -7,6 +7,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.push
+import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
 
@@ -38,7 +39,15 @@ class RootComponent(
         }
 
         is Config.Settings -> {
-            Child.SettingsChild(SettingsComponent(componentContext = componentContext))
+            Child.SettingsChild(SettingsComponent(
+                componentContext = componentContext,
+                onExitApp = {
+                    // TODO
+                },
+                onMainScreen = {
+                    navigation.replaceAll(Config.Main)
+                },
+            ))
         }
     }
 

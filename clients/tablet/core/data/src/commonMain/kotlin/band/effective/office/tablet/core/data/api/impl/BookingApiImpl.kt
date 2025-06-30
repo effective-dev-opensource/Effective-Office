@@ -23,7 +23,6 @@ import kotlinx.serialization.json.Json
  * Implementation of the BookingApi interface
  */
 class BookingApiImpl(
-    private val baseUrl: String,
     private val collector: Collector<String> = Collector("")
 ) : BookingApi {
 
@@ -32,7 +31,7 @@ class BookingApiImpl(
     override suspend fun getBooking(id: String): Either<ErrorResponse, BookingResponseDTO> {
         return when (val result = HttpRequestUtil.request<BookingResponseDTO>(
             client = client,
-            url = "$baseUrl/api/v1/bookings",
+            url = "/api/v1/bookings",
             method = HttpRequestUtil.Method.GET
         ) {
             url {
@@ -51,7 +50,7 @@ class BookingApiImpl(
     ): Either<ErrorResponse, List<BookingResponseDTO>> {
         return when (val result = HttpRequestUtil.request<List<BookingResponseDTO>>(
             client = client,
-            url = "$baseUrl/api/v1/bookings",
+            url = "/api/v1/bookings",
             method = HttpRequestUtil.Method.GET
         ) {
             url {
@@ -72,7 +71,7 @@ class BookingApiImpl(
     ): Either<ErrorResponse, List<BookingResponseDTO>> {
         return when (val result = HttpRequestUtil.request<List<BookingResponseDTO>>(
             client = client,
-            url = "$baseUrl/api/v1/bookings",
+            url = "/api/v1/bookings",
             method = HttpRequestUtil.Method.GET
         ) {
             url {
@@ -93,7 +92,7 @@ class BookingApiImpl(
     override suspend fun createBooking(bookingInfo: BookingRequestDTO): Either<ErrorResponse, BookingResponseDTO> {
         return when (val result = HttpRequestUtil.request<BookingResponseDTO>(
             client = client,
-            url = "$baseUrl/api/v1/bookings",
+            url = "/api/v1/bookings",
             method = HttpRequestUtil.Method.POST
         ) {
             contentType(ContentType.Application.Json)
@@ -110,7 +109,7 @@ class BookingApiImpl(
     ): Either<ErrorResponse, BookingResponseDTO> {
         return when (val result = HttpRequestUtil.request<BookingResponseDTO>(
             client = client,
-            url = "$baseUrl/api/v1/bookings",
+            url = "/api/v1/bookings",
             method = HttpRequestUtil.Method.PUT
         ) {
             url {
@@ -128,7 +127,7 @@ class BookingApiImpl(
     override suspend fun deleteBooking(bookingId: String): Either<ErrorResponse, SuccessResponse> {
         return when (val result = HttpRequestUtil.request<SuccessResponse>(
             client = client,
-            url = "$baseUrl/api/v1/bookings",
+            url = "/api/v1/bookings",
             method = HttpRequestUtil.Method.DELETE
         ) {
             url {
@@ -155,7 +154,7 @@ class BookingApiImpl(
     ): Either<ErrorResponse, List<BookingResponseDTO>> {
         return when (val result = HttpRequestUtil.request<List<BookingResponseDTO>>(
             client = client,
-            url = "$baseUrl/api/v1/bookings",
+            url = "/api/v1/bookings",
             method = HttpRequestUtil.Method.GET
         ) {
             url {

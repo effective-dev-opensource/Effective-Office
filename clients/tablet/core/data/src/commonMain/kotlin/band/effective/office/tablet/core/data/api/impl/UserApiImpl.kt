@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.map
  * Implementation of the UserApi interface
  */
 class UserApiImpl(
-    private val baseUrl: String,
     private val collector: Collector<String> = Collector("")
 ) : UserApi {
 
@@ -29,7 +28,7 @@ class UserApiImpl(
     override suspend fun getUser(id: String): Either<ErrorResponse, UserDTO> {
         return when (val result = HttpRequestUtil.request<UserDTO>(
             client = client,
-            url = "$baseUrl/api/v1/users",
+            url = "/api/v1/users",
             method = HttpRequestUtil.Method.GET
         ) {
             url {
@@ -44,7 +43,7 @@ class UserApiImpl(
     override suspend fun getUsers(tag: String): Either<ErrorResponse, List<UserDTO>> {
         return when (val result = HttpRequestUtil.request<List<UserDTO>>(
             client = client,
-            url = "$baseUrl/api/v1/users",
+            url = "/api/v1/users",
             method = HttpRequestUtil.Method.GET
         ) {
             url {
@@ -59,7 +58,7 @@ class UserApiImpl(
     override suspend fun updateUser(user: UserDTO): Either<ErrorResponse, UserDTO> {
         return when (val result = HttpRequestUtil.request<UserDTO>(
             client = client,
-            url = "$baseUrl/api/v1/users",
+            url = "/api/v1/users",
             method = HttpRequestUtil.Method.PUT
         ) {
             contentType(ContentType.Application.Json)
@@ -76,7 +75,7 @@ class UserApiImpl(
     override suspend fun getUserByEmail(email: String): Either<ErrorResponse, UserDTO> {
         return when (val result = HttpRequestUtil.request<UserDTO>(
             client = client,
-            url = "$baseUrl/api/v1/users",
+            url = "/api/v1/users",
             method = HttpRequestUtil.Method.GET
         ) {
             url {

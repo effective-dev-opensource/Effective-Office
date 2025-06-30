@@ -8,7 +8,7 @@ import band.effective.office.tablet.core.domain.model.RoomInfo
 import kotlinx.coroutines.flow.Flow
 
 interface EventManagerRepository {
-    fun getEventsFlow(): Flow<List<RoomInfo>>
+    fun getEventsFlow(): Flow<Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>>>
     suspend fun refreshData(): Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>>
     suspend fun createBooking(roomName: String, eventInfo: EventInfo): Either<ErrorResponse, EventInfo>
     suspend fun updateBooking(roomName: String, eventInfo: EventInfo): Either<ErrorResponse, EventInfo>

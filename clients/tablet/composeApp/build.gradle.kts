@@ -40,6 +40,7 @@ kotlin {
 
             implementation(libs.napier)
 
+            implementation(libs.settings)
 
             implementation(project(":clients:tablet:core:ui"))
             implementation(project(":clients:tablet:feature:main"))
@@ -50,11 +51,11 @@ kotlin {
             implementation(project(":clients:tablet:core:data"))
             implementation(project(":clients:tablet:core:domain"))
         }
-
         androidMain.dependencies {
             implementation(compose.uiTooling)
             implementation(libs.androidx.activityCompose)
             implementation(libs.koin.android)
+            implementation("org.slf4j:slf4j-android:1.7.36")
         }
     }
 }
@@ -82,10 +83,17 @@ android {
             targetCompatibility = JavaVersion.VERSION_17
         }
     }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/INDEX.LIST"
+        }
+    }
 }
 
 val apiUrlRelease: String = gradleLocalProperties(rootDir, providers).getProperty("api.url.release")
 val apiUrlDebug: String = gradleLocalProperties(rootDir, providers).getProperty("api.url.debug")
+val apiKey: String = gradleLocalProperties(rootDir, providers).getProperty("apiKey")
 
 buildkonfig {
     packageName = "band.effective.office.tablet"
@@ -101,6 +109,12 @@ buildkonfig {
             com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
             "API_URL_DEBUG",
             apiUrlDebug,
+        )
+
+        buildConfigField(
+            com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
+            "API_KEY",
+            apiKey,
         )
     }
 }

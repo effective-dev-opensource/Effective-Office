@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.map
  * Implementation of the WorkspaceApi interface
  */
 class WorkspaceApiImpl(
-    private val baseUrl: String,
     private val collector: Collector<String> = Collector("")
 ) : WorkspaceApi {
 
@@ -43,7 +42,7 @@ class WorkspaceApiImpl(
     ): Either<ErrorResponse, List<WorkspaceDTO>> {
         return when (val result = HttpRequestUtil.request<List<WorkspaceDTO>>(
             client = client,
-            url = "$baseUrl/api/v1/workspaces",
+            url = "/api/v1/workspaces",
             method = HttpRequestUtil.Method.GET
         ) {
             url {
@@ -69,7 +68,7 @@ class WorkspaceApiImpl(
     ): Either<ErrorResponse, List<WorkspaceDTO>> {
         return when (val result = HttpRequestUtil.request<List<WorkspaceDTO>>(
             client = client,
-            url = "$baseUrl/api/v1/workspaces",
+            url = "/api/v1/workspaces",
             method = HttpRequestUtil.Method.GET
         ) {
             url {
@@ -91,7 +90,7 @@ class WorkspaceApiImpl(
     override suspend fun getZones(): Either<ErrorResponse, List<WorkspaceZoneDTO>> {
         return when (val result = HttpRequestUtil.request<List<WorkspaceZoneDTO>>(
             client = client,
-            url = "$baseUrl/api/v1/workspaces/zones",
+            url = "/api/v1/workspaces/zones",
             method = HttpRequestUtil.Method.GET
         )) {
             is HttpRequestUtil.Result.Success -> Either.Success(result.data)

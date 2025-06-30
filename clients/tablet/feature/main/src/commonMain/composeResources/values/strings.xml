@@ -32,7 +32,6 @@
     <string name="reset">Перезагрузите приложение</string>
     <string name="reset_button">Перезагрузить приложение</string>
     <string name="exit">Выход</string>
-    <string name="rooms">Переговорки</string>
     <string name="choose_room">Выбрать ${nameRoom}</string>
     <string name="free_now">Сейчас свободна</string>
     <string name="data_not_upd">Данные брони могут быть неактуальны</string>

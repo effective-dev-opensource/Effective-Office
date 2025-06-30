@@ -7,6 +7,7 @@ import band.effective.office.tablet.core.domain.map
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.repository.BookingRepository
+import band.effective.office.tablet.core.domain.repository.EventManagerRepository
 import band.effective.office.tablet.core.domain.repository.LocalBookingRepository
 import band.effective.office.tablet.core.domain.unbox
 import kotlinx.coroutines.CoroutineScope
@@ -17,7 +18,7 @@ import kotlinx.coroutines.launch
 class EventManager(
     private val networkEventRepository: BookingRepository,
     private val localEventStoreRepository: LocalBookingRepository
-) {
+) : EventManagerRepository {
     private val scope = CoroutineScope(Dispatchers.IO)
 
     init {
@@ -28,9 +29,9 @@ class EventManager(
         }
     }
 
-    fun getEventsFlow() = localEventStoreRepository.subscribeOnUpdates()
+    override fun getEventsFlow() = localEventStoreRepository.subscribeOnUpdates()
 
-    suspend fun refreshData(): Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>> {
+    override suspend fun refreshData(): Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>> {
         val save = localEventStoreRepository.getRoomsInfo().unbox(
             errorHandler = { it.saveData }
         )
@@ -43,7 +44,7 @@ class EventManager(
         return roomInfos
     }
 
-    suspend fun createBooking(roomName: String, eventInfo: EventInfo): Either<ErrorResponse, EventInfo> {
+    override suspend fun createBooking(roomName: String, eventInfo: EventInfo): Either<ErrorResponse, EventInfo> {
         val loadingEvent = eventInfo.copy(isLoading = true)
         val roomInfo = getRoomByName(roomName)
             ?: return Either.Error(ErrorResponse(404, "Couldn't find a room with name $roomName"))
@@ -63,7 +64,7 @@ class EventManager(
         return response
     }
 
-    suspend fun updateBooking(roomName: String, eventInfo: EventInfo): Either<ErrorResponse, EventInfo> {
+    override suspend fun updateBooking(roomName: String, eventInfo: EventInfo): Either<ErrorResponse, EventInfo> {
         val loadingEvent = eventInfo.copy(isLoading = true)
         val oldEvent = localEventStoreRepository.getBooking(eventInfo) as? Either.Success
             ?: return Either.Error(ErrorResponse(404, "Old event with id ${eventInfo.id} wasn't found"))
@@ -85,7 +86,7 @@ class EventManager(
         return response
     }
 
-    suspend fun deleteBooking(roomName: String, eventInfo: EventInfo): Either<ErrorResponse, String> {
+    override suspend fun deleteBooking(roomName: String, eventInfo: EventInfo): Either<ErrorResponse, String> {
         val loadingEvent = eventInfo.copy(isLoading = true)
         val roomInfo = getRoomByName(roomName)
             ?: return Either.Error(ErrorResponse(404, "Couldn't find a room with name $roomName"))
@@ -103,7 +104,7 @@ class EventManager(
         return response
     }
 
-    suspend fun getRoomsInfo(): Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>> {
+    override suspend fun getRoomsInfo(): Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>> {
         val roomInfos = localEventStoreRepository.getRoomsInfo()
         if (roomInfos as? Either.Error != null
             && roomInfos.error.saveData.isNullOrEmpty()
@@ -113,18 +114,18 @@ class EventManager(
         return roomInfos
     }
 
-    suspend fun getCurrentRoomInfos(): Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>> {
+    override suspend fun getCurrentRoomInfos(): Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>> {
         return localEventStoreRepository.getRoomsInfo()
     }
 
-    suspend fun getRoomNames(): List<String> {
+    override suspend fun getRoomNames(): List<String> {
         val rooms = getRoomsInfo().unbox(
             errorHandler = { it.saveData }
         )
         return rooms?.map { it.name } ?: listOf(RoomInfo.defaultValue.name)
     }
 
-    suspend fun getRoomByName(roomName: String): RoomInfo? {
+    override suspend fun getRoomByName(roomName: String): RoomInfo? {
         val rooms = localEventStoreRepository.getRoomsInfo().unbox(
             errorHandler = { it.saveData }
         )

@@ -4,7 +4,9 @@ import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class EventInfo(
     val startTime: LocalDateTime,
     val finishTime: LocalDateTime,
