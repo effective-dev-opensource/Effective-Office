@@ -12,13 +12,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.ui.common.Disconnect
 import band.effective.office.tablet.core.ui.date.DateTimeView
 import band.effective.office.tablet.feature.main.components.RoomInfoComponent
-import band.effective.office.tablet.feature.main.presentation.slot.State
+import band.effective.office.tablet.feature.main.presentation.slot.SlotComponent
+import band.effective.office.tablet.feature.main.presentation.slot.SlotIntent
 import band.effective.office.tablet.feature.main.presentation.slot.components.SlotView
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -27,7 +30,7 @@ import kotlin.time.Instant
 @OptIn(ExperimentalTime::class)
 @Composable
 fun RoomInfoLeftPanel(
-    slotState: State,
+    slotComponent: SlotComponent,
     selectedDate: Instant,
     onIncrementData: () -> Unit,
     onDecrementData: () -> Unit,
@@ -38,6 +41,7 @@ fun RoomInfoLeftPanel(
     timeToNextEvent: Int,
     isDisconnect: Boolean,
 ) {
+    val slotState by slotComponent.state.collectAsState()
     Box(
         modifier = Modifier
             .fillMaxHeight()
@@ -53,7 +57,7 @@ fun RoomInfoLeftPanel(
                 DateTimeView(
                     modifier = Modifier.padding(
                         start = 30.dp,
-                        top = 50.dp,
+                        top = 30.dp,
                         end = 20.dp,
                         bottom = 0.dp
                     ).height(70.dp),
@@ -68,8 +72,7 @@ fun RoomInfoLeftPanel(
 
             stickyHeader {
                 RoomInfoComponent(
-                    modifier = Modifier
-                        .background(color = MaterialTheme.colorScheme.background),
+                    modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
                     room = roomList[indexSelectRoom],
                     onOpenFreeRoomModalRequest = { onCancelEventRequest() },
                     timeToNextEvent = timeToNextEvent,
@@ -85,20 +88,8 @@ fun RoomInfoLeftPanel(
                 ) {
                     SlotView(
                         slotUi = it,
-                        onClick = {
-                            /*slotComponent.sendIntent( // TODO
-                                SlotStore.Intent.ClickOnSlot(
-                                    this
-                                )
-                            )*/
-                        },
-                        onCancel = {
-                            /*slotComponent.sendIntent( // TODO
-                                SlotStore.Intent.OnCancelDelete(
-                                    it
-                                )
-                            )*/
-                        }
+                        onClick = { slotComponent.sendIntent(SlotIntent.ClickOnSlot(it)) },
+                        onCancel = { deleteSlot -> slotComponent.sendIntent(SlotIntent.OnCancelDelete(deleteSlot)) }
                     )
                 }
                 Spacer(Modifier.height(20.dp))

@@ -63,7 +63,7 @@ fun BusyRoomInfoComponent(
         ) {
             Text(
                 text = stringResource(Res.string.room_occupancy_date, timeFormatter.format(event.finishTime)) +
-                        " " + if (timeToFinish > 0) stringResource(Res.string.room_occupancy_time) else "",
+                        " " + if (timeToFinish > 0) stringResource(Res.string.room_occupancy_time, timeToFinish.getDuration()) else "",
                 style = MaterialTheme.typography.h5,
                 color = roomInfoColor
             )

@@ -1,13 +1,9 @@
 package band.effective.office.tablet.feature.main.presentation.main
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.feature.main.components.uiComponent.FastBookingRightSide
@@ -34,11 +30,10 @@ fun MainScreenView(
     selectedDate: Instant,
     onResetDate: () -> Unit
 ) {
-    val slotState by slotComponent.state.collectAsState()
-    Box(modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.background)) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxSize()) {
             RoomInfoLeftPanel(
-                slotState = slotState,
+                slotComponent = slotComponent,
                 selectedDate = selectedDate,
                 onIncrementData = onIncrementData,
                 onDecrementData = onDecrementData,

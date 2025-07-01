@@ -9,8 +9,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import band.effective.office.tablet.core.ui.common.ErrorMainScreen
 import band.effective.office.tablet.core.ui.LoadMainScreen
+import band.effective.office.tablet.core.ui.common.ErrorMainScreen
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
@@ -18,7 +18,7 @@ import kotlin.time.ExperimentalTime
 fun MainScreen(component: MainComponent) {
     val state by component.state.collectAsState()
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         when {

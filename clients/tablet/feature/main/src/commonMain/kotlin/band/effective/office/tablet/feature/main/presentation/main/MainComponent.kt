@@ -158,7 +158,11 @@ class MainComponent(
     private fun updateSelectDate(intent: Intent.OnUpdateSelectDate) {
         currentTimeTimer.restart()
         currentRoomTimer.restart()
-        val newDate = (state.value.selectedDate.plus(intent.updateInDays.days))
+        val newDate = if(intent.updateInDays < 0) {
+            (state.value.selectedDate.minus(intent.updateInDays.days))
+        } else {
+            state.value.selectedDate.plus(intent.updateInDays.days)
+        }
         mutableState.update { it.copy(selectedDate = newDate) }
         slotComponent.sendIntent(SlotIntent.UpdateDate(newDate.asLocalDateTime))
     }
