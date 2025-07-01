@@ -1,5 +1,7 @@
 package band.effective.office.tablet.feature.main.presentation.main
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -8,9 +10,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.ui.LoadMainScreen
 import band.effective.office.tablet.core.ui.common.ErrorMainScreen
+import band.effective.office.tablet.feature.main.presentation.fastevent.FastEventComponent
+import band.effective.office.tablet.feature.main.presentation.fastevent.FastEventView
+import band.effective.office.tablet.feature.main.presentation.freeuproom.FreeSelectRoomComponent
+import band.effective.office.tablet.feature.main.presentation.freeuproom.FreeSelectRoomView
+import band.effective.office.tablet.feature.main.presentation.updateEvent.UpdateEventComponent
+import band.effective.office.tablet.feature.main.presentation.updateEvent.UpdateEventView
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
@@ -51,7 +61,7 @@ fun MainScreen(component: MainComponent) {
         }
     }
 
-    /*val activeWindowSlot by component.modalWindowSlot.subscribeAsState()
+    val activeWindowSlot by component.modalWindowSlot.subscribeAsState()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -62,9 +72,9 @@ fun MainScreen(component: MainComponent) {
             )
     ) {
         when (val activeComponent = activeWindowSlot.child?.instance) {
-            /*is FreeSelectRoomComponent -> FreeSelectRoomView(freeSelectRoomComponent = activeComponent)
+            is FreeSelectRoomComponent -> FreeSelectRoomView(freeSelectRoomComponent = activeComponent)
             is UpdateEventComponent -> UpdateEventView(component = activeComponent)
-            is FastEventComponent -> FastEventView(component = activeComponent)*/
+            is FastEventComponent -> FastEventView(component = activeComponent)
         }
-    }*/
+    }
 }

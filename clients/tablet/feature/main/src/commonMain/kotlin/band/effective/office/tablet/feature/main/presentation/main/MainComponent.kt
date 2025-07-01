@@ -10,16 +10,26 @@ import band.effective.office.tablet.core.domain.util.BootstrapperTimer
 import band.effective.office.tablet.core.domain.util.asLocalDateTime
 import band.effective.office.tablet.core.domain.util.currentInstant
 import band.effective.office.tablet.core.domain.util.currentLocalDateTime
+import band.effective.office.tablet.core.ui.common.ModalWindow
+import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
+import band.effective.office.tablet.feature.main.domain.FreeUpRoomUseCase
 import band.effective.office.tablet.feature.main.domain.GetRoomIndexUseCase
 import band.effective.office.tablet.feature.main.domain.GetTimeToNextEventUseCase
+import band.effective.office.tablet.feature.main.presentation.fastevent.FastEventComponent
+import band.effective.office.tablet.feature.main.presentation.freeuproom.FreeSelectRoomComponent
+import band.effective.office.tablet.feature.main.presentation.main.navigation.ModalWindowsConfig
 import band.effective.office.tablet.feature.main.presentation.slot.SlotComponent
 import band.effective.office.tablet.feature.main.presentation.slot.SlotIntent
+import band.effective.office.tablet.feature.main.presentation.updateEvent.UpdateEventComponent
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.router.slot.SlotNavigation
+import com.arkivanov.decompose.router.slot.activate
+import com.arkivanov.decompose.router.slot.childSlot
+import com.arkivanov.decompose.router.slot.dismiss
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -42,7 +52,7 @@ class MainComponent(
     val onSettings: () -> Unit
 ) : ComponentContext by componentContext, KoinComponent {
 
-    private val coroutineScope = CoroutineScope(Dispatchers.Main)
+    private val coroutineScope = componentCoroutineScope()
 
     // region: Dependencies
     private val checkSettingsUseCase: CheckSettingsUseCase by inject()
@@ -51,6 +61,7 @@ class MainComponent(
     private val getTimeToNextEventUseCase: GetTimeToNextEventUseCase by inject()
     private val updateUseCase: UpdateUseCase by inject()
     private val timerUseCase: TimerUseCase by inject()
+    private val freeUpRoomUseCase: FreeUpRoomUseCase by inject()
     private val currentTimeTimer = BootstrapperTimer(timerUseCase, coroutineScope)
     private val currentRoomTimer = BootstrapperTimer(timerUseCase, coroutineScope)
     private val errorTimer = BootstrapperTimer(timerUseCase, coroutineScope)
@@ -78,6 +89,12 @@ class MainComponent(
                 )
             )*/
         }
+    )
+    private val navigation = SlotNavigation<ModalWindowsConfig>()
+    val modalWindowSlot = childSlot(
+        source = navigation,
+        childFactory = ::childFactory,
+        serializer = ModalWindowsConfig.serializer(),
     )
 
     init {
@@ -142,7 +159,12 @@ class MainComponent(
         when (intent) {
             is Intent.OnChangeEventRequest -> TODO()
             is Intent.OnFastBooking -> TODO()
-            Intent.OnOpenFreeRoomModal -> TODO()
+            Intent.OnOpenFreeRoomModal -> navigation.activate(
+                ModalWindowsConfig.FreeRoom(
+                    state.value.roomList[state.value.indexSelectRoom].currentEvent!!
+                )
+            )
+
             Intent.OnResetSelectDate -> {
                 slotComponent.sendIntent(SlotIntent.UpdateDate(currentLocalDateTime))
                 mutableState.update { it.copy(selectedDate = currentInstant) }
@@ -155,10 +177,35 @@ class MainComponent(
         }
     }
 
+    private fun childFactory(
+        modalWindows: ModalWindowsConfig,
+        componentContext: ComponentContext
+    ): ModalWindow {
+        return when (modalWindows) {
+            is ModalWindowsConfig.FreeRoom -> FreeSelectRoomComponent(
+                componentContext = componentContext,
+                eventInfo = modalWindows.event,
+                onRemoveEvent = { event ->
+                    coroutineScope.launch {
+                        freeUpRoomUseCase(
+                            roomName = state.value.run { roomList[indexSelectRoom].name },
+                            eventInfo = event
+                        )
+                    }
+                },
+                onCloseRequest = navigation::dismiss,
+            )
+
+            is ModalWindowsConfig.UpdateEvent -> UpdateEventComponent(componentContext = componentContext)
+
+            is ModalWindowsConfig.FastEvent -> FastEventComponent(componentContext = componentContext)
+        }
+    }
+
     private fun updateSelectDate(intent: Intent.OnUpdateSelectDate) {
         currentTimeTimer.restart()
         currentRoomTimer.restart()
-        val newDate = if(intent.updateInDays < 0) {
+        val newDate = if (intent.updateInDays < 0) {
             (state.value.selectedDate.minus(intent.updateInDays.days))
         } else {
             state.value.selectedDate.plus(intent.updateInDays.days)

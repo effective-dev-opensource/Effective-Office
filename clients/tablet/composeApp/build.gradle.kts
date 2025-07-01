@@ -45,8 +45,6 @@ kotlin {
             implementation(project(":clients:tablet:core:ui"))
             implementation(project(":clients:tablet:feature:main"))
             implementation(project(":clients:tablet:feature:settings"))
-            implementation(project(":clients:tablet:feature:roominfo"))
-            implementation(project(":clients:tablet:feature:selectroom"))
 
             implementation(project(":clients:tablet:core:data"))
             implementation(project(":clients:tablet:core:domain"))
