@@ -40,10 +40,10 @@ class SynologyRepositoryImpl : SynologyRepository {
     private suspend fun login() {
         println("login in synology")
         val res = synologyApi.auth(
-                version = 3,
-                method = "login",
-                login = getEnv(SynologySettings.synologyAccount),
-                password = getEnv(SynologySettings.synologyPassword),
+            version = 3,
+            method = "login",
+            login = getEnv(SynologySettings.synologyAccount),
+            password = getEnv(SynologySettings.synologyPassword),
         )
         cookie = ""
         val headersCookie = res.headers().toMultimap()["Set-Cookie"]
@@ -51,35 +51,56 @@ class SynologyRepositoryImpl : SynologyRepository {
     }
 
     private suspend fun getAlbums(): Either<ErrorReason, SynologyAlbumsResponse> =
-            synologyApi.getAlbums(
-                    cookie = cookie.orEmpty(),
-                    version = 2,
-                    method = "list",
-                    offset = 0,
-                    limit = 100
-            )
+        synologyApi.getAlbums(
+            cookie = cookie.orEmpty(),
+            version = 2,
+            method = "list",
+            offset = 0,
+            limit = 100
+        )
 
     private suspend fun uploadPhoto(
-            requestBody: RequestBody
+        filePart: MultipartBody.Part,
+        namePart: RequestBody,
+        dupPart: RequestBody
     ): Either<ErrorReason, UploadPhotoResponse> {
-        return synologyApi.uploadPhotoEither(body = requestBody, cookie = cookie.orEmpty())
+        val response = synologyApi.uploadPhoto(
+            cookie = cookie.orEmpty(),
+            file = filePart,
+            name = namePart,
+            duplicate = dupPart
+        )
+        val bodyString = response.body()?.string()
+
+        if (!response.isSuccessful || bodyString == null) {
+            return Either.Failure(ErrorReason.ServerError("HTTP ${response.code()}"))
+        }
+
+        val uploadResponse = try {
+            moshi.adapter(UploadPhotoResponse::class.java).fromJson(bodyString)
+                ?: return Either.Failure(ErrorReason.ServerError("Empty upload response"))
+        } catch (e: Exception) {
+            return Either.Failure(ErrorReason.ServerError("Parsing error: ${e.message}"))
+        }
+
+        return Either.Success(uploadResponse)
     }
 
     private suspend fun addPhotoToAlbums(
-            albumId: Int,
-            itemId: Int
+        albumId: Int,
+        itemId: Int
     ): Either<ErrorReason, AddPhotoToAlbumResponse> {
         val requestBody = RequestBody.create(
-                MediaType.parse("text/plane"),
-                "api=SYNO.Foto.Browse.NormalAlbum&method=add_item&version=1&item=%5B$itemId%5D&id=$albumId"
+            MediaType.parse("text/plane"),
+            "api=SYNO.Foto.Browse.NormalAlbum&method=add_item&version=1&item=%5B$itemId%5D&id=$albumId"
         )
         return synologyApi.addPhotoToAlbum(request = requestBody, cookie = cookie.orEmpty())
     }
 
     override suspend fun uploadPhotoToAlbum(
-            file: ByteArray,
-            fileName: String,
-            fileType: String
+        file: ByteArray,
+        fileName: String,
+        fileType: String
     ): Either<ErrorReason, UploadPhotoResponse> {
         if (cookie == null) login()
 
@@ -105,31 +126,30 @@ class SynologyRepositoryImpl : SynologyRepository {
                 }
             }
         }
-        val requestBody = setRequestToUpload(file, fileName, fileType)
-        return uploadPhoto(requestBody)
+        val (filePart, namePart, dupPart) = setRequestToUpload(file, fileName, fileType)
+        val uploadResult = uploadPhoto(filePart, namePart, dupPart)
+
+        if (uploadResult is Either.Failure) return uploadResult
+
+        val itemId = (uploadResult as? Either.Success)?.data?.uploadedPhoto?.id
+            ?: return Either.Failure(ErrorReason.ServerError("No item id in upload response"))
+
+        val albumId = currentAlbumId ?: return Either.Failure(ErrorReason.ServerError("No album id"))
+
+        val addResult = addPhotoToAlbums(albumId, itemId)
+        if (addResult is Either.Failure) return addResult
+
+        return uploadResult
     }
 
-    private fun setRequestToUpload(file: ByteArray, fileName: String, fileType: String): RequestBody {
-
-        val reqApi = RequestBody.create(MediaType.parse("text/plain"), "SYNO.Foto.Upload.Item")
-        val reqMethod = RequestBody.create(MediaType.parse("text/plain"), "upload")
-        val reqVersion = RequestBody.create(MediaType.parse("text/plain"), "1")
-        val reqDuplicate = RequestBody.create(MediaType.parse("text/plain"), "\"ignore\"")
-        val reqName = RequestBody.create(MediaType.parse("text/plain"), "\"$fileName\"")
-        val reqAlbumId = RequestBody.create(MediaType.parse("text/plain"), (currentAlbumId ?: 0).toString())
-
-        return MultipartBody.Builder().setType(MultipartBody.FORM)
-                .addFormDataPart("api", null, removeHeaderFromRequestBody(reqApi))
-                .addFormDataPart("method", null, removeHeaderFromRequestBody(reqMethod))
-                .addFormDataPart("version", null, removeHeaderFromRequestBody(reqVersion))
-                .addFormDataPart("file", fileName, removeHeaderFromRequestBody(RequestBody.create(
-                        MediaType.get(fileType),
-                        file
-                )))
-                .addFormDataPart("duplicate", null, removeHeaderFromRequestBody(reqDuplicate))
-                .addFormDataPart("name", null, removeHeaderFromRequestBody(reqName))
-                .addFormDataPart("album_id", null, removeHeaderFromRequestBody(reqAlbumId))
-                .build()
+    private fun setRequestToUpload(file: ByteArray, fileName: String, fileType: String): Triple<MultipartBody.Part, RequestBody, RequestBody> {
+        val filePart = MultipartBody.Part.createFormData(
+            "file", fileName,
+            RequestBody.create(MediaType.parse(fileType), file)
+        )
+        val namePart = RequestBody.create(MediaType.parse("text/plain"), "\"$fileName\"")
+        val dupPart = RequestBody.create(MediaType.parse("text/plain"), "\"ignore\"")
+        return Triple(filePart, namePart, dupPart)
     }
 
 
