@@ -25,7 +25,7 @@ interface SynologyApi {
         @Query("method") method: String,
         @Query("account") login: String,
         @Query("passwd") password: String
-    ): retrofit2.Response<SynologyAuthResponse>
+    ): Response<SynologyAuthResponse>
 
     @GET("/webapi/entry.cgi/SYNO.Foto.Browse.Album?api=SYNO.Foto.Browse.Album")
     suspend fun getAlbums(
@@ -36,14 +36,14 @@ interface SynologyApi {
         @Query("limit") limit: Int
     ): Either<ErrorReason, SynologyAlbumsResponse>
 
-    @POST("/webapi/entry.cgi")
-    @Headers(
-            "X-Requested-With: XMLHttpRequest",
-            "Accept-Encoding: gzip, deflate, br"
-            )
+    @Multipart
+    @POST("/webapi/entry.cgi?api=SYNO.Foto.Upload.Item&method=upload&version=1")
+    @Headers("X-Requested-With: XMLHttpRequest")
     suspend fun uploadPhoto(
-            @Header("Cookie") cookie: String,
-            @Body body: RequestBody
+        @Header("Cookie") cookie: String,
+        @Part file: MultipartBody.Part,
+        @Part("name") name: RequestBody,
+        @Part("duplicate") duplicate: RequestBody
     ): Response<ResponseBody>
 
     @POST("/webapi/entry.cgi")

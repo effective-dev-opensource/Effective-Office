@@ -7,7 +7,7 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class ResponseGetPostsForChannel(
         @Json(name = "has_next")
-        val hasNext: Boolean,
+        val hasNext: Boolean? = null,
         @Json(name = "next_post_id")
         val nextPostId: String,
         @Json(name = "order")
