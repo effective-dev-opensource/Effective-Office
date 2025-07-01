@@ -158,7 +158,15 @@ class MainComponent(
     fun sendIntent(intent: Intent) {
         when (intent) {
             is Intent.OnChangeEventRequest -> TODO()
-            is Intent.OnFastBooking -> TODO()
+            is Intent.OnFastBooking ->
+                navigation.activate(
+                    ModalWindowsConfig.FastEvent(
+                        minEventDuration = intent.minDuration,
+                        selectedRoom = state.value.run { roomList[indexSelectRoom] },
+                        rooms = state.value.run { roomList }
+                    )
+                )
+
             Intent.OnOpenFreeRoomModal -> navigation.activate(
                 ModalWindowsConfig.FreeRoom(
                     state.value.roomList[state.value.indexSelectRoom].currentEvent!!
@@ -198,7 +206,13 @@ class MainComponent(
 
             is ModalWindowsConfig.UpdateEvent -> UpdateEventComponent(componentContext = componentContext)
 
-            is ModalWindowsConfig.FastEvent -> FastEventComponent(componentContext = componentContext)
+            is ModalWindowsConfig.FastEvent -> FastEventComponent(
+                componentContext = componentContext,
+                minEventDuration = modalWindows.minEventDuration,
+                selectedRoom = modalWindows.selectedRoom,
+                rooms = modalWindows.rooms,
+                onCloseRequest = navigation::dismiss,
+            )
         }
     }
 

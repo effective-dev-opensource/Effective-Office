@@ -1,9 +1,11 @@
 package band.effective.office.tablet.feature.main.di
 
+import band.effective.office.tablet.feature.main.domain.CreateFastBookingUseCase
 import band.effective.office.tablet.feature.main.domain.FreeUpRoomUseCase
 import band.effective.office.tablet.feature.main.domain.GetRoomIndexUseCase
 import band.effective.office.tablet.feature.main.domain.GetSlotsByRoomUseCase
 import band.effective.office.tablet.feature.main.domain.GetTimeToNextEventUseCase
+import band.effective.office.tablet.feature.main.domain.RemoveFastBookingUseCase
 import band.effective.office.tablet.feature.main.domain.mapper.SlotUiMapper
 import org.koin.dsl.module
 
@@ -12,6 +14,8 @@ val mainScreenModule = module {
     single { GetTimeToNextEventUseCase() }
     single { GetSlotsByRoomUseCase(get()) }
     single { FreeUpRoomUseCase(get()) }
+    single { CreateFastBookingUseCase(get()) }
+    single { RemoveFastBookingUseCase(get()) }
 
     single { SlotUiMapper() }
 }

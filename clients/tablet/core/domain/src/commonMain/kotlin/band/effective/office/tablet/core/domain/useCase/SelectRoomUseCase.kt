@@ -1,6 +1,8 @@
 package band.effective.office.tablet.core.domain.useCase
 
 import band.effective.office.tablet.core.domain.model.RoomInfo
+import band.effective.office.tablet.core.domain.util.asInstant
+import band.effective.office.tablet.core.domain.util.currentInstant
 import kotlin.math.absoluteValue
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -66,9 +68,8 @@ open class SelectRoomUseCase(
         if (currentEvent != null) return false
         if (eventList.isEmpty()) return true
 
-        val now = clock.now()
-        val target = now + duration.minutes
-        val firstEventStart = eventList.first().startTime.toInstant(timeZone)
+        val target = currentInstant + duration.minutes
+        val firstEventStart = eventList.first().startTime.asInstant
         return target < firstEventStart
     }
 }

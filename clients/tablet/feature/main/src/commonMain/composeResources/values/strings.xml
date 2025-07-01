@@ -16,7 +16,7 @@
     <string name="minuit_nominative">минута</string>
     <string name="minuit_genitive">минуты</string>
     <string name="minuit_plural">минут</string>
-    <string name="booking_view_title">Занять</string>
+    <string name="change_booking_view_title">Занять</string>
     <string name="booking_button_text">Занять %1$s</string>
     <string name="busy_duration_string">До конца</string>
     <string name="see_free_room">Смотреть другие переговорки</string>
@@ -57,10 +57,8 @@
     <string name="date_booking">%1$s, %2$s — %3$s</string>
     <string name="success_text">Вы заняли %1$s</string>
     <string name="on_main">На главную</string>
-    <string name="see_free_room">Смотреть другие переговорки</string>
     <string name="failure_text">Вас кто-то опередил</string>
     <string name="select_other_room">Попробуйте занять другую переговорку, либо выберите другое время брони</string>
-    <string name="try_again">Попробовать ещё раз</string>
     <string name="booking_view_title">Измененить бронь</string>
     <string name="create_view_title">Занять %1$s</string>
     <string name="update_button">Изменить</string>
@@ -68,7 +66,6 @@
     <string name="time_booked">Это время уже занято</string>
     <string name="booked_until">Забронирована до %1$s</string>
     <string name="cancel_book">Отменить бронь</string>
+    <string name="find_quiet_place">Через %1$s мин освободится %2$s. Пока что попробуйте найти тихое место в офисе</string>
     <string name="no_free">Свободных нет</string>
-    <string name="find_quiet_place">Через %1$s мин освободится %2$s. Пока что попробуйте найти тихое место в офисе
-    </string>
 </resources>

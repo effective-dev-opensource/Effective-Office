@@ -134,7 +134,7 @@ class BookingApiImpl(
                 appendPathSegments(bookingId)
             }
         }) {
-            is HttpRequestUtil.Result.Success -> Either.Success(result.data)
+            is HttpRequestUtil.Result.Success -> Either.Success(SuccessResponse(true))
             is HttpRequestUtil.Result.Error -> Either.Error(ErrorResponse(result.code, result.message))
         }
     }
