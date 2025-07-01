@@ -1,6 +1,6 @@
 package band.effective.office.tablet.root
 
-import band.effective.office.tablet.feature.main.MainComponent
+import band.effective.office.tablet.feature.main.presentation.main.MainComponent
 import band.effective.office.tablet.feature.settings.SettingsComponent
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack

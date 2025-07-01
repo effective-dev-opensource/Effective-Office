@@ -25,21 +25,18 @@ class RoomInfoUseCase(
     suspend fun updateCache() = eventManager.refreshData()
 
     /** Get info about all rooms (filtered by future events) */
-    suspend operator fun invoke() {
-        eventManager.getRoomsInfo()
-            .map(
-                errorMapper = { it },
-                successMapper = {
-                    val now = clock.now()
-                    it.map { room ->
-                        room.copy(eventList = room.eventList.filter { event ->
-                            event.startTime.toInstant(timeZone) > now
-                        })
-                    }
+    suspend operator fun invoke() = eventManager.getRoomsInfo()
+        .map(
+            errorMapper = { it },
+            successMapper = {
+                val now = clock.now()
+                it.map { room ->
+                    room.copy(eventList = room.eventList.filter { event ->
+                        event.startTime.toInstant(timeZone) > now
+                    })
                 }
-            )
-
-    }
+            }
+        )
 
     /** Get updated room flow (filtered by future events) */
     fun subscribe() =

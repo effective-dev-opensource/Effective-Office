@@ -15,4 +15,5 @@
     <string name="selectbox_organizer_error">Неверный организатор, попробуйте еще раз</string>
     <string name="timepicker_view_title"> Занять с </string>
     <string name="apply_date_time_for_booking"> Подтвердить </string>
+    <string name="connection_lost">Нет подключения к интернету</string>
 </resources>

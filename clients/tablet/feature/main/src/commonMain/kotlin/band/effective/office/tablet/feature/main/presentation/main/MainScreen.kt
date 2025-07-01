@@ -1,7 +1,5 @@
-package band.effective.office.tablet.feature.main
+package band.effective.office.tablet.feature.main.presentation.main
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -10,11 +8,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.ui.common.ErrorMainScreen
 import band.effective.office.tablet.core.ui.LoadMainScreen
-import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
@@ -32,6 +28,7 @@ fun MainScreen(component: MainComponent) {
 
             state.isData -> {
                 MainScreenView(
+                    slotComponent = component.slotComponent,
                     isDisconnect = state.isDisconnect,
                     roomList = state.roomList,
                     indexSelectRoom = state.indexSelectRoom,
@@ -43,7 +40,8 @@ fun MainScreen(component: MainComponent) {
                     onIncrementData = { component.sendIntent(Intent.OnUpdateSelectDate(updateInDays = 1)) },
                     onDecrementData = { component.sendIntent(Intent.OnUpdateSelectDate(updateInDays = -1)) },
                     selectedDate = state.selectedDate,
-                    onResetDate = { component.sendIntent(Intent.OnResetSelectDate) }
+                    onResetDate = { component.sendIntent(Intent.OnResetSelectDate) },
+                    onOpenDateTimePickerModalRequest = {}, // TODO
                 )
             }
 
@@ -53,7 +51,7 @@ fun MainScreen(component: MainComponent) {
         }
     }
 
-    val activeWindowSlot by component.modalWindowSlot.subscribeAsState()
+    /*val activeWindowSlot by component.modalWindowSlot.subscribeAsState()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -68,5 +66,5 @@ fun MainScreen(component: MainComponent) {
             is UpdateEventComponent -> UpdateEventView(component = activeComponent)
             is FastEventComponent -> FastEventView(component = activeComponent)*/
         }
-    }
+    }*/
 }

@@ -1,4 +1,4 @@
-package band.effective.office.tablet.feature.main
+package band.effective.office.tablet.feature.main.presentation.main
 
 sealed interface Intent {
     object OnOpenFreeRoomModal : Intent

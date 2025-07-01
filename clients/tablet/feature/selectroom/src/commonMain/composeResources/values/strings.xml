@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="booking_time_button">Занять c ${startTime} до ${finishTime}</string>
+    <string name="booking_time">с ${startTime} до ${finishTime}</string>
+    <string name="title_booking_dialog">Занять ${nameRoom}?</string>
+    <string name="whenEvent">Когда</string>
+    <string name="how_much">На сколько</string>
+    <string name="organizer">Организатор</string>
+    <string name="minutes">${minutes} мин</string>
+    <string name="hours_minutes">${hours}ч ${minutes}мин</string>
+    <string name="free_select_room">Освободить переговорку?</string>
+    <string name="free_select_room_button">Освободить</string>
+    <string name="date_booking">${startTimeDate}, ${startTime} — ${finishTime}</string>
+    <string name="success_text">Вы заняли ${nameRoom}</string>
+    <string name="on_main">На главную</string>
+    <string name="see_free_room">Смотреть другие переговорки</string>
+    <string name="failure_text">Вас кто-то опередил</string>
+    <string name="select_other_room">Попробуйте занять другую переговорку, либо выберите другое время брони</string>
+    <string name="try_again">Попробовать ещё раз</string>
+    <string name="booking_view_title">Измененить бронь</string>
+    <string name="create_view_title">Занять ${room}</string>
+    <string name="update_button">Изменить</string>
+    <string name="delete_button">Удалить бронь</string>
+    <string name="time_booked">Это время уже занято</string>
+    <string name="booked_until">Забронирована до ${finishTime}</string>
+    <string name="cancel_book">Отменить бронь</string>
+    <string name="no_free">Свободных нет</string>
+    <string name="find_quiet_place">Через ${minutes} мин освободится ${room}. Пока что попробуйте найти тихое место в офисе</string>
+</resources>
