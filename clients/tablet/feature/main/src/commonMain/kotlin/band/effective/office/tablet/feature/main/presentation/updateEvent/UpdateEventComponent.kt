@@ -22,6 +22,9 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -233,7 +236,9 @@ class UpdateEventComponent(
 
     private fun createEvent() = scope.launch {
         val event = stateToEventInfoMapper.map(state.value)
-        createBookingUseCase(roomName = room, eventInfo = event)
+        CoroutineScope(Dispatchers.IO).launch {
+            createBookingUseCase(roomName = room, eventInfo = event)
+        }
         onCloseRequest()
     }
 

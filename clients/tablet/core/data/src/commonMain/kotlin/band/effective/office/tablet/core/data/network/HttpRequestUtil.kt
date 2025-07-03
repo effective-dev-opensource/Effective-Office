@@ -1,5 +1,6 @@
 package band.effective.office.tablet.core.data.network
 
+import band.effective.office.tablet.core.data.dto.SuccessResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
@@ -8,6 +9,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -59,7 +61,24 @@ object HttpRequestUtil {
             }
 
             if (response.status.value in 200..299) {
-                Result.Success(response.body())
+                // For status codes 204 (No Content) and 201 (Created) where body might be empty
+                if (response.status == HttpStatusCode.NoContent || response.status == HttpStatusCode.Created) {
+                    // If T is SuccessResponse, return it directly
+                    if (T::class == SuccessResponse::class) {
+                        @Suppress("UNCHECKED_CAST")
+                        Result.Success(SuccessResponse(true) as T)
+                    } else {
+                        // Try to parse body, fallback to SuccessResponse if it fails
+                        try {
+                            Result.Success(response.body())
+                        } catch (e: Exception) {
+                            @Suppress("UNCHECKED_CAST")
+                            Result.Success(SuccessResponse(true) as T)
+                        }
+                    }
+                } else {
+                    Result.Success(response.body())
+                }
             } else {
                 Result.Error(response.status.value, "HTTP error: ${response.status.value}")
             }

@@ -28,10 +28,12 @@ import com.arkivanov.decompose.router.slot.SlotNavigation
 import com.arkivanov.decompose.router.slot.activate
 import com.arkivanov.decompose.router.slot.childSlot
 import com.arkivanov.decompose.router.slot.dismiss
+import io.github.aakira.napier.Napier
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -127,7 +129,7 @@ class MainComponent(
             }
         }
         // update events list
-        coroutineScope.launch(Dispatchers.Main) {
+        CoroutineScope(Dispatchers.Main).launch() {
             roomInfoUseCase.subscribe().collect { roomsInfo ->
                 if (roomsInfo.isNotEmpty())
                     reboot(resetSelectRoom = false)
@@ -319,7 +321,7 @@ class MainComponent(
         }
     }
 
-    fun reboot(
+    private fun reboot(
         refresh: Boolean = false,
         resetSelectRoom: Boolean = true
     ) = coroutineScope.launch {
@@ -331,6 +333,7 @@ class MainComponent(
                     it.copy(
                         isError = false,
                         isLoad = true,
+                        indexSelectRoom = roomIndex,
                         timeToNextEvent = getTimeToNextEventUseCase(
                             rooms = state.roomList,
                             selectedRoomIndex = state.indexSelectRoom,
@@ -338,11 +341,9 @@ class MainComponent(
                     )
                 }
             }
-
             roomInfoUseCase.updateCache()
-
-
         }
         loadRooms()
+        updateComponents(state.roomList[roomIndex], state.selectedDate.asLocalDateTime)
     }
 }

@@ -23,7 +23,7 @@ import kotlinx.serialization.json.Json
  * Implementation of the BookingApi interface
  */
 class BookingApiImpl(
-    private val collector: Collector<String> = Collector("")
+    private val collector: Collector<String>,
 ) : BookingApi {
 
     private val client = HttpClientProvider.create()

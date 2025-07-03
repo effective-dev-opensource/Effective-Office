@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.map
  * Implementation of the UserApi interface
  */
 class UserApiImpl(
-    private val collector: Collector<String> = Collector("")
+    private val collector: Collector<String>,
 ) : UserApi {
 
     private val client = HttpClientProvider.create()

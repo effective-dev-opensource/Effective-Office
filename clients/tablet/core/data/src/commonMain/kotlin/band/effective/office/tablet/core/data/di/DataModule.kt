@@ -26,14 +26,14 @@ val dataModule = module {
     single { HttpClientProvider }
 
     // Collectors
-    factory { Collector("") }
+    single { Collector("") }
 
     // API implementations
-    single<BookingApi> { BookingApiImpl() }
+    single<BookingApi> { BookingApiImpl(get()) }
 
-    single<UserApi> { UserApiImpl() }
+    single<UserApi> { UserApiImpl(get()) }
 
-    single<WorkspaceApi> { WorkspaceApiImpl() }
+    single<WorkspaceApi> { WorkspaceApiImpl(get()) }
 
     // Repository implementations
     single<OrganizerRepository> {

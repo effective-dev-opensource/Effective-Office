@@ -57,6 +57,30 @@ class SlotComponent(
 
     init {
         setupRoomAvailabilityWatcher()
+        coroutineScope.launch {
+            roomInfoUseCase.getRoom(roomName())?.let { roomInfo ->
+                val uiSlots = getSlotsByRoomUseCase(roomInfo).map(slotUiMapper::map)
+                updateSlots(uiSlots)
+            }
+        }
+        coroutineScope.launch(Dispatchers.IO) {
+            roomInfoUseCase.subscribe().collect { roomsInfo ->
+                val roomInfo = roomsInfo.firstOrNull { it.name == roomName() } ?: return@collect
+                val uiSlots = getSlotsByRoomUseCase(roomInfo).map(slotUiMapper::map)
+                updateSlots(uiSlots)
+            }
+        }
+
+    }
+
+    private suspend fun updateSlots(uiSlots: List<SlotUi>) = withContext(Dispatchers.Main.immediate) {
+        if (uiSlots.isNotEmpty()) {
+            val firstSlotStartInstant = uiSlots.first().slot.start.asInstant
+            val delayDuration = (firstSlotStartInstant - currentInstant) + UPDATE_BEFORE_SLOT_START_MS
+
+            updateTimer.restart(delayDuration)
+            mutableState.update { it.copy(slots = uiSlots) }
+        }
     }
 
     fun sendIntent(intent: SlotIntent) {
@@ -231,13 +255,7 @@ class SlotComponent(
                 val slots = getSlotsByRoomUseCase(roomInfo)
                 val uiSlots = slots.map(slotUiMapper::map)
 
-                if (uiSlots.isEmpty()) return@withContext
-
-                val firstSlotStartInstant = uiSlots.first().slot.start.asInstant
-
-                val delayDuration = (firstSlotStartInstant - currentInstant) + UPDATE_BEFORE_SLOT_START_MS
-
-                updateTimer.restart(delayDuration)
+                updateSlots(uiSlots)
             }
         }
     }

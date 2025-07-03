@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.map
  * Implementation of the WorkspaceApi interface
  */
 class WorkspaceApiImpl(
-    private val collector: Collector<String> = Collector("")
+    private val collector: Collector<String>,
 ) : WorkspaceApi {
 
     private val client = HttpClientProvider.create()
