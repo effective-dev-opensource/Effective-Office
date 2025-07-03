@@ -2,6 +2,7 @@ package band.effective.office.tablet.feature.main.presentation.main
 
 import band.effective.office.tablet.core.domain.Either
 import band.effective.office.tablet.core.domain.model.RoomInfo
+import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.TimerUseCase
@@ -12,6 +13,7 @@ import band.effective.office.tablet.core.domain.util.currentInstant
 import band.effective.office.tablet.core.domain.util.currentLocalDateTime
 import band.effective.office.tablet.core.ui.common.ModalWindow
 import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
+import band.effective.office.tablet.feature.main.domain.DeleteBookingUseCase
 import band.effective.office.tablet.feature.main.domain.FreeUpRoomUseCase
 import band.effective.office.tablet.feature.main.domain.GetRoomIndexUseCase
 import band.effective.office.tablet.feature.main.domain.GetTimeToNextEventUseCase
@@ -62,6 +64,7 @@ class MainComponent(
     private val updateUseCase: UpdateUseCase by inject()
     private val timerUseCase: TimerUseCase by inject()
     private val freeUpRoomUseCase: FreeUpRoomUseCase by inject()
+    private val deleteBookingUseCase: DeleteBookingUseCase by inject()
     private val currentTimeTimer = BootstrapperTimer(timerUseCase, coroutineScope)
     private val currentRoomTimer = BootstrapperTimer(timerUseCase, coroutineScope)
     private val errorTimer = BootstrapperTimer(timerUseCase, coroutineScope)
@@ -83,11 +86,12 @@ class MainComponent(
             }
         },
         openBookingDialog = { event, room ->
-            /*mainStore.accept(
-                intent = MainStore.Intent.OnChangeEventRequest(
-                    eventInfo = event
+            navigation.activate(
+                ModalWindowsConfig.UpdateEvent(
+                    event = event,
+                    room = room,
                 )
-            )*/
+            )
         }
     )
     private val navigation = SlotNavigation<ModalWindowsConfig>()
@@ -204,7 +208,30 @@ class MainComponent(
                 onCloseRequest = navigation::dismiss,
             )
 
-            is ModalWindowsConfig.UpdateEvent -> UpdateEventComponent(componentContext = componentContext)
+            is ModalWindowsConfig.UpdateEvent -> UpdateEventComponent(
+                componentContext = componentContext,
+                event = modalWindows.event,
+                room = state.value.run { roomList[indexSelectRoom].name },
+
+                onDelete = { slot ->
+                    slotComponent.sendIntent(
+                        SlotIntent.Delete(
+                            slot = slot,
+                            onDelete = {
+                                this.componentContext.componentCoroutineScope().launch {
+                                    (slot as? Slot.EventSlot)?.eventInfo?.apply {
+                                        deleteBookingUseCase(
+                                            eventInfo = this,
+                                            roomName = state.value.run { roomList[indexSelectRoom].name }
+                                        )
+                                    }
+                                }
+                            }
+                        )
+                    )
+                },
+                onCloseRequest = navigation::dismiss,
+            )
 
             is ModalWindowsConfig.FastEvent -> FastEventComponent(
                 componentContext = componentContext,

@@ -22,6 +22,7 @@ kotlin {
             implementation(libs.findLibrary("kotlin.coroutines.core").get())
 
             implementation(libs.findBundle("koin").get())
+            implementation(libs.findLibrary("kotlinx-datetime").get())
         }
         androidMain.dependencies {
             implementation(libs.findLibrary("koin-android").get())

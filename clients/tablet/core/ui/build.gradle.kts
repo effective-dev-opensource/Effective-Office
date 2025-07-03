@@ -5,7 +5,6 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("io.github.epicarchitect:epic-calendar-compose:1.0.8")
             implementation(libs.kotlinx.datetime)
             implementation(libs.decompose)
             implementation(libs.decompose.compose.jetbrains)

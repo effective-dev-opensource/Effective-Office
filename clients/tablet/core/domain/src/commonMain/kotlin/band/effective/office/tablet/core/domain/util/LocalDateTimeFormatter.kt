@@ -1,6 +1,7 @@
 package band.effective.office.tablet.core.domain.util
 
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
 
@@ -17,6 +18,14 @@ val timeFormatter = LocalDateTime.Format {
 @OptIn(FormatStringsInDatetimeFormats::class)
 fun LocalDateTime.toFormattedString(pattern: String): String {
     val formatter = LocalDateTime.Format {
+        byUnicodePattern(pattern)
+    }
+    return formatter.format(this)
+}
+
+@OptIn(FormatStringsInDatetimeFormats::class)
+fun LocalTime.toFormattedString(pattern: String): String {
+    val formatter = LocalTime.Format {
         byUnicodePattern(pattern)
     }
     return formatter.format(this)

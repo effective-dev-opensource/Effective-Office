@@ -1,16 +1,15 @@
 package band.effective.office.tablet.core.domain.model
 
+import band.effective.office.tablet.core.domain.util.asInstant
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toInstant
 
 sealed class Slot {
     abstract val start: LocalDateTime
     abstract val finish: LocalDateTime
 
     fun minuteDuration(): Int {
-        val startMillis = start.toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds()
-        val finishMillis = finish.toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds()
+        val startMillis = start.asInstant.toEpochMilliseconds()
+        val finishMillis = finish.asInstant.toEpochMilliseconds()
         return ((finishMillis - startMillis) / 60000).toInt()
     }
 

@@ -40,6 +40,7 @@ fun RoomInfoLeftPanel(
     onCancelEventRequest: () -> Unit,
     timeToNextEvent: Int,
     isDisconnect: Boolean,
+    onOpenDateTimePickerModal: () -> Unit,
 ) {
     val slotState by slotComponent.state.collectAsState()
     Box(
@@ -64,7 +65,7 @@ fun RoomInfoLeftPanel(
                     selectDate = selectedDate,
                     increment = onIncrementData,
                     decrement = onDecrementData,
-                    onOpenDateTimePickerModal = { },
+                    onOpenDateTimePickerModal = onOpenDateTimePickerModal,
                     currentDate = Clock.System.now(),
                     back = onResetDate,
                 )

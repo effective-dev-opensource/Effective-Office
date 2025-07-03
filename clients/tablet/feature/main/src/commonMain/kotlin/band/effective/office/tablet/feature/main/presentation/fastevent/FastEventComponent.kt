@@ -12,8 +12,8 @@ import band.effective.office.tablet.core.domain.util.currentInstant
 import band.effective.office.tablet.core.domain.util.currentLocalDateTime
 import band.effective.office.tablet.core.ui.common.ModalWindow
 import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
-import band.effective.office.tablet.feature.main.domain.CreateFastBookingUseCase
-import band.effective.office.tablet.feature.main.domain.RemoveFastBookingUseCase
+import band.effective.office.tablet.feature.main.domain.CreateBookingUseCase
+import band.effective.office.tablet.feature.main.domain.DeleteBookingUseCase
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
@@ -40,8 +40,8 @@ class FastEventComponent(
     private val scope = componentCoroutineScope()
 
     val selectRoomUseCase: SelectRoomUseCase by inject()
-    private val createFastBookingUseCase: CreateFastBookingUseCase by inject()
-    private val removeFastBookingUseCase: RemoveFastBookingUseCase by inject()
+    private val createFastBookingUseCase: CreateBookingUseCase by inject()
+    private val deleteBookingUseCase: DeleteBookingUseCase by inject()
     private val timerUseCase: TimerUseCase by inject()
     private val currentTimeTimer = BootstrapperTimer(timerUseCase, scope)
 
@@ -119,7 +119,7 @@ class FastEventComponent(
 
     private fun freeRoom(room: String) = scope.launch {
         mutableState.update { it.copy(isLoad = true) }
-        removeFastBookingUseCase(room, state.value.event)
+        deleteBookingUseCase(room, state.value.event)
         onCloseRequest()
     }
 

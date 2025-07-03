@@ -1,4 +1,4 @@
-package band.effective.office.tablet.feature.main.domain.mapper
+package band.effective.office.tablet.feature.main.presentation.mapper
 
 import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.tablet.feature.main.presentation.slot.SlotUi

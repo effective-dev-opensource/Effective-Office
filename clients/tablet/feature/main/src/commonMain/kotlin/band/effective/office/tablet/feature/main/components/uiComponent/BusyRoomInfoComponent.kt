@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.domain.model.EventInfo
-import band.effective.office.tablet.core.domain.util.timeFormatter
+import band.effective.office.tablet.core.domain.util.toFormattedString
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h5
 import band.effective.office.tablet.core.ui.theme.roomInfoColor
@@ -62,7 +62,7 @@ fun BusyRoomInfoComponent(
             isError = isError
         ) {
             Text(
-                text = stringResource(Res.string.room_occupancy_date, timeFormatter.format(event.finishTime)) +
+                text = stringResource(Res.string.room_occupancy_date, event.finishTime.toFormattedString("HH:mm")) +
                         " " + if (timeToFinish > 0) stringResource(Res.string.room_occupancy_time, timeToFinish.getDuration()) else "",
                 style = MaterialTheme.typography.h5,
                 color = roomInfoColor

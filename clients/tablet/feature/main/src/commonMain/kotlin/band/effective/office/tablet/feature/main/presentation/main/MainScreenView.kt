@@ -43,6 +43,7 @@ fun MainScreenView(
                 onCancelEventRequest = onCancelEventRequest,
                 timeToNextEvent = timeToNextEvent,
                 isDisconnect = isDisconnect,
+                onOpenDateTimePickerModal = onOpenDateTimePickerModalRequest,
             )
 
             FastBookingRightSide(

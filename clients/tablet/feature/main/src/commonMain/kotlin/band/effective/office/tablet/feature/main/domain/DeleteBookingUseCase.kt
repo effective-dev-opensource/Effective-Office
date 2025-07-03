@@ -3,7 +3,7 @@ package band.effective.office.tablet.feature.main.domain
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.repository.EventManagerRepository
 
-class RemoveFastBookingUseCase(
+class DeleteBookingUseCase(
     private val eventManagerRepository: EventManagerRepository,
 ) {
 
