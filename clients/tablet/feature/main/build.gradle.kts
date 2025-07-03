@@ -7,6 +7,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":clients:tablet:feature:bookingEditor"))
             implementation(project(":clients:tablet:feature:fastBooking"))
+            implementation(project(":clients:tablet:feature:slot"))
         }
     }
 }

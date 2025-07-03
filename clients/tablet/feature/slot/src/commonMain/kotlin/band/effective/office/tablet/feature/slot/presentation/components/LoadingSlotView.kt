@@ -1,4 +1,4 @@
-package band.effective.office.tablet.feature.main.presentation.slot.components
+package band.effective.office.tablet.feature.slot.presentation.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,12 +10,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import band.effective.office.tablet.core.domain.util.toFormattedString
+import band.effective.office.tablet.core.ui.Res
+import band.effective.office.tablet.core.ui.loading_slot_for_time
 import band.effective.office.tablet.core.ui.theme.h5
 import band.effective.office.tablet.core.ui.theme.h7
-import band.effective.office.tablet.feature.main.presentation.slot.SlotUi
+import band.effective.office.tablet.feature.slot.presentation.SlotUi
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun CommonSlotView(
+fun LoadingSlotView(
     modifier: Modifier = Modifier,
     slotUi: SlotUi,
     content: @Composable () -> Unit = {}
@@ -28,7 +31,11 @@ fun CommonSlotView(
     ) {
         Column {
             Text(
-                text = "${slot.start.toFormattedString("HH:mm")} - ${slot.finish.toFormattedString("HH:mm")}",
+                text = stringResource(
+                    Res.string.loading_slot_for_time,
+                    slot.start.toFormattedString("HH:mm"),
+                    slot.finish.toFormattedString("HH:mm")
+                ),
                 style = MaterialTheme.typography.h5,
                 color = MaterialTheme.colorScheme.onPrimary
             )

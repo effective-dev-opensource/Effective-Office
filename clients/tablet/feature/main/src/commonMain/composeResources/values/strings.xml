@@ -37,12 +37,6 @@
     <string name="data_not_upd">Данные брони могут быть неактуальны</string>
     <string name="fastbooking_button">%1$s мин</string>
     <string name="fastbooking_title">Занять любую переговорку на:</string>
-    <string name="empty_slot">Свободно %1$s мин</string>
-    <string name="event_slot">Занято %1$s</string>
-    <string name="multislot">%1$s брони</string>
-    <string name="cancel">Отмена</string>
-    <string name="loading_slot">Слот загружается</string>
-    <string name="loading_slot_for_time">Загрузка слота на время: %1$s - %2$s</string>
     <string name="free_select_room">Освободить переговорку?</string>
     <string name="try_again">Попробовать ещё раз</string>
     <string name="free_select_room_button">Освободить</string>

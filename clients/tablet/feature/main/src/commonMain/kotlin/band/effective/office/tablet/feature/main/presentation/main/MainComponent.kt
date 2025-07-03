@@ -20,8 +20,8 @@ import band.effective.office.tablet.feature.main.domain.GetRoomIndexUseCase
 import band.effective.office.tablet.feature.main.domain.GetTimeToNextEventUseCase
 import band.effective.office.tablet.feature.main.presentation.freeuproom.FreeSelectRoomComponent
 import band.effective.office.tablet.feature.main.presentation.main.navigation.ModalWindowsConfig
-import band.effective.office.tablet.feature.main.presentation.slot.SlotComponent
-import band.effective.office.tablet.feature.main.presentation.slot.SlotIntent
+import band.effective.office.tablet.feature.slot.presentation.SlotComponent
+import band.effective.office.tablet.feature.slot.presentation.SlotIntent
 import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditorComponent
 import band.effective.office.tablet.feature.fastBooking.presentation.FastBookingComponent
 import com.arkivanov.decompose.ComponentContext

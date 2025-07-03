@@ -20,9 +20,9 @@ import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.ui.common.Disconnect
 import band.effective.office.tablet.core.ui.date.DateTimeView
 import band.effective.office.tablet.feature.main.components.RoomInfoComponent
-import band.effective.office.tablet.feature.main.presentation.slot.SlotComponent
-import band.effective.office.tablet.feature.main.presentation.slot.SlotIntent
-import band.effective.office.tablet.feature.main.presentation.slot.components.SlotView
+import band.effective.office.tablet.feature.slot.presentation.SlotComponent
+import band.effective.office.tablet.feature.slot.presentation.SlotIntent
+import band.effective.office.tablet.feature.slot.presentation.components.SlotView
 import kotlin.time.ExperimentalTime
 import kotlinx.datetime.LocalDateTime
 

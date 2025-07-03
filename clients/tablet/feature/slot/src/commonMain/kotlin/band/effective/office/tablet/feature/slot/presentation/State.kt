@@ -1,4 +1,4 @@
-package band.effective.office.tablet.feature.main.presentation.slot
+package band.effective.office.tablet.feature.slot.presentation
 
 data class State(
     val slots: List<SlotUi>

@@ -1,4 +1,4 @@
-package band.effective.office.tablet.feature.main.presentation.slot.components
+package band.effective.office.tablet.feature.slot.presentation.components
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState

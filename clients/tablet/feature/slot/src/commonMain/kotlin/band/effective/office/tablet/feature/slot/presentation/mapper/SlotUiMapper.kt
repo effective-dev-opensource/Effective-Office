@@ -1,7 +1,7 @@
-package band.effective.office.tablet.feature.main.presentation.mapper
+package band.effective.office.tablet.feature.slot.presentation.mapper
 
 import band.effective.office.tablet.core.domain.model.Slot
-import band.effective.office.tablet.feature.main.presentation.slot.SlotUi
+import band.effective.office.tablet.feature.slot.presentation.SlotUi
 
 class SlotUiMapper {
 

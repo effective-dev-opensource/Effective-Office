@@ -1,4 +1,4 @@
-package band.effective.office.tablet.feature.main.presentation.slot
+package band.effective.office.tablet.feature.slot.presentation
 
 import band.effective.office.tablet.core.domain.OfficeTime
 import band.effective.office.tablet.core.domain.model.EventInfo
@@ -11,9 +11,8 @@ import band.effective.office.tablet.core.domain.util.BootstrapperTimer
 import band.effective.office.tablet.core.domain.util.asInstant
 import band.effective.office.tablet.core.domain.util.asLocalDateTime
 import band.effective.office.tablet.core.domain.util.currentInstant
-import band.effective.office.tablet.core.domain.util.currentLocalDateTime
-import band.effective.office.tablet.feature.main.domain.GetSlotsByRoomUseCase
-import band.effective.office.tablet.feature.main.presentation.mapper.SlotUiMapper
+import band.effective.office.tablet.feature.slot.domain.usecase.GetSlotsByRoomUseCase
+import band.effective.office.tablet.feature.slot.presentation.mapper.SlotUiMapper
 import com.arkivanov.decompose.ComponentContext
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes

@@ -26,4 +26,10 @@
     <string name="date_booking">%1$s, %2$s — %3$s</string>
     <string name="on_main">На главную</string>
     <string name="success_text">Вы заняли %1$s</string>
+    <string name="cancel">Отмена</string>
+    <string name="loading_slot_for_time">Загрузка слота на время: %1$s - %2$s</string>
+    <string name="empty_slot">Свободно %1$s мин</string>
+    <string name="event_slot">Занято %1$s</string>
+    <string name="multislot">%1$s брони</string>
+    <string name="loading_slot">Слот загружается</string>
 </resources>

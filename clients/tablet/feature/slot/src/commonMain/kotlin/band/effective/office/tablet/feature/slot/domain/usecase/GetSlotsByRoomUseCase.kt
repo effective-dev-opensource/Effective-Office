@@ -1,4 +1,4 @@
-package band.effective.office.tablet.feature.main.domain
+package band.effective.office.tablet.feature.slot.domain.usecase
 
 import band.effective.office.tablet.core.domain.OfficeTime
 import band.effective.office.tablet.core.domain.model.RoomInfo

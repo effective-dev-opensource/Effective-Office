@@ -1,4 +1,4 @@
-package band.effective.office.tablet.feature.main.presentation.slot.components
+package band.effective.office.tablet.feature.slot.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,14 +15,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.tablet.core.domain.util.freeTime
+import band.effective.office.tablet.core.ui.Res
+import band.effective.office.tablet.core.ui.empty_slot
+import band.effective.office.tablet.core.ui.event_slot
+import band.effective.office.tablet.core.ui.loading_slot
+import band.effective.office.tablet.core.ui.multislot
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.subslotColor
-import band.effective.office.tablet.feature.main.Res
-import band.effective.office.tablet.feature.main.empty_slot
-import band.effective.office.tablet.feature.main.event_slot
-import band.effective.office.tablet.feature.main.loading_slot
-import band.effective.office.tablet.feature.main.multislot
-import band.effective.office.tablet.feature.main.presentation.slot.SlotUi
+import band.effective.office.tablet.feature.slot.presentation.SlotUi
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

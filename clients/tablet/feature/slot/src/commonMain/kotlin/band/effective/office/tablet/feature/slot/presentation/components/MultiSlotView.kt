@@ -1,4 +1,4 @@
-package band.effective.office.tablet.feature.main.presentation.slot.components
+package band.effective.office.tablet.feature.slot.presentation.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
@@ -10,8 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
+import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.arrow_to_down
-import band.effective.office.tablet.feature.main.presentation.slot.SlotUi
+import band.effective.office.tablet.feature.slot.presentation.SlotUi
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -26,7 +27,7 @@ fun MultiSlotView(
             val rotateDegrees = if (slotUi.isOpen) 180f else 0f
             Image(
                 modifier = Modifier.fillMaxHeight().rotate(rotateDegrees),
-                painter = painterResource(band.effective.office.tablet.core.ui.Res.drawable.arrow_to_down),
+                painter = painterResource(Res.drawable.arrow_to_down),
                 contentDescription = null
             )
         }

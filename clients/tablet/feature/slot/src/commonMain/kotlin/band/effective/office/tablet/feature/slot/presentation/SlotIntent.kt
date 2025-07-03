@@ -1,8 +1,7 @@
-package band.effective.office.tablet.feature.main.presentation.slot
+package band.effective.office.tablet.feature.slot.presentation
 
 import band.effective.office.tablet.core.domain.model.Slot
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
 
 sealed interface SlotIntent {
     data class ClickOnSlot(val slot: SlotUi) : SlotIntent

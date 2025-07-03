@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.feature.main.components.uiComponent.FastBookingRightSide
 import band.effective.office.tablet.feature.main.components.uiComponent.RoomInfoLeftPanel
-import band.effective.office.tablet.feature.main.presentation.slot.SlotComponent
+import band.effective.office.tablet.feature.slot.presentation.SlotComponent
 import kotlin.time.ExperimentalTime
 import kotlinx.datetime.LocalDateTime
 

@@ -1,4 +1,4 @@
-package band.effective.office.tablet.feature.main.presentation.slot.components
+package band.effective.office.tablet.feature.slot.presentation.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -18,10 +18,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import band.effective.office.tablet.core.ui.Res
+import band.effective.office.tablet.core.ui.cancel
 import band.effective.office.tablet.core.ui.theme.h7
-import band.effective.office.tablet.feature.main.Res
-import band.effective.office.tablet.feature.main.cancel
-import band.effective.office.tablet.feature.main.presentation.slot.SlotUi
+import band.effective.office.tablet.feature.slot.presentation.SlotUi
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

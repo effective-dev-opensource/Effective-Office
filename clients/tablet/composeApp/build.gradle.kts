@@ -48,6 +48,7 @@ kotlin {
             implementation(project(":clients:tablet:feature:settings"))
             implementation(project(":clients:tablet:feature:bookingEditor"))
             implementation(project(":clients:tablet:feature:fastBooking"))
+            implementation(project(":clients:tablet:feature:slot"))
 
             implementation(project(":clients:tablet:core:data"))
             implementation(project(":clients:tablet:core:domain"))
