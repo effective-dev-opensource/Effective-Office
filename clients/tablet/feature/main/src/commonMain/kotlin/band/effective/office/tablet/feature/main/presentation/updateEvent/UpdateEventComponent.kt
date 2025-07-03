@@ -92,10 +92,16 @@ class UpdateEventComponent(
             Intent.OnExpandedChange -> mutableState.update { it.copy(expanded = !it.expanded) }
             is Intent.OnInput -> onInput(intent.input)
             Intent.OnOpenSelectDateDialog -> mutableState.update { it.copy(showSelectDate = true) }
-            is Intent.OnSelectOrganizer -> mutableState.update {
-                it.copy(
-                    selectOrganizer = intent.newOrganizer,
-                    inputText = intent.newOrganizer.fullName,
+            is Intent.OnSelectOrganizer -> {
+                mutableState.update {
+                    it.copy(
+                        selectOrganizer = intent.newOrganizer,
+                        inputText = intent.newOrganizer.fullName,
+                    )
+                }
+                checkEnableButton(
+                    inputError = false,
+                    busyEvent = state.value.isBusyEvent,
                 )
             }
 
