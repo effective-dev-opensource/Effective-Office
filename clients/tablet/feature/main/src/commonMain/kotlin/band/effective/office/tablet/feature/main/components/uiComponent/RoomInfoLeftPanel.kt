@@ -23,18 +23,17 @@ import band.effective.office.tablet.feature.main.components.RoomInfoComponent
 import band.effective.office.tablet.feature.main.presentation.slot.SlotComponent
 import band.effective.office.tablet.feature.main.presentation.slot.SlotIntent
 import band.effective.office.tablet.feature.main.presentation.slot.components.SlotView
-import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
+import kotlinx.datetime.LocalDateTime
 
 @OptIn(ExperimentalTime::class)
 @Composable
 fun RoomInfoLeftPanel(
     slotComponent: SlotComponent,
-    selectedDate: Instant,
+    selectedDate: LocalDateTime,
+    currentDate: LocalDateTime,
     onIncrementData: () -> Unit,
     onDecrementData: () -> Unit,
-    onResetDate: () -> Unit,
     roomList: List<RoomInfo>,
     indexSelectRoom: Int,
     onCancelEventRequest: () -> Unit,
@@ -63,11 +62,10 @@ fun RoomInfoLeftPanel(
                         bottom = 0.dp
                     ).height(70.dp),
                     selectDate = selectedDate,
+                    currentDate = currentDate,
                     increment = onIncrementData,
                     decrement = onDecrementData,
                     onOpenDateTimePickerModal = onOpenDateTimePickerModal,
-                    currentDate = Clock.System.now(),
-                    back = onResetDate,
                 )
             }
 

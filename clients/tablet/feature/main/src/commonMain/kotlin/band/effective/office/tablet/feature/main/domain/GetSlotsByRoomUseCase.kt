@@ -15,7 +15,7 @@ class GetSlotsByRoomUseCase(
     operator fun invoke(
         roomInfo: RoomInfo,
         start: LocalDateTime = currentLocalDateTime,
-        finish: LocalDateTime = OfficeTime.finishWorkTime(start)
+        finish: LocalDateTime = OfficeTime.finishWorkTime(start.date)
     ): List<Slot> {
         val roundedStart = roundUpToNextQuarter(start)
         return slotUseCase.getSlots(

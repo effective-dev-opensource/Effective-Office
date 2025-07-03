@@ -157,7 +157,7 @@ fun UpdateEventView(
             Spacer(modifier = Modifier.height(15.dp))
             DateTimeView(
                 modifier = Modifier.fillMaxWidth().height(100.dp),
-                selectDate = selectData.asInstant,
+                selectDate = selectData,
                 increment = incrementData,
                 decrement = decrementData,
                 onOpenDateTimePickerModal = onOpenDateTimePickerModal,

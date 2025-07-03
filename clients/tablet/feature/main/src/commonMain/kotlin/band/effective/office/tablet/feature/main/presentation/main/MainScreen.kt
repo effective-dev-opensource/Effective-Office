@@ -46,11 +46,10 @@ fun MainScreen(component: MainComponent) {
                     onRoomButtonClick = { component.sendIntent(Intent.OnSelectRoom(it)) },
                     onCancelEventRequest = { component.sendIntent(Intent.OnOpenFreeRoomModal) },
                     onFastBooking = { component.sendIntent(Intent.OnFastBooking(it)) },
-                    onUpdate = { component.sendIntent(Intent.OnUpdate) },
                     onIncrementData = { component.sendIntent(Intent.OnUpdateSelectDate(updateInDays = 1)) },
                     onDecrementData = { component.sendIntent(Intent.OnUpdateSelectDate(updateInDays = -1)) },
                     selectedDate = state.selectedDate,
-                    onResetDate = { component.sendIntent(Intent.OnResetSelectDate) },
+                    currentDate = state.currentDate,
                     onOpenDateTimePickerModalRequest = {}, // TODO
                 )
             }

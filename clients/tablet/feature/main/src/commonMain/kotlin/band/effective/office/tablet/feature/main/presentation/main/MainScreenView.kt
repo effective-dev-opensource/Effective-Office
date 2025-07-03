@@ -10,7 +10,7 @@ import band.effective.office.tablet.feature.main.components.uiComponent.FastBook
 import band.effective.office.tablet.feature.main.components.uiComponent.RoomInfoLeftPanel
 import band.effective.office.tablet.feature.main.presentation.slot.SlotComponent
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
+import kotlinx.datetime.LocalDateTime
 
 @OptIn(ExperimentalTime::class)
 @Composable
@@ -23,21 +23,20 @@ fun MainScreenView(
     onRoomButtonClick: (Int) -> Unit,
     onCancelEventRequest: () -> Unit,
     onFastBooking: (Int) -> Unit,
-    onUpdate: () -> Unit,
     onOpenDateTimePickerModalRequest: () -> Unit,
     onIncrementData: () -> Unit,
     onDecrementData: () -> Unit,
-    selectedDate: Instant,
-    onResetDate: () -> Unit
+    selectedDate: LocalDateTime,
+    currentDate: LocalDateTime,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxSize()) {
             RoomInfoLeftPanel(
                 slotComponent = slotComponent,
                 selectedDate = selectedDate,
+                currentDate = currentDate,
                 onIncrementData = onIncrementData,
                 onDecrementData = onDecrementData,
-                onResetDate = onResetDate,
                 roomList = roomList,
                 indexSelectRoom = indexSelectRoom,
                 onCancelEventRequest = onCancelEventRequest,

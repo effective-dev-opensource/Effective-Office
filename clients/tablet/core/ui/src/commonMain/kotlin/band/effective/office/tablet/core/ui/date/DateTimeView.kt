@@ -1,9 +1,16 @@
 package band.effective.office.tablet.core.ui.date
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.with
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
@@ -14,11 +21,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.arrow_left
@@ -28,9 +37,7 @@ import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h6
 import band.effective.office.tablet.core.ui.theme.h8
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.LocalDateTime
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -38,91 +45,129 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun DateTimeView(
     modifier: Modifier,
-    selectDate: Instant,
-    currentDate: Instant? = null,
-    back: () -> Unit = {},
+    selectDate: LocalDateTime,
+    currentDate: LocalDateTime? = null,
     increment: () -> Unit,
     decrement: () -> Unit,
     onOpenDateTimePickerModal: () -> Unit,
     showTitle: Boolean = false
 ) {
-    val backButtonWeight = when {
-        currentDate == null -> 0f
-        currentDate != selectDate -> 1.5f
-        else -> 0f
-    }
-    val timeDayMonthDateFormat = remember { dateTimeFormat }
-    val dayMonthDateFormat = remember { dayMonthFormat }
-
     Column(modifier = modifier) {
         if (showTitle) {
-            Text(
-                text = stringResource(Res.string.select_date_tine_title),
-                color = LocalCustomColorsPalette.current.secondaryTextAndIcon,
-                style = MaterialTheme.typography.h8
-            )
+            DateTimeTitle()
             Spacer(modifier = Modifier.height(10.dp))
         }
         Row {
-            Button(
-                modifier = Modifier.fillMaxHeight().weight(1f).clip(RoundedCornerShape(15.dp)),
-                onClick = { decrement() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = LocalCustomColorsPalette.current.elevationBackground
-                )
-            ) {
-                Image(
-                    modifier = Modifier,
-                    painter = painterResource(Res.drawable.arrow_left),
-                    contentDescription = null
-                )
-            }
+            PreviousDateButton(decrement)
             Spacer(modifier = Modifier.width(10.dp))
-            Button(
-                modifier = Modifier.fillMaxHeight().weight(4f - backButtonWeight)
-                    .clip(RoundedCornerShape(15.dp)),
-                onClick = { onOpenDateTimePickerModal() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = LocalCustomColorsPalette.current.elevationBackground
-                )
-            ) {
-                Text(
-                    text = timeDayMonthDateFormat.format(selectDate.toLocalDateTime(TimeZone.currentSystemDefault())),
-                    style = MaterialTheme.typography.h6
-                )
-            }
+            SelectedDate(onOpenDateTimePickerModal, selectDate, currentDate)
             Spacer(modifier = Modifier.width(10.dp))
-            if (backButtonWeight > 0) {
-                Button(
-                    modifier = Modifier.fillMaxHeight().weight(backButtonWeight)
-                        .clip(RoundedCornerShape(15.dp))
-                        .border(3.dp, Color.White, RoundedCornerShape(15.dp)),
-                    onClick = back,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = LocalCustomColorsPalette.current.elevationBackground
-                    )
-                ) {
-                    Text(
-                        text = dayMonthDateFormat.format(currentDate?.toLocalDateTime(TimeZone.UTC)!!),
-                        style = MaterialTheme.typography.h6,
-                        textAlign = TextAlign.Center
-                    )
-                }
-                Spacer(modifier = Modifier.width(10.dp))
-            }
-            Button(
-                modifier = Modifier.fillMaxHeight().weight(1f).clip(RoundedCornerShape(15.dp)),
-                onClick = { increment() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = LocalCustomColorsPalette.current.elevationBackground
-                )
-            ) {
-                Image(
-                    modifier = Modifier,
-                    painter = painterResource(Res.drawable.arrow_right),
-                    contentDescription = null
-                )
-            }
+            NextDateButton(increment)
         }
     }
+}
+
+@Composable
+private fun RowScope.NextDateButton(increment: () -> Unit) {
+    Button(
+        modifier = Modifier.fillMaxHeight().weight(1f).clip(RoundedCornerShape(15.dp)),
+        onClick = { increment() },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = LocalCustomColorsPalette.current.elevationBackground
+        )
+    ) {
+        Image(
+            modifier = Modifier,
+            painter = painterResource(Res.drawable.arrow_right),
+            contentDescription = null
+        )
+    }
+}
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun RowScope.SelectedDate(
+    onOpenDateTimePickerModal: () -> Unit,
+    selectDate: LocalDateTime,
+    currentDate: LocalDateTime?
+) {
+    val timeDayMonthDateFormat = remember { dateTimeFormat }
+    val dayMonthDateFormat = remember { dayMonthFormat }
+    var previousDate by remember { mutableStateOf(selectDate) }
+
+    val slideDirection = remember(selectDate) {
+        if (selectDate > previousDate) AnimatedContentTransitionScope.SlideDirection.Left
+        else AnimatedContentTransitionScope.SlideDirection.Right
+    }
+
+    val displayedFormat by remember(selectDate) {
+        mutableStateOf(
+            if (currentDate != null && selectDate.date > currentDate.date) dayMonthDateFormat else timeDayMonthDateFormat
+        )
+    }
+
+    LaunchedEffect(selectDate) {
+        previousDate = selectDate
+    }
+
+    Button(
+        modifier = Modifier
+            .fillMaxHeight()
+            .weight(4f)
+            .clip(RoundedCornerShape(15.dp)),
+        onClick = onOpenDateTimePickerModal,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = LocalCustomColorsPalette.current.elevationBackground
+        ),
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        AnimatedContent(
+            targetState = displayedFormat.format(selectDate),
+            transitionSpec = {
+                slideIntoContainer(slideDirection) + fadeIn() with
+                        slideOutOfContainer(slideDirection.opposite()) + fadeOut()
+            },
+            label = "AnimatedDateChange"
+        ) { formattedDate ->
+            Text(
+                text = formattedDate,
+                style = MaterialTheme.typography.h6
+            )
+        }
+    }
+}
+
+// Удлинение SlideDirection для удобства
+private fun AnimatedContentTransitionScope.SlideDirection.opposite(): AnimatedContentTransitionScope.SlideDirection {
+    return when (this) {
+        AnimatedContentTransitionScope.SlideDirection.Left -> AnimatedContentTransitionScope.SlideDirection.Right
+        AnimatedContentTransitionScope.SlideDirection.Right -> AnimatedContentTransitionScope.SlideDirection.Left
+        else -> this
+    }
+}
+
+@Composable
+private fun RowScope.PreviousDateButton(decrement: () -> Unit) {
+    Button(
+        modifier = Modifier.fillMaxHeight().weight(1f).clip(RoundedCornerShape(15.dp)),
+        onClick = { decrement() },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = LocalCustomColorsPalette.current.elevationBackground
+        )
+    ) {
+        Image(
+            modifier = Modifier,
+            painter = painterResource(Res.drawable.arrow_left),
+            contentDescription = null
+        )
+    }
+}
+
+@Composable
+private fun DateTimeTitle() {
+    Text(
+        text = stringResource(Res.string.select_date_tine_title),
+        color = LocalCustomColorsPalette.current.secondaryTextAndIcon,
+        style = MaterialTheme.typography.h8
+    )
 }

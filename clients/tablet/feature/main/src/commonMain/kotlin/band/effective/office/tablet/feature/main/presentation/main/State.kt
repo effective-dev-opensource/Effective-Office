@@ -1,8 +1,8 @@
 package band.effective.office.tablet.feature.main.presentation.main
 
 import band.effective.office.tablet.core.domain.model.RoomInfo
-import kotlin.time.Clock
-import kotlin.time.Instant
+import band.effective.office.tablet.core.domain.util.currentLocalDateTime
+import kotlinx.datetime.LocalDateTime
 
 data class State(
     val isLoad: Boolean,
@@ -14,7 +14,8 @@ data class State(
     val roomList: List<RoomInfo>,
     val indexSelectRoom: Int,
     val timeToNextEvent: Int,
-    val selectedDate: Instant,
+    val selectedDate: LocalDateTime,
+    val currentDate: LocalDateTime,
 ) {
     companion object {
         val defaultState =
@@ -28,7 +29,8 @@ data class State(
                 roomList = listOf(),
                 indexSelectRoom = 0,
                 timeToNextEvent = 0,
-                selectedDate = Clock.System.now(),
+                selectedDate = currentLocalDateTime,
+                currentDate = currentLocalDateTime,
             )
     }
 }

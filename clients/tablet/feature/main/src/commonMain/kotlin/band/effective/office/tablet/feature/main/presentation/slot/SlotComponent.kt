@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalDate
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -233,14 +233,11 @@ class SlotComponent(
         }
     }
 
-    private fun updateDate(newDate: LocalDateTime) = coroutineScope.launch {
+    private fun updateDate(newDate: LocalDate) = coroutineScope.launch {
         roomInfoUseCase.getRoom(room = roomName())?.let { roomInfo ->
             val slots = getSlotsByRoomUseCase(
                 roomInfo = roomInfo,
-                start = maxOf(
-                    OfficeTime.startWorkTime(newDate),
-                    currentLocalDateTime
-                )
+                start = OfficeTime.startWorkTime(newDate)
             )
             val uiSlots = slots.map(slotUiMapper::map)
             mutableState.update { it.copy(slots = uiSlots) }

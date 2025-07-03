@@ -7,19 +7,17 @@ import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
 
 val dateTimeFormat = LocalDateTime.Format {
-    monthNumber(padding = Padding.SPACE)
-    char('/')
-    dayOfMonth(padding = Padding.ZERO)
-    char(' ')
-    year()
-    char(' ')
     hour(padding = Padding.ZERO)
     char(':')
     minute(padding = Padding.ZERO)
+    char(' ')
+    day(padding = Padding.ZERO)
+    char(' ')
+    monthName(MonthNames.ENGLISH_FULL)
 }
 
 val dayMonthFormat = LocalDateTime.Format {
-    dayOfMonth(padding = Padding.ZERO)
+    day(padding = Padding.ZERO)
     char(' ')
     monthName(MonthNames.ENGLISH_FULL)
 }

@@ -8,9 +8,10 @@ import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.TimerUseCase
 import band.effective.office.tablet.core.domain.useCase.UpdateUseCase
 import band.effective.office.tablet.core.domain.util.BootstrapperTimer
-import band.effective.office.tablet.core.domain.util.asLocalDateTime
-import band.effective.office.tablet.core.domain.util.currentInstant
+import band.effective.office.tablet.core.domain.util.currentLocalDate
 import band.effective.office.tablet.core.domain.util.currentLocalDateTime
+import band.effective.office.tablet.core.domain.util.minus
+import band.effective.office.tablet.core.domain.util.plus
 import band.effective.office.tablet.core.ui.common.ModalWindow
 import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
 import band.effective.office.tablet.feature.main.domain.DeleteBookingUseCase
@@ -28,7 +29,7 @@ import com.arkivanov.decompose.router.slot.SlotNavigation
 import com.arkivanov.decompose.router.slot.activate
 import com.arkivanov.decompose.router.slot.childSlot
 import com.arkivanov.decompose.router.slot.dismiss
-import io.github.aakira.napier.Napier
+import kotlin.math.abs
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -46,7 +47,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalDate
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -151,19 +152,19 @@ class MainComponent(
         // reset select date
         currentTimeTimer.start(1.minutes) {
             withContext(Dispatchers.Main) {
-                mutableState.update { it.copy(selectedDate = currentInstant) }
-                slotComponent.sendIntent(
-                    SlotIntent.UpdateDate(
-                        currentLocalDateTime
+                mutableState.update {
+                    it.copy(
+                        selectedDate = currentLocalDateTime,
+                        currentDate = currentLocalDateTime,
                     )
-                )
+                }
+                slotComponent.sendIntent(SlotIntent.UpdateDate(currentLocalDate))
             }
         }
     }
 
     fun sendIntent(intent: Intent) {
         when (intent) {
-            is Intent.OnChangeEventRequest -> TODO()
             is Intent.OnFastBooking ->
                 navigation.activate(
                     ModalWindowsConfig.FastEvent(
@@ -179,13 +180,7 @@ class MainComponent(
                 )
             )
 
-            Intent.OnResetSelectDate -> {
-                slotComponent.sendIntent(SlotIntent.UpdateDate(currentLocalDateTime))
-                mutableState.update { it.copy(selectedDate = currentInstant) }
-            }
-
             is Intent.OnSelectRoom -> selectRoom(intent.index)
-            Intent.OnUpdate -> reboot()
             is Intent.OnUpdateSelectDate -> updateSelectDate(intent)
             Intent.RebootRequest -> reboot(refresh = true)
         }
@@ -248,13 +243,18 @@ class MainComponent(
     private fun updateSelectDate(intent: Intent.OnUpdateSelectDate) {
         currentTimeTimer.restart()
         currentRoomTimer.restart()
+        val selectedDate = state.value.selectedDate
         val newDate = if (intent.updateInDays < 0) {
-            (state.value.selectedDate.minus(intent.updateInDays.days))
+            selectedDate.minus(abs(intent.updateInDays).days)
         } else {
-            state.value.selectedDate.plus(intent.updateInDays.days)
+            selectedDate.plus(intent.updateInDays.days)
         }
-        mutableState.update { it.copy(selectedDate = newDate) }
-        slotComponent.sendIntent(SlotIntent.UpdateDate(newDate.asLocalDateTime))
+
+        // there is no point in looking at bookings from the past days
+        if (newDate.date >= currentLocalDateTime.date) {
+            mutableState.update { it.copy(selectedDate = newDate) }
+            slotComponent.sendIntent(SlotIntent.UpdateDate(newDate.date))
+        }
     }
 
     private fun selectRoom(index: Int) {
@@ -268,10 +268,10 @@ class MainComponent(
                 )
             )
         }
-        updateComponents(state.value.roomList[index], state.value.selectedDate.asLocalDateTime)
+        updateComponents(state.value.roomList[index], state.value.selectedDate.date)
     }
 
-    private fun updateComponents(roomInfo: RoomInfo, date: LocalDateTime) {
+    private fun updateComponents(roomInfo: RoomInfo, date: LocalDate) {
         slotComponent.sendIntent(
             SlotIntent.UpdateRequest(
                 room = roomInfo.name,
@@ -345,7 +345,7 @@ class MainComponent(
         }
         loadRooms()
         state.roomList.getOrNull(roomIndex)?.let { roomInfo ->
-            updateComponents(roomInfo, state.selectedDate.asLocalDateTime)
+            updateComponents(roomInfo, state.selectedDate.date)
         }
     }
 }
