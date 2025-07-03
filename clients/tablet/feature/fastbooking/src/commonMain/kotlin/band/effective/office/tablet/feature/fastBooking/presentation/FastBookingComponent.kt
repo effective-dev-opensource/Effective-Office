@@ -1,8 +1,10 @@
-package band.effective.office.tablet.feature.main.presentation.fastevent
+package band.effective.office.tablet.feature.fastBooking.presentation
 
 import band.effective.office.tablet.core.domain.Either
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
+import band.effective.office.tablet.core.domain.useCase.CreateBookingUseCase
+import band.effective.office.tablet.core.domain.useCase.DeleteBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.SelectRoomUseCase
 import band.effective.office.tablet.core.domain.useCase.TimerUseCase
 import band.effective.office.tablet.core.domain.util.BootstrapperTimer
@@ -12,8 +14,6 @@ import band.effective.office.tablet.core.domain.util.currentInstant
 import band.effective.office.tablet.core.domain.util.currentLocalDateTime
 import band.effective.office.tablet.core.ui.common.ModalWindow
 import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
-import band.effective.office.tablet.core.domain.useCase.CreateBookingUseCase
-import band.effective.office.tablet.feature.main.domain.DeleteBookingUseCase
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
@@ -29,7 +29,7 @@ import kotlinx.serialization.Serializable
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class FastEventComponent(
+class FastBookingComponent(
     private val componentContext: ComponentContext,
     val minEventDuration: Int,
     val selectedRoom: RoomInfo,

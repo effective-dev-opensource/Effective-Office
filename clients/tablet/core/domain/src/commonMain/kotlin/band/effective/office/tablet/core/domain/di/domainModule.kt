@@ -3,6 +3,7 @@ package band.effective.office.tablet.core.domain.di
 import band.effective.office.tablet.core.domain.useCase.CheckBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.CreateBookingUseCase
+import band.effective.office.tablet.core.domain.useCase.DeleteBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.OrganizersInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.SelectRoomUseCase
@@ -27,4 +28,5 @@ val domainModule = module {
 
     single { CreateBookingUseCase(get()) }
     single { UpdateBookingUseCase(get()) }
+    single { DeleteBookingUseCase(get()) }
 }

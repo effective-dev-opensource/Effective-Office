@@ -1,4 +1,4 @@
-package band.effective.office.tablet.feature.main.domain
+package band.effective.office.tablet.core.domain.useCase
 
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.repository.EventManagerRepository

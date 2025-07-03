@@ -1,4 +1,4 @@
-package band.effective.office.tablet.feature.main.presentation.fastevent
+package band.effective.office.tablet.feature.fastBooking.presentation
 
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.util.currentLocalDateTime

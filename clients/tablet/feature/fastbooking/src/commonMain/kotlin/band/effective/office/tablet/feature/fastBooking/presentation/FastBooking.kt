@@ -1,4 +1,4 @@
-package band.effective.office.tablet.feature.main.presentation.fastevent
+package band.effective.office.tablet.feature.fastBooking.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -34,7 +34,7 @@ import band.effective.office.tablet.core.ui.common.SuccessFastSelectRoomView
 import com.arkivanov.decompose.extensions.compose.stack.Children
 
 @Composable
-fun FastEventView(component: FastEventComponent) {
+fun FastBooking(component: FastBookingComponent) {
     val state by component.state.collectAsState()
     val timeFormat = remember { timeFormatter }
 
@@ -42,7 +42,7 @@ fun FastEventView(component: FastEventComponent) {
         Dialog(
             onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) },
             properties = DialogProperties(
-                usePlatformDefaultWidth = modal.instance != FastEventComponent.ModalConfig.LoadingModal
+                usePlatformDefaultWidth = modal.instance != FastBookingComponent.ModalConfig.LoadingModal
             )
         ) {
             Column(
@@ -61,17 +61,17 @@ fun FastEventView(component: FastEventComponent) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     when (val modalInstance = modal.instance) {
-                        FastEventComponent.ModalConfig.LoadingModal -> FastEventView(
+                        FastBookingComponent.ModalConfig.LoadingModal -> FastBooking(
                             onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) }
                         )
 
-                        is FastEventComponent.ModalConfig.FailureModal -> FailureFastSelectRoomView(
+                        is FastBookingComponent.ModalConfig.FailureModal -> FailureFastSelectRoomView(
                             onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) },
                             minutes = state.minutesLeft,
                             room = modalInstance.room
                         )
 
-                        is FastEventComponent.ModalConfig.SuccessModal -> SuccessFastSelectRoomView(
+                        is FastBookingComponent.ModalConfig.SuccessModal -> SuccessFastSelectRoomView(
                             roomName = modalInstance.room,
                             finishTime = modalInstance.eventInfo.finishTime,
                             close = { component.sendIntent(Intent.OnCloseWindowRequest) },
@@ -86,7 +86,7 @@ fun FastEventView(component: FastEventComponent) {
 }
 
 @Composable
-private fun FastEventView(
+private fun FastBooking(
     onDismissRequest: () -> Unit
 ) {
     Box(contentAlignment = Alignment.Center) {

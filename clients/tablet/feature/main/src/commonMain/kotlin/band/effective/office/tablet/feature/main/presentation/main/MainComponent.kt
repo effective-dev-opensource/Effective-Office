@@ -14,16 +14,16 @@ import band.effective.office.tablet.core.domain.util.minus
 import band.effective.office.tablet.core.domain.util.plus
 import band.effective.office.tablet.core.ui.common.ModalWindow
 import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
-import band.effective.office.tablet.feature.main.domain.DeleteBookingUseCase
+import band.effective.office.tablet.core.domain.useCase.DeleteBookingUseCase
 import band.effective.office.tablet.feature.main.domain.FreeUpRoomUseCase
 import band.effective.office.tablet.feature.main.domain.GetRoomIndexUseCase
 import band.effective.office.tablet.feature.main.domain.GetTimeToNextEventUseCase
-import band.effective.office.tablet.feature.main.presentation.fastevent.FastEventComponent
 import band.effective.office.tablet.feature.main.presentation.freeuproom.FreeSelectRoomComponent
 import band.effective.office.tablet.feature.main.presentation.main.navigation.ModalWindowsConfig
 import band.effective.office.tablet.feature.main.presentation.slot.SlotComponent
 import band.effective.office.tablet.feature.main.presentation.slot.SlotIntent
 import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditorComponent
+import band.effective.office.tablet.feature.fastBooking.presentation.FastBookingComponent
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.slot.SlotNavigation
 import com.arkivanov.decompose.router.slot.activate
@@ -230,7 +230,7 @@ class MainComponent(
                 onCloseRequest = navigation::dismiss,
             )
 
-            is ModalWindowsConfig.FastEvent -> FastEventComponent(
+            is ModalWindowsConfig.FastEvent -> FastBookingComponent(
                 componentContext = componentContext,
                 minEventDuration = modalWindows.minEventDuration,
                 selectedRoom = modalWindows.selectedRoom,

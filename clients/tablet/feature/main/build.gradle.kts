@@ -6,6 +6,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":clients:tablet:feature:bookingEditor"))
+            implementation(project(":clients:tablet:feature:fastBooking"))
         }
     }
 }
