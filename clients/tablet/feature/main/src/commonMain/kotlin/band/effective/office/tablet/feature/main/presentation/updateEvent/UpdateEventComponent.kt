@@ -113,7 +113,9 @@ class UpdateEventComponent(
     }
 
     private fun updateEvent() = scope.launch {
-        updateBookingUseCase(roomName = room, eventInfo = stateToEventInfoMapper.map(state.value))
+        CoroutineScope(Dispatchers.IO).launch {
+            updateBookingUseCase(roomName = room, eventInfo = stateToEventInfoMapper.map(state.value))
+        }
         onCloseRequest()
     }
 

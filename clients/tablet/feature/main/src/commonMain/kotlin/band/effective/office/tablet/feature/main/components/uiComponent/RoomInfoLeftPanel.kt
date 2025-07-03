@@ -79,11 +79,12 @@ fun RoomInfoLeftPanel(
                 )
             }
 
-            items(slotState.slots) {
+            items(slotState.slots, key = { it.slot.hashCode() }) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = 30.dp)
+                        .animateItem()
                 ) {
                     SlotView(
                         slotUi = it,
