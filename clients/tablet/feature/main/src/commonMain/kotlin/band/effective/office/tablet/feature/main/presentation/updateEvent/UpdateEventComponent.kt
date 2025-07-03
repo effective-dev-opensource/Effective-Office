@@ -148,7 +148,7 @@ class UpdateEventComponent(
         val newList = state.value.organizers
             .filter { it.fullName.lowercase().contains(input.lowercase()) }
             .sortedBy { it.fullName.lowercase().indexOf(input.lowercase()) }
-        mutableState.update { it.copy(inputText = input, selectOrganizers = newList) }
+        mutableState.update { it.copy(inputText = input, selectOrganizers = newList, expanded = true) }
     }
 
     private fun checkEnableButton(

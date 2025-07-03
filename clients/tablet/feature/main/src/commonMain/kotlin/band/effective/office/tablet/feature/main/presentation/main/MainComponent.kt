@@ -344,6 +344,8 @@ class MainComponent(
             roomInfoUseCase.updateCache()
         }
         loadRooms()
-        updateComponents(state.roomList[roomIndex], state.selectedDate.asLocalDateTime)
+        state.roomList.getOrNull(roomIndex)?.let { roomInfo ->
+            updateComponents(roomInfo, state.selectedDate.asLocalDateTime)
+        }
     }
 }

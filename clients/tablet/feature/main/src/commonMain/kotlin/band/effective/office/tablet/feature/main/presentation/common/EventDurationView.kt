@@ -94,6 +94,7 @@ private fun Int.getDurationString(): String {
     return when {
         hours == 0 -> "$minutes${stringResource(Res.string.short_minuets)}"
         minutes == 0 -> "$hours${stringResource(Res.string.short_hours)}"
-        else -> "$hours${Res.string.short_hours} $minutes${Res.string.short_minuets}"
+        else -> "$hours${stringResource( Res.string.short_hours)} " +
+                "$minutes${stringResource(Res.string.short_minuets)}"
     }
 }
