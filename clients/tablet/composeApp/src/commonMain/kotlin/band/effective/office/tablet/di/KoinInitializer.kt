@@ -10,6 +10,7 @@ class KoinInitializer {
         startKoin {
             modules(
                 appModule,
+                firebaseTopicsModule,
                 dataModule,
                 domainModule,
                 mainScreenModule,

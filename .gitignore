@@ -78,3 +78,4 @@ coverage/
 /oldBackendExample
 /scripts
 /backend/app/src/main/resources/firebase-credentials.json
+/keystore/

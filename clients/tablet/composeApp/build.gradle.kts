@@ -7,6 +7,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.21"
     alias(libs.plugins.buildkonfig)
+    id("com.google.gms.google-services") version "4.4.3"
 }
 
 kotlin {
@@ -54,6 +55,7 @@ kotlin {
             implementation(libs.androidx.activityCompose)
             implementation(libs.koin.android)
             implementation("org.slf4j:slf4j-android:1.7.36")
+            implementation(libs.firebase.messaging.ktx)
         }
     }
 }
@@ -66,7 +68,7 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
 
-        applicationId = "band.effective.office.tablet.androidApp"
+        applicationId = "band.effective.office.tablet"
         versionCode = 1
         versionName = "1.0.0"
 
@@ -79,6 +81,33 @@ android {
         compileOptions {
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
+        }
+
+        signingConfigs {
+            getByName("debug") {
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+                storeFile = file("${rootDir}/keystore/debug.keystore")
+                storePassword = "android"
+            }
+            create("release") {
+                keyAlias = System.getenv()["OFFICE_ELEVATOR_RELEASE_ALIAS"]
+                keyPassword = System.getenv()["OFFICE_ELEVATOR_RELEASE_KEY_PASSWORD"]
+                storeFile = file("${rootDir}/keystore/main.keystore")
+                storePassword = System.getenv()["OFFICE_ELEVATOR_RELEASE_STORE_PASSWORD"]
+            }
+        }
+
+        buildTypes {
+            getByName("debug") {
+                signingConfig = signingConfigs.getByName("debug")
+                isDebuggable = true
+            }
+            getByName("release") {
+                signingConfig = signingConfigs.getByName("debug")
+                isDebuggable = false
+                isMinifyEnabled = false
+            }
         }
     }
 

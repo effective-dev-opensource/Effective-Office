@@ -76,6 +76,7 @@ essenty-ios = "0.2.4"
 
 ## Settings
 settings = "1.3.0"
+firebaseMessagingKtx = "24.1.2"
 
 [libraries]
 # Common
@@ -188,6 +189,7 @@ essenty-darwin-runtime = { module = "com.arkivanov.parcelize.darwin:runtime", ve
 
 ## Settings
 settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "settings" }
+firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
 
 [plugins]
 # Common

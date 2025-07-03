@@ -31,4 +31,5 @@ dependencies {
 //    implementation("com.android.library:com.android.library.gradle.plugin:8.9.1")
     implementation("org.jetbrains.compose:org.jetbrains.compose.gradle.plugin:1.8.1")
     implementation("com.arkivanov.parcelize.darwin:gradle-plugin:0.2.4")
+    implementation("com.google.gms:google-services:4.4.3")
 }
