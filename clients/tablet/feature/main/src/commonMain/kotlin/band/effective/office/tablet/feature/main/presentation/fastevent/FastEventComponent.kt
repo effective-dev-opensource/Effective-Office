@@ -12,7 +12,7 @@ import band.effective.office.tablet.core.domain.util.currentInstant
 import band.effective.office.tablet.core.domain.util.currentLocalDateTime
 import band.effective.office.tablet.core.ui.common.ModalWindow
 import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
-import band.effective.office.tablet.feature.main.domain.CreateBookingUseCase
+import band.effective.office.tablet.core.domain.useCase.CreateBookingUseCase
 import band.effective.office.tablet.feature.main.domain.DeleteBookingUseCase
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation

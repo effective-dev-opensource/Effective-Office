@@ -46,4 +46,5 @@ include(
     "clients:tablet:core:data",
     "clients:tablet:feature:main",
     "clients:tablet:feature:settings",
+    "clients:tablet:feature:bookingEditor",
 )

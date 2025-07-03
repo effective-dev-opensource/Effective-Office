@@ -18,8 +18,8 @@ import band.effective.office.tablet.feature.main.presentation.fastevent.FastEven
 import band.effective.office.tablet.feature.main.presentation.fastevent.FastEventView
 import band.effective.office.tablet.feature.main.presentation.freeuproom.FreeSelectRoomComponent
 import band.effective.office.tablet.feature.main.presentation.freeuproom.FreeSelectRoomView
-import band.effective.office.tablet.feature.main.presentation.updateEvent.UpdateEventComponent
-import band.effective.office.tablet.feature.main.presentation.updateEvent.UpdateEventView
+import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditorComponent
+import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditor
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlin.time.ExperimentalTime
 
@@ -72,7 +72,7 @@ fun MainScreen(component: MainComponent) {
     ) {
         when (val activeComponent = activeWindowSlot.child?.instance) {
             is FreeSelectRoomComponent -> FreeSelectRoomView(freeSelectRoomComponent = activeComponent)
-            is UpdateEventComponent -> UpdateEventView(component = activeComponent)
+            is BookingEditorComponent -> BookingEditor(component = activeComponent)
             is FastEventComponent -> FastEventView(component = activeComponent)
         }
     }

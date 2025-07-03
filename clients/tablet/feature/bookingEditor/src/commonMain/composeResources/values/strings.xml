@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="create_view_title">Занять %1$s</string>
+    <string name="booking_view_title">Измененить бронь</string>
+    <string name="booking_time_button">Занять c %1$s до %2$s</string>
+    <string name="update_button">Изменить</string>
+    <string name="delete_button">Удалить бронь</string>
+</resources>

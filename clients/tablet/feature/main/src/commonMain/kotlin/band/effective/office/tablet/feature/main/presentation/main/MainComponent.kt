@@ -23,7 +23,7 @@ import band.effective.office.tablet.feature.main.presentation.freeuproom.FreeSel
 import band.effective.office.tablet.feature.main.presentation.main.navigation.ModalWindowsConfig
 import band.effective.office.tablet.feature.main.presentation.slot.SlotComponent
 import band.effective.office.tablet.feature.main.presentation.slot.SlotIntent
-import band.effective.office.tablet.feature.main.presentation.updateEvent.UpdateEventComponent
+import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditorComponent
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.slot.SlotNavigation
 import com.arkivanov.decompose.router.slot.activate
@@ -205,7 +205,7 @@ class MainComponent(
                 onCloseRequest = navigation::dismiss,
             )
 
-            is ModalWindowsConfig.UpdateEvent -> UpdateEventComponent(
+            is ModalWindowsConfig.UpdateEvent -> BookingEditorComponent(
                 componentContext = componentContext,
                 event = modalWindows.event,
                 room = state.value.run { roomList[indexSelectRoom].name },

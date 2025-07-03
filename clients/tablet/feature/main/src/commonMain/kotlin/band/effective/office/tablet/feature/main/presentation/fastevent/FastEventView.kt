@@ -29,8 +29,8 @@ import band.effective.office.tablet.core.ui.common.Loader
 import band.effective.office.tablet.core.ui.date.timeFormatter
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h2
-import band.effective.office.tablet.feature.main.presentation.common.FailureFastSelectRoomView
-import band.effective.office.tablet.feature.main.presentation.common.SuccessFastSelectRoomView
+import band.effective.office.tablet.core.ui.common.FailureFastSelectRoomView
+import band.effective.office.tablet.core.ui.common.SuccessFastSelectRoomView
 import com.arkivanov.decompose.extensions.compose.stack.Children
 
 @Composable
@@ -73,7 +73,7 @@ fun FastEventView(component: FastEventComponent) {
 
                         is FastEventComponent.ModalConfig.SuccessModal -> SuccessFastSelectRoomView(
                             roomName = modalInstance.room,
-                            eventInfo = modalInstance.eventInfo,
+                            finishTime = modalInstance.eventInfo.finishTime,
                             close = { component.sendIntent(Intent.OnCloseWindowRequest) },
                             onFreeRoomRequest = { component.sendIntent(Intent.OnFreeSelectRequest(it)) },
                             isLoading = state.isLoad
