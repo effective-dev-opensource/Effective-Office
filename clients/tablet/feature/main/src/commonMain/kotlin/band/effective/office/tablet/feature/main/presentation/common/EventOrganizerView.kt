@@ -30,10 +30,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
@@ -62,6 +66,9 @@ fun EventOrganizerView(
     onDoneInput: (String) -> Unit,
     inputText: String
 ) {
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+
     Column(modifier = modifier) {
         Text(
             text = stringResource(Res.string.selectbox_organizer_title),
@@ -87,7 +94,13 @@ fun EventOrganizerView(
         ) {
 
             TextField(
-                modifier = Modifier.fillMaxWidth(0.8f),
+                modifier = Modifier.onFocusChanged(
+                    onFocusChanged = {
+                        if (it.isFocused) {
+                            onExpandedChange()
+                        }
+                    }
+                ).focusRequester(focusRequester).fillMaxWidth(0.8f),
                 value = inputText,
                 singleLine = true,
                 onValueChange = {
@@ -116,6 +129,7 @@ fun EventOrganizerView(
                         defaultKeyboardAction(ImeAction.Done)
                         onDoneInput(inputText)
                         onExpandedChange()
+                        focusRequester.freeFocus()
                     }
                 ),
             )
@@ -127,7 +141,7 @@ fun EventOrganizerView(
         }
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { onExpandedChange() },
+            onDismissRequest = { },
             properties = PopupProperties(focusable = false),
             modifier = Modifier.width(with(LocalDensity.current) { mTextFieldSize.width.toDp() })
         ) {
@@ -137,6 +151,8 @@ fun EventOrganizerView(
                         .fillMaxWidth(),
                     onClick = {
                         onSelectItem(organizer)
+                        focusRequester.freeFocus()
+                        focusManager.clearFocus()
                         onExpandedChange()
                     },
                     text = { Text(text = organizer.fullName) },
