@@ -1,5 +1,6 @@
 package band.effective.office.tablet.feature.bookingEditor.presentation
 
+import band.effective.office.tablet.core.domain.OfficeTime
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.Organizer
 import band.effective.office.tablet.core.domain.model.Slot
@@ -165,7 +166,7 @@ class BookingEditorComponent(
 
     private fun setDay(newDate: LocalDateTime) = scope.launch {
         with(state.value) {
-            val busyEvent: List<EventInfo> = checkBookingUseCase.busyEvents(
+            val busyEvents: List<EventInfo> = checkBookingUseCase.busyEvents(
                 event = copy(date = newDate).let(stateToEventInfoMapper::map),
                 room = room
             ).filter { it.startTime != date }
@@ -181,14 +182,14 @@ class BookingEditorComponent(
                         newDuration = duration,
                         organizer = selectOrganizer,
                     ),
-                    isBusyEvent = busyEvent.isNotEmpty()
+                    isBusyEvent = busyEvents.isNotEmpty()
                 )
             }
 
             if (selectOrganizer != Organizer.default) {
                 checkEnableButton(
                     inputError = isInputError,
-                    busyEvent = busyEvent.isNotEmpty()
+                    busyEvent = busyEvents.isNotEmpty()
                 )
             }
         }
@@ -212,13 +213,15 @@ class BookingEditorComponent(
                 room = room
             ).filter { it.startTime != date }
 
-
             fun today(): LocalDateTime {
                 val now = currentLocalDateTime
                 return now.date.atStartOfDayIn(defaultTimeZone).asLocalDateTime
             }
 
-            if (newDuration > 0 && newDate > today()) {
+            val officeEndTime = OfficeTime.finishWorkTime(newDate.date)
+            val newEventFinish = newDate.asInstant.plus(newDuration.minutes).asLocalDateTime
+
+            if (newDuration > 0 && newDate > today() && newEventFinish < officeEndTime) {
                 mutableState.update {
                     it.copy(
                         date = newDate,

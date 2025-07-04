@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.Month
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -45,8 +46,8 @@ class DateTimePickerComponent(
             }
             is Intent.OnChangeDate -> changeDate(
                 intent.date.year,
-                intent.date.monthNumber,
-                intent.date.dayOfMonth
+                intent.date.month,
+                intent.date.day,
             )
             is Intent.OnChangeTime -> changeTime(
                 intent.time.hour,
@@ -57,14 +58,14 @@ class DateTimePickerComponent(
 
     private fun changeDate(
         year: Int,
-        month: Int,
+        month: Month,
         dayOfMonth: Int
     ) = scope.launch {
         val currentDate = state.value.currentDate
         val newDate = LocalDateTime(
             year = year,
-            monthNumber = month,
-            dayOfMonth = dayOfMonth,
+            month = month,
+            day = dayOfMonth,
             hour = currentDate.hour,
             minute = currentDate.minute,
             second = 0,

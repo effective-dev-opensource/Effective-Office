@@ -47,7 +47,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -130,7 +130,7 @@ class MainComponent(
             }
         }
         // update events list
-        CoroutineScope(Dispatchers.Main).launch() {
+        CoroutineScope(Dispatchers.Main).launch {
             roomInfoUseCase.subscribe().collect { roomsInfo ->
                 if (roomsInfo.isNotEmpty())
                     reboot(resetSelectRoom = false)
@@ -158,7 +158,7 @@ class MainComponent(
                         currentDate = currentLocalDateTime,
                     )
                 }
-                slotComponent.sendIntent(SlotIntent.UpdateDate(currentLocalDate))
+                slotComponent.sendIntent(SlotIntent.UpdateDate(currentLocalDateTime))
             }
         }
     }
@@ -253,7 +253,7 @@ class MainComponent(
         // there is no point in looking at bookings from the past days
         if (newDate.date >= currentLocalDateTime.date) {
             mutableState.update { it.copy(selectedDate = newDate) }
-            slotComponent.sendIntent(SlotIntent.UpdateDate(newDate.date))
+            slotComponent.sendIntent(SlotIntent.UpdateDate(newDate))
         }
     }
 
@@ -268,19 +268,12 @@ class MainComponent(
                 )
             )
         }
-        updateComponents(state.value.roomList[index], state.value.selectedDate.date)
+        updateComponents(state.value.roomList[index], state.value.selectedDate)
     }
 
-    private fun updateComponents(roomInfo: RoomInfo, date: LocalDate) {
-        slotComponent.sendIntent(
-            SlotIntent.UpdateRequest(
-                room = roomInfo.name,
-                refresh = false
-            )
-        )
-        slotComponent.sendIntent(
-            SlotIntent.UpdateDate(date)
-        )
+    private fun updateComponents(roomInfo: RoomInfo, date: LocalDateTime) {
+        slotComponent.sendIntent(SlotIntent.UpdateRequest(room = roomInfo.name))
+        slotComponent.sendIntent(SlotIntent.UpdateDate(date))
     }
 
     private fun loadRooms() = coroutineScope.launch {
@@ -345,7 +338,7 @@ class MainComponent(
         }
         loadRooms()
         state.roomList.getOrNull(roomIndex)?.let { roomInfo ->
-            updateComponents(roomInfo, state.selectedDate.date)
+            updateComponents(roomInfo, state.selectedDate)
         }
     }
 }

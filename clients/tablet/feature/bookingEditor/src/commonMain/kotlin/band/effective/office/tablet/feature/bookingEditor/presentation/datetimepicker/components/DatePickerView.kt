@@ -37,7 +37,7 @@ fun DatePickerView(
             val year = it.year
             val month = it.month
             val day = it.day
-            onChangeDate(LocalDate(year, month.ordinal, day))
+            onChangeDate(LocalDate(year, month, day))
         }
     }
 

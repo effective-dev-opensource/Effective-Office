@@ -18,14 +18,13 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -62,14 +61,16 @@ class SlotComponent(
                 updateSlots(uiSlots)
             }
         }
-        coroutineScope.launch(Dispatchers.IO) {
+        /*coroutineScope.launch(Dispatchers.IO) {
             roomInfoUseCase.subscribe().collect { roomsInfo ->
                 val roomInfo = roomsInfo.firstOrNull { it.name == roomName() } ?: return@collect
-                val uiSlots = getSlotsByRoomUseCase(roomInfo).map(slotUiMapper::map)
+                val uiSlots = getSlotsByRoomUseCase(
+                    roomInfo = roomInfo,
+
+                ).map(slotUiMapper::map)
                 updateSlots(uiSlots)
             }
-        }
-
+        }*/
     }
 
     private suspend fun updateSlots(uiSlots: List<SlotUi>) = withContext(Dispatchers.Main.immediate) {
@@ -89,6 +90,14 @@ class SlotComponent(
             is SlotIntent.OnCancelDelete -> cancelDeletingSlot(intent)
             is SlotIntent.UpdateDate -> updateDate(intent.newDate)
             is SlotIntent.UpdateRequest -> updateRequest(intent)
+        }
+    }
+
+    private fun updateRequest(intent: SlotIntent.UpdateRequest) = coroutineScope.launch {
+        roomInfoUseCase.getRoom(intent.room)?.let { roomInfo ->
+            val slots = getSlotsByRoomUseCase(roomInfo = roomInfo)
+            val uiSlots = slots.map(slotUiMapper::map)
+            mutableState.update { it.copy(slots = uiSlots) }
         }
     }
 
@@ -211,32 +220,14 @@ class SlotComponent(
             isLoading = false,
         )
 
-    private fun updateRequest(intent: SlotIntent.UpdateRequest) {
-        if (!state.value.slots.any { it is SlotUi.DeleteSlot } || intent.refresh) {
-            updateSlot(intent.room, intent.refresh)
-        }
-    }
-
-    private fun updateSlot(roomName: String, refresh: Boolean) = coroutineScope.launch {
-        if (refresh) {
-            withContext(Dispatchers.IO) {
-                roomInfoUseCase.updateCache()
-            }
-        }
-        roomInfoUseCase.getRoom(roomName)?.let { roomInfo ->
-            val slots = getSlotsByRoomUseCase(
-                roomInfo = roomInfo,
-            )
-            val uiSlots = slots.map(slotUiMapper::map)
-            mutableState.update { it.copy(slots = uiSlots) }
-        }
-    }
-
-    private fun updateDate(newDate: LocalDate) = coroutineScope.launch {
+    private fun updateDate(newDate: LocalDateTime) = coroutineScope.launch {
         roomInfoUseCase.getRoom(room = roomName())?.let { roomInfo ->
             val slots = getSlotsByRoomUseCase(
                 roomInfo = roomInfo,
-                start = OfficeTime.startWorkTime(newDate)
+                start = maxOf(
+                    OfficeTime.startWorkTime(newDate.date).asInstant,
+                    currentInstant,
+                ).asLocalDateTime
             )
             val uiSlots = slots.map(slotUiMapper::map)
             mutableState.update { it.copy(slots = uiSlots) }
