@@ -4,7 +4,8 @@ import band.effective.office.tablet.core.domain.map
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.repository.EventManagerRepository
 import band.effective.office.tablet.core.domain.unbox
-import kotlin.time.Clock
+import kotlin.collections.filter
+import kotlinx.datetime.Clock
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant

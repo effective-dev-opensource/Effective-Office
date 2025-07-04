@@ -1,7 +1,7 @@
 package band.effective.office.tablet.core.domain.useCase
 
 import band.effective.office.tablet.core.domain.unbox
-import kotlin.time.Clock
+import kotlinx.datetime.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.flow.first

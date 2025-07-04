@@ -1,21 +1,33 @@
 import SwiftUI
 import ComposeApp
+import Foundation
+import SwiftUI
 
 @main
-struct ComposeApp: App {
+struct iOSApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self)
+    var appDelegate: AppDelegate
+
+    @Environment(\.scenePhase)
+    var scenePhase: ScenePhase
+
+    var rootHolder: RootHolder { appDelegate.rootHolder }
+    
+    init() {
+        Initializers().doInit()
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView().ignoresSafeArea(.all)
+            RootView(root: rootHolder.root)
+                .onChange(of: scenePhase) { newPhase in
+                    switch newPhase {
+                    case .background: LifecycleRegistryExtKt.stop(rootHolder.lifecycle)
+                    case .inactive: LifecycleRegistryExtKt.pause(rootHolder.lifecycle)
+                    case .active: LifecycleRegistryExtKt.resume(rootHolder.lifecycle)
+                    @unknown default: break
+                    }
+                }
         }
-    }
-}
-
-struct ContentView: UIViewControllerRepresentable {
-    func makeUIViewController(context: Context) -> UIViewController {
-        return MainKt.MainViewController()
-    }
-
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
-        // Updates will be handled by Compose
     }
 }

@@ -14,8 +14,8 @@ import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.Organizer
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.repository.BookingRepository
-import kotlin.time.Clock
-import kotlin.time.Instant
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -48,12 +48,12 @@ class NetworkEventRepository(
             .toLocalDateTime(timeZone)
         val roundedStart = LocalDateTime(
             year = adjustedNow.year,
-            month = adjustedNow.month,
-            day = adjustedNow.day,
             hour = adjustedNow.hour,
             minute = adjustedNow.minute,
             second = 0,
-            nanosecond = 0
+            nanosecond = 0,
+            monthNumber = adjustedNow.month.ordinal,
+            dayOfMonth = adjustedNow.dayOfMonth
         )
 
         val finish = now.toInstant(timeZone).plus(14, DateTimeUnit.DAY, timeZone)

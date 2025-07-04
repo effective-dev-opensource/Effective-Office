@@ -1,5 +1,6 @@
 package band.effective.office.tablet.core.domain.model
 
+import band.effective.office.tablet.core.domain.util.currentLocalDateTime
 import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -18,8 +19,8 @@ data class EventInfo(
         const val defaultId: String = ""
 
         val emptyEvent = EventInfo(
-            startTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
-            finishTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
+            startTime = currentLocalDateTime,
+            finishTime = currentLocalDateTime,
             organizer = Organizer.Companion.default,
             id = defaultId,
             isLoading = true,

@@ -47,7 +47,7 @@ class DateTimePickerComponent(
             is Intent.OnChangeDate -> changeDate(
                 intent.date.year,
                 intent.date.month,
-                intent.date.day,
+                intent.date.dayOfMonth,
             )
             is Intent.OnChangeTime -> changeTime(
                 intent.time.hour,
@@ -64,8 +64,8 @@ class DateTimePickerComponent(
         val currentDate = state.value.currentDate
         val newDate = LocalDateTime(
             year = year,
-            month = month,
-            day = dayOfMonth,
+            monthNumber = month.ordinal,
+            dayOfMonth = dayOfMonth,
             hour = currentDate.hour,
             minute = currentDate.minute,
             second = 0,
@@ -83,8 +83,8 @@ class DateTimePickerComponent(
         val currentDate = state.value.currentDate
         val newDate = LocalDateTime(
             year = currentDate.year,
-            month = currentDate.month,
-            day = currentDate.day,
+            monthNumber = currentDate.month.ordinal,
+            dayOfMonth = currentDate.dayOfMonth,
             hour = hour,
             minute = minute,
             second = 0,

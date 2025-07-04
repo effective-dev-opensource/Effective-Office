@@ -3,7 +3,6 @@ import band.effective.office.backend.libs
 plugins {
     id("band.effective.office.client.kmp.library")
     id("band.effective.office.client.kmp.ui")
-    id("com.arkivanov.parcelize.darwin")
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 

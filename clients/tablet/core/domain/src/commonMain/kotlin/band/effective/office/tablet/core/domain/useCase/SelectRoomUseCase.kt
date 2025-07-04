@@ -4,10 +4,10 @@ import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.util.asInstant
 import band.effective.office.tablet.core.domain.util.currentInstant
 import kotlin.math.absoluteValue
-import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Instant
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 

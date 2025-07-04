@@ -114,7 +114,7 @@ fun DateTimePickerModalView(
                     ) {
                         Text(
                             text = when (enableDateButton) {
-                                true -> "${currentDate.day} ${currentDate.month.name} ${currentDate.toFormattedString("HH:mm")}"
+                                true -> "${currentDate.dayOfMonth} ${currentDate.month.name} ${currentDate.toFormattedString("HH:mm")}"
                                 false -> stringResource(band.effective.office.tablet.core.ui.Res.string.time_booked)
                             },
                             style = header8,

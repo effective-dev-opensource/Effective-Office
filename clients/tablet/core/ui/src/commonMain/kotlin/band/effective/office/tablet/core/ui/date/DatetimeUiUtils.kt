@@ -11,13 +11,13 @@ val dateTimeFormat = LocalDateTime.Format {
     char(':')
     minute(padding = Padding.ZERO)
     char(' ')
-    day(padding = Padding.ZERO)
+    dayOfMonth(padding = Padding.ZERO)
     char(' ')
     monthName(MonthNames.ENGLISH_FULL)
 }
 
 val dayMonthFormat = LocalDateTime.Format {
-    day(padding = Padding.ZERO)
+    dayOfMonth(padding = Padding.ZERO)
     char(' ')
     monthName(MonthNames.ENGLISH_FULL)
 }

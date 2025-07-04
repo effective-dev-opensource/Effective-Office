@@ -21,7 +21,16 @@ kotlin {
         it.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+
+            export(libs.decompose)
+            export(libs.decompose.compose.jetbrains)
+
+            export("com.mohamedrejeb.calf:calf-ui:0.8.0")
         }
+        it.compilations.all {
+            kotlinOptions.freeCompilerArgs += "-Xdisable-decompose-parcelize"
+        }
+
     }
 
     sourceSets {
@@ -32,8 +41,10 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
 
-            implementation(libs.decompose)
-            implementation(libs.decompose.compose.jetbrains)
+            api(libs.decompose)
+            api(libs.decompose.compose.jetbrains)
+            api("com.mohamedrejeb.calf:calf-ui:0.8.0")
+            api(libs.kotlinx.datetime)
 
             implementation(libs.kotlin.coroutines.core)
 

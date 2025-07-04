@@ -11,7 +11,7 @@ import band.effective.office.tablet.core.domain.util.asInstant
 import band.effective.office.tablet.core.domain.util.asLocalDateTime
 import com.mohamedrejeb.calf.ui.datepicker.AdaptiveDatePicker
 import com.mohamedrejeb.calf.ui.datepicker.rememberAdaptiveDatePickerState
-import kotlin.time.Instant
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 
@@ -36,7 +36,7 @@ fun DatePickerView(
         selectedDate?.let {
             val year = it.year
             val month = it.month
-            val day = it.day
+            val day = it.dayOfMonth
             onChangeDate(LocalDate(year, month, day))
         }
     }

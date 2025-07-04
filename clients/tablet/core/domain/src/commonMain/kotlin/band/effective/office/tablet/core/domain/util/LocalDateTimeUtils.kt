@@ -1,9 +1,9 @@
 package band.effective.office.tablet.core.domain.util
 
-import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Instant
+import kotlinx.datetime.Instant
+import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -28,7 +28,7 @@ fun roundUpToNextQuarter(dateTime: LocalDateTime): LocalDateTime {
 }
 
 val LocalDateTime.asInstant get() = toInstant(defaultTimeZone)
-val Instant.asLocalDateTime get() = this.toLocalDateTime(defaultTimeZone)
+val Instant.asLocalDateTime get() = toLocalDateTime(defaultTimeZone)
 
 fun LocalDateTime.plus(duration: Duration) = asInstant.plus(duration).asLocalDateTime
 fun LocalDateTime.minus(duration: Duration) = asInstant.minus(duration).asLocalDateTime

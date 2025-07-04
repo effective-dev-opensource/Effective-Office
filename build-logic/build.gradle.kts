@@ -28,8 +28,6 @@ dependencies {
     implementation("org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:2.1.21")
     implementation("org.jetbrains.kotlin.plugin.serialization:org.jetbrains.kotlin.plugin.serialization.gradle.plugin:2.1.21")
     implementation("com.android.tools.build:gradle:8.9.1")
-//    implementation("com.android.library:com.android.library.gradle.plugin:8.9.1")
     implementation("org.jetbrains.compose:org.jetbrains.compose.gradle.plugin:1.8.1")
-    implementation("com.arkivanov.parcelize.darwin:gradle-plugin:0.2.4")
     implementation("com.google.gms:google-services:4.4.3")
 }
