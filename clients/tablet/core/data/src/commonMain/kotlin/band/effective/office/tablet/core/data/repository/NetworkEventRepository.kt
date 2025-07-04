@@ -50,8 +50,8 @@ class NetworkEventRepository(
             year = adjustedNow.year,
             month = adjustedNow.month,
             day = adjustedNow.day,
-            hour = adjustedNow.hour,
-            minute = adjustedNow.minute,
+            hour = 0,
+            minute = 0,
             second = 0,
             nanosecond = 0
         )
