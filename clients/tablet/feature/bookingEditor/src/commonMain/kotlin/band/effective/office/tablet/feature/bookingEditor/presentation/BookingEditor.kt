@@ -37,6 +37,7 @@ import band.effective.office.tablet.feature.bookingEditor.booking_time_button
 import band.effective.office.tablet.feature.bookingEditor.booking_view_title
 import band.effective.office.tablet.feature.bookingEditor.create_view_title
 import band.effective.office.tablet.feature.bookingEditor.delete_button
+import band.effective.office.tablet.feature.bookingEditor.error
 import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.DateTimePickerModalView
 import band.effective.office.tablet.feature.bookingEditor.update_button
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -67,7 +68,7 @@ fun BookingEditor(
                         onDismissRequest = { component.sendIntent(Intent.OnClose) })
 
                     BookingEditorComponent.ModalConfig.SuccessModal -> SuccessSelectRoomView(
-                        roomName = component.room,
+                        roomName = component.roomName,
                         organizerName = state.selectOrganizer.fullName,
                         startTime = state.event.startTime,
                         finishTime = state.event.finishTime,
@@ -88,7 +89,7 @@ fun BookingEditor(
                         selectOrganizer = state.selectOrganizer,
                         organizers = state.selectOrganizers,
                         expended = state.expanded,
-                        onUpdateEvent = { component.sendIntent(Intent.OnUpdateEvent(component.room)) },
+                        onUpdateEvent = { component.sendIntent(Intent.OnUpdateEvent(component.roomName)) },
                         onDeleteEvent = { component.sendIntent(Intent.OnDeleteEvent) },
                         inputText = state.inputText,
                         onInput = { component.sendIntent(Intent.OnInput(it)) },
@@ -96,12 +97,16 @@ fun BookingEditor(
                         onDoneInput = { component.sendIntent(Intent.OnDoneInput) },
                         isDeleteError = state.isErrorDelete,
                         isDeleteLoad = state.isLoadDelete,
+                        isUpdateError = state.isErrorUpdate,
+                        isUpdateLoad = state.isLoadUpdate,
+                        isCreateError = state.isErrorCreate,
+                        isCreateLoad = state.isLoadCreate,
                         enableUpdateButton = state.enableUpdateButton,
                         isNewEvent = !state.isCreatedEvent(),
                         onCreateEvent = { component.sendIntent(Intent.OnBooking) },
                         start = state.event.startTime.format(timeFormatter),
                         finish = state.event.finishTime.format(timeFormatter),
-                        room = component.room,
+                        room = component.roomName,
                     )
                 }
             }
@@ -134,6 +139,10 @@ private fun BookingEditor(
     onDoneInput: (String) -> Unit,
     isDeleteError: Boolean,
     isDeleteLoad: Boolean,
+    isUpdateError: Boolean = false,
+    isUpdateLoad: Boolean = false,
+    isCreateError: Boolean = false,
+    isCreateLoad: Boolean = false,
     enableUpdateButton: Boolean,
     isNewEvent: Boolean,
     start: String,
@@ -176,7 +185,15 @@ private fun BookingEditor(
                 selectOrganizers = organizers.map { it.fullName },
                 expanded = expended,
                 onExpandedChange = onExpandedChange,
-                onSelectItem = { org -> onSelectOrganizer(organizers.find { it.fullName == org }!!) },
+                onSelectItem = { org -> 
+                    organizers.find { it.fullName == org }?.let { organizer ->
+                        onSelectOrganizer(organizer)
+                    } ?: run {
+                        // If organizer not found, use the first one or default
+                        val fallbackOrganizer = organizers.firstOrNull() ?: Organizer.default
+                        onSelectOrganizer(fallbackOrganizer)
+                    }
+                },
                 onInput = onInput,
                 isInputError = isInputError,
                 onDoneInput = onDoneInput,
@@ -187,23 +204,37 @@ private fun BookingEditor(
                 SuccessButton(
                     modifier = Modifier.fillMaxWidth().height(60.dp),
                     onClick = onCreateEvent,
-                    enable = enableUpdateButton
+                    enable = enableUpdateButton && !isCreateLoad
                 ) {
-                    Text(
-                        text = stringResource(Res.string.booking_time_button, start, finish),
-                        style = MaterialTheme.typography.h6
-                    )
+                    when {
+                        isCreateLoad -> Loader()
+                        isCreateError -> Text(
+                            text = "Error creating event", // Ideally, this should be a string resource
+                            style = MaterialTheme.typography.h6
+                        )
+                        else -> Text(
+                            text = stringResource(Res.string.booking_time_button, start, finish),
+                            style = MaterialTheme.typography.h6
+                        )
+                    }
                 }
             } else {
                 SuccessButton(
                     modifier = Modifier.fillMaxWidth().height(60.dp),
                     onClick = onUpdateEvent,
-                    enable = enableUpdateButton
+                    enable = enableUpdateButton && !isUpdateLoad
                 ) {
-                    Text(
-                        text = stringResource(Res.string.update_button),
-                        style = MaterialTheme.typography.h6
-                    )
+                    when {
+                        isUpdateLoad -> Loader()
+                        isUpdateError -> Text(
+                            text = stringResource(Res.string.error),
+                            style = MaterialTheme.typography.h6
+                        )
+                        else -> Text(
+                            text = stringResource(Res.string.update_button),
+                            style = MaterialTheme.typography.h6
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(10.dp))
                 AlertButton(
@@ -213,7 +244,7 @@ private fun BookingEditor(
                     when {
                         isDeleteLoad -> Loader()
                         isDeleteError -> Text(
-                            text = stringResource(Res.string.update_button),
+                            text = "Error deleting event", // Ideally, this should be a string resource
                             style = MaterialTheme.typography.h6
                         )
 

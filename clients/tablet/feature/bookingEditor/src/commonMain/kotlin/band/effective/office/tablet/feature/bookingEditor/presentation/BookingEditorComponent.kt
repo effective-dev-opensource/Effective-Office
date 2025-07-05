@@ -21,54 +21,63 @@ import band.effective.office.tablet.feature.bookingEditor.presentation.mapper.Up
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
+import io.github.aakira.napier.Napier
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.serialization.Serializable
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
+/**
+ * Component responsible for editing booking events.
+ * Handles creating new bookings and updating existing ones.
+ */
 class BookingEditorComponent(
     componentContext: ComponentContext,
-    event: EventInfo,
-    val room: String,
-    private val onDelete: (Slot) -> Unit,
+    initialEvent: EventInfo,
+    val roomName: String,
+    private val onDeleteEvent: (Slot) -> Unit,
     private val onCloseRequest: () -> Unit,
 ) : ComponentContext by componentContext, KoinComponent, ModalWindow {
 
     val dateTimePickerComponent: DateTimePickerComponent by lazy {
         DateTimePickerComponent(
             componentContext = componentContext,
-            onSelectDate = { newDate -> setDay(newDate) },
+            onSelectDate = { newDate -> updateEventDate(newDate) },
             onCloseRequest = { mutableState.update { it.copy(showSelectDate = false) } },
-            event = event,
-            room = room,
+            event = initialEvent,
+            room = roomName,
             duration = state.value.duration,
             initDate = { state.value.date }
         )
     }
 
-    private val scope = componentCoroutineScope()
+    private val coroutineScope = componentCoroutineScope()
 
-    val organizersInfoUseCase: OrganizersInfoUseCase by inject()
-    val checkBookingUseCase: CheckBookingUseCase by inject()
-    val updateBookingUseCase: UpdateBookingUseCase by inject()
-    val createBookingUseCase: CreateBookingUseCase by inject()
+    // Use cases
+    private val organizersInfoUseCase: OrganizersInfoUseCase by inject()
+    private val checkBookingUseCase: CheckBookingUseCase by inject()
+    private val updateBookingUseCase: UpdateBookingUseCase by inject()
+    private val createBookingUseCase: CreateBookingUseCase by inject()
 
-    val eventInfoMapper: EventInfoMapper by inject()
-    val stateToEventInfoMapper: UpdateEventComponentStateToEventInfoMapper by inject()
+    // Mappers
+    private val eventInfoMapper: EventInfoMapper by inject()
+    private val stateToEventInfoMapper: UpdateEventComponentStateToEventInfoMapper by inject()
 
-    private val mutableState = MutableStateFlow(eventInfoMapper.mapToUpdateBookingState(event))
+    // State management
+    private val mutableState = MutableStateFlow(eventInfoMapper.mapToUpdateBookingState(initialEvent))
     val state = mutableState.asStateFlow()
 
+    // Navigation
     private val navigation = StackNavigation<ModalConfig>()
 
     val childStack = childStack(
@@ -82,44 +91,58 @@ class BookingEditorComponent(
         loadOrganizers()
     }
 
+    /**
+     * Handles intents from the UI
+     */
     fun sendIntent(intent: Intent) {
         when (intent) {
-            Intent.OnBooking -> createEvent()
+            Intent.OnBooking -> createNewEvent()
             Intent.OnClose -> onCloseRequest()
-            Intent.OnCloseSelectDateDialog -> mutableState.update { it.copy(showSelectDate = false) }
-            Intent.OnDeleteEvent -> cancel()
-            Intent.OnDoneInput -> onDoneInput()
-            Intent.OnExpandedChange -> mutableState.update { it.copy(expanded = !it.expanded) }
-            is Intent.OnInput -> onInput(intent.input)
-            Intent.OnOpenSelectDateDialog -> mutableState.update { it.copy(showSelectDate = true) }
-            is Intent.OnSelectOrganizer -> {
-                mutableState.update {
-                    it.copy(
-                        selectOrganizer = intent.newOrganizer,
-                        inputText = intent.newOrganizer.fullName,
-                    )
+            Intent.OnCloseSelectDateDialog -> closeSelectDateDialog()
+            Intent.OnDeleteEvent -> deleteEvent()
+            Intent.OnDoneInput -> finalizeOrganizerSelection()
+            Intent.OnExpandedChange -> toggleExpandedState()
+            is Intent.OnInput -> handleOrganizerInput(intent.input)
+            Intent.OnOpenSelectDateDialog -> openSelectDateDialog()
+            is Intent.OnSelectOrganizer -> selectOrganizer(intent.newOrganizer)
+            is Intent.OnSetDate -> updateEventDate(intent.calendar)
+            is Intent.OnUpdateDate -> updateEventDetails(daysToAdd = intent.updateInDays)
+            is Intent.OnUpdateEvent -> updateExistingEvent()
+            is Intent.OnUpdateLength -> updateEventDetails(durationChange = intent.update)
+        }
+    }
+
+    /**
+     * Updates an existing event in the database
+     */
+    private fun updateExistingEvent() = coroutineScope.launch {
+        mutableState.update { it.copy(isLoadUpdate = true) }
+        withContext(Dispatchers.IO) {
+            updateBookingUseCase(
+                roomName = roomName,
+                eventInfo = stateToEventInfoMapper.map(state.value)
+            ).unbox(
+                errorHandler = {
+                    Napier.d { "Update booking failed: ${it.description}" }
+                    mutableState.update {
+                        it.copy(
+                            isLoadUpdate = false,
+                            isErrorUpdate = true
+                        )
+                    }
+                },
+                successHandler = {
+                    mutableState.update { it.copy(isLoadUpdate = false) }
+                    onCloseRequest()
                 }
-                checkEnableButton(
-                    inputError = false,
-                    busyEvent = state.value.isBusyEvent,
-                )
-            }
-
-            is Intent.OnSetDate -> setDay(intent.calendar)
-            is Intent.OnUpdateDate -> updateInfo(changeData = intent.updateInDays)
-            is Intent.OnUpdateEvent -> updateEvent()
-            is Intent.OnUpdateLength -> updateInfo(changeDuration = intent.update)
+            )
         }
     }
 
-    private fun updateEvent() = scope.launch {
-        CoroutineScope(Dispatchers.IO).launch {
-            updateBookingUseCase(roomName = room, eventInfo = stateToEventInfoMapper.map(state.value))
-        }
-        onCloseRequest()
-    }
-
-    private fun loadOrganizers() = scope.launch {
+    /**
+     * Loads the list of organizers from the database
+     */
+    private fun loadOrganizers() = coroutineScope.launch {
         val organizers = organizersInfoUseCase().unbox(errorHandler = { emptyList() })
         mutableState.update {
             it.copy(
@@ -129,14 +152,22 @@ class BookingEditorComponent(
         }
     }
 
-    private fun cancel() {
-        onDelete(eventInfoMapper.mapToSlot(state.value.event))
+    /**
+     * Deletes the current event
+     */
+    private fun deleteEvent() = coroutineScope.launch {
+        mutableState.update { it.copy(isLoadDelete = true) }
+        onDeleteEvent(eventInfoMapper.mapToSlot(state.value.event))
+        mutableState.update { it.copy(isLoadDelete = false) }
         onCloseRequest()
     }
 
-    private fun onDoneInput() = with(state.value) {
+    /**
+     * Finalizes the organizer selection based on the input text
+     */
+    private fun finalizeOrganizerSelection() = with(state.value) {
         val input = inputText.lowercase()
-        val organizer = selectOrganizers.firstOrNull { it.fullName.lowercase().contains(input) } ?: event.organizer
+        val organizer = findOrganizerByName(input) ?: event.organizer
         val isOrganizerIncorrect = !organizers.contains(organizer)
 
         mutableState.update {
@@ -146,48 +177,67 @@ class BookingEditorComponent(
                 isInputError = isOrganizerIncorrect,
             )
         }
-        checkEnableButton(
+        updateButtonState(
             inputError = isOrganizerIncorrect,
             busyEvent = isBusyEvent
         )
     }
 
-    private fun onInput(input: String) {
-        val newList = state.value.organizers
-            .filter { it.fullName.lowercase().contains(input.lowercase()) }
-            .sortedBy { it.fullName.lowercase().indexOf(input.lowercase()) }
-        mutableState.update { it.copy(inputText = input, selectOrganizers = newList) }
+    /**
+     * Finds an organizer by name (partial match)
+     */
+    private fun findOrganizerByName(name: String): Organizer? {
+        return state.value.selectOrganizers.firstOrNull {
+            it.fullName.lowercase().contains(name.lowercase())
+        }
     }
 
-    private fun checkEnableButton(
+    /**
+     * Handles input in the organizer field
+     */
+    private fun handleOrganizerInput(input: String) {
+        val filteredOrganizers = state.value.organizers
+            .filter { it.fullName.lowercase().contains(input.lowercase()) }
+            .sortedBy { it.fullName.lowercase().indexOf(input.lowercase()) }
+
+        mutableState.update {
+            it.copy(
+                inputText = input,
+                selectOrganizers = filteredOrganizers
+            )
+        }
+    }
+
+    /**
+     * Updates the button state based on validation
+     */
+    private fun updateButtonState(
         inputError: Boolean,
         busyEvent: Boolean
-    ) = mutableState.update { it.copy(enableUpdateButton = !inputError && !busyEvent) }
+    ) = mutableState.update {
+        it.copy(enableUpdateButton = !inputError && !busyEvent)
+    }
 
-    private fun setDay(newDate: LocalDateTime) = scope.launch {
+    /**
+     * Updates the event date
+     */
+    private fun updateEventDate(newDate: LocalDateTime) = coroutineScope.launch {
         with(state.value) {
-            val busyEvents: List<EventInfo> = checkBookingUseCase.busyEvents(
-                event = copy(date = newDate).let(stateToEventInfoMapper::map),
-                room = room
-            ).filter { it.startTime != date }
+            val busyEvents = checkForBusyEvents(
+                date = newDate,
+                duration = duration,
+                organizer = selectOrganizer
+            )
 
-            mutableState.update {
-                it.copy(
-                    date = newDate,
-                    duration = duration,
-                    selectOrganizer = selectOrganizer,
-                    event = event(
-                        id = event.id,
-                        newDate = newDate,
-                        newDuration = duration,
-                        organizer = selectOrganizer,
-                    ),
-                    isBusyEvent = busyEvents.isNotEmpty()
-                )
-            }
+            updateStateWithNewEventDetails(
+                newDate = newDate,
+                newDuration = duration,
+                newOrganizer = selectOrganizer,
+                busyEvents = busyEvents
+            )
 
             if (selectOrganizer != Organizer.default) {
-                checkEnableButton(
+                updateButtonState(
                     inputError = isInputError,
                     busyEvent = busyEvents.isNotEmpty()
                 )
@@ -195,78 +245,197 @@ class BookingEditorComponent(
         }
     }
 
-    private fun updateInfo(
-        changeData: Int = 0,
-        changeDuration: Int = 0,
-        newOrg: Organizer = state.value.selectOrganizer
-    ) = scope.launch {
+    /**
+     * Updates event details (date, duration, organizer)
+     */
+    private fun updateEventDetails(
+        daysToAdd: Int = 0,
+        durationChange: Int = 0,
+        newOrganizer: Organizer = state.value.selectOrganizer
+    ) = coroutineScope.launch {
         with(state.value) {
-            val newDate = date.asInstant.plus(changeData.days).asLocalDateTime
-            val newDuration = duration + changeDuration
-            val newOrganizer = organizers.firstOrNull { it.fullName == newOrg.fullName } ?: event.organizer
-            val busyEvent: List<EventInfo> = checkBookingUseCase.busyEvents(
-                event = copy(
-                    date = newDate,
-                    duration = newDuration,
-                    selectOrganizer = newOrganizer
-                ).let(stateToEventInfoMapper::map),
-                room = room
-            ).filter { it.startTime != date }
+            val newDate = date.asInstant.plus(daysToAdd.days).asLocalDateTime
+            val newDuration = duration + durationChange
+            val resolvedOrganizer = organizers.firstOrNull {
+                it.fullName == newOrganizer.fullName
+            } ?: event.organizer
 
-            fun today(): LocalDateTime {
-                val now = currentLocalDateTime
-                return now.date.atStartOfDayIn(defaultTimeZone).asLocalDateTime
-            }
+            val busyEvents = checkForBusyEvents(
+                date = newDate,
+                duration = newDuration,
+                organizer = resolvedOrganizer
+            )
 
-            val officeEndTime = OfficeTime.finishWorkTime(newDate.date)
-            val newEventFinish = newDate.asInstant.plus(newDuration.minutes).asLocalDateTime
+            if (isValidEventTime(newDate, newDuration)) {
+                updateStateWithNewEventDetails(
+                    newDate = newDate,
+                    newDuration = newDuration,
+                    newOrganizer = resolvedOrganizer,
+                    busyEvents = busyEvents
+                )
 
-            if (newDuration > 0 && newDate > today() && newEventFinish < officeEndTime) {
-                mutableState.update {
-                    it.copy(
-                        date = newDate,
-                        duration = newDuration,
-                        selectOrganizer = newOrganizer,
-                        event = event(
-                            id = event.id,
-                            newDate = newDate,
-                            newDuration = newDuration,
-                            organizer = newOrganizer,
-                        ),
-                        isBusyEvent = busyEvent.isNotEmpty()
-                    )
-                }
-                checkEnableButton(
-                    inputError = !organizers.contains(newOrganizer),
-                    busyEvent = busyEvent.isNotEmpty()
+                updateButtonState(
+                    inputError = !organizers.contains(resolvedOrganizer),
+                    busyEvent = busyEvents.isNotEmpty()
                 )
             }
         }
     }
 
-    private fun createEvent() = scope.launch {
-        val event = stateToEventInfoMapper.map(state.value)
-        CoroutineScope(Dispatchers.IO).launch {
-            createBookingUseCase(roomName = room, eventInfo = event)
-        }
-        onCloseRequest()
+    /**
+     * Checks if the event time is valid
+     */
+    private fun isValidEventTime(date: LocalDateTime, duration: Int): Boolean {
+        val today = getTodayStartTime()
+        val officeEndTime = OfficeTime.finishWorkTime(date.date)
+        val eventEndTime = date.asInstant.plus(duration.minutes).asLocalDateTime
+
+        return duration > 0 && date > today && eventEndTime < officeEndTime
     }
 
-    // TODO refactor
-    private fun event(
-        id: String,
+    /**
+     * Gets the start time of today
+     */
+    private fun getTodayStartTime(): LocalDateTime =
+        currentLocalDateTime.date.atStartOfDayIn(defaultTimeZone).asLocalDateTime
+
+    /**
+     * Checks for busy events that conflict with the given parameters
+     */
+    private suspend fun checkForBusyEvents(
+        date: LocalDateTime,
+        duration: Int,
+        organizer: Organizer
+    ): List<EventInfo> {
+        val eventToCheck = createEventInfo(
+            id = state.value.event.id,
+            startTime = date,
+            duration = duration,
+            organizer = organizer
+        )
+
+        val currentEventId = state.value.event.id
+        return checkBookingUseCase.busyEvents(
+            event = eventToCheck,
+            room = roomName
+        ).filter { busyEvent ->
+            // Exclude the current event being edited (if it's an update)
+            if (busyEvent.id == currentEventId && !currentEventId.isBlank()) {
+                return@filter false
+            }
+
+            // Check for any overlap between events
+            val newEventStart = eventToCheck.startTime.asInstant
+            val newEventEnd = eventToCheck.finishTime.asInstant
+            val busyEventStart = busyEvent.startTime.asInstant
+            val busyEventEnd = busyEvent.finishTime.asInstant
+
+            // Events overlap if one starts before the other ends
+            (newEventStart < busyEventEnd && newEventEnd > busyEventStart)
+        }
+    }
+
+    /**
+     * Updates the state with new event details
+     */
+    private fun updateStateWithNewEventDetails(
         newDate: LocalDateTime,
         newDuration: Int,
+        newOrganizer: Organizer,
+        busyEvents: List<EventInfo>
+    ) {
+        val updatedEvent = createEventInfo(
+            id = state.value.event.id,
+            startTime = newDate,
+            duration = newDuration,
+            organizer = newOrganizer
+        )
+
+        mutableState.update {
+            it.copy(
+                date = newDate,
+                duration = newDuration,
+                selectOrganizer = newOrganizer,
+                event = updatedEvent,
+                isBusyEvent = busyEvents.isNotEmpty()
+            )
+        }
+    }
+
+    /**
+     * Creates a new event in the database
+     */
+    private fun createNewEvent() = coroutineScope.launch {
+        mutableState.update { it.copy(isLoadCreate = true) }
+        val eventToCreate = stateToEventInfoMapper.map(state.value)
+        withContext(Dispatchers.IO) {
+            createBookingUseCase(roomName = roomName, eventInfo = eventToCreate).unbox(
+                errorHandler = {
+                    mutableState.update {
+                        it.copy(
+                            isLoadCreate = false,
+                            isErrorCreate = true,
+                        )
+                    }
+                },
+                successHandler = {
+                    mutableState.update { it.copy(isLoadCreate = false) }
+                    onCloseRequest()
+                }
+            )
+        }
+    }
+
+    /**
+     * Creates an EventInfo object with the given parameters
+     */
+    private fun createEventInfo(
+        id: String,
+        startTime: LocalDateTime,
+        duration: Int,
         organizer: Organizer,
     ): EventInfo {
         return EventInfo(
-            startTime = newDate,
-            finishTime = newDate.asInstant.plus(newDuration.minutes).asLocalDateTime,
+            startTime = startTime,
+            finishTime = startTime.asInstant.plus(duration.minutes).asLocalDateTime,
             organizer = organizer,
             id = id,
             isLoading = false,
         )
     }
+
+    /**
+     * Selects an organizer
+     */
+    private fun selectOrganizer(organizer: Organizer) {
+        mutableState.update {
+            it.copy(
+                selectOrganizer = organizer,
+                inputText = organizer.fullName,
+            )
+        }
+        updateButtonState(
+            inputError = false,
+            busyEvent = state.value.isBusyEvent,
+        )
+    }
+
+    /**
+     * Toggles the expanded state
+     */
+    private fun toggleExpandedState() = mutableState.update { it.copy(expanded = !it.expanded) }
+
+
+    /**
+     * Opens the select date dialog
+     */
+    private fun openSelectDateDialog() = mutableState.update { it.copy(showSelectDate = true) }
+
+
+    /**
+     * Closes the select date dialog
+     */
+    private fun closeSelectDateDialog() = mutableState.update { it.copy(showSelectDate = false) }
 
     @Serializable
     sealed interface ModalConfig {

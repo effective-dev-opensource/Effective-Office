@@ -17,6 +17,10 @@ data class State(
     val isInputError: Boolean,
     val isLoadDelete: Boolean,
     val isErrorDelete: Boolean,
+    val isLoadUpdate: Boolean,
+    val isErrorUpdate: Boolean,
+    val isLoadCreate: Boolean,
+    val isErrorCreate: Boolean,
     val showSelectDate: Boolean,
     val enableUpdateButton: Boolean,
     val isBusyEvent: Boolean
@@ -34,6 +38,10 @@ data class State(
             isInputError = false,
             isLoadDelete = false,
             isErrorDelete = false,
+            isLoadUpdate = false,
+            isErrorUpdate = false,
+            isLoadCreate = false,
+            isErrorCreate = false,
             showSelectDate = false,
             enableUpdateButton = false,
             isBusyEvent = false

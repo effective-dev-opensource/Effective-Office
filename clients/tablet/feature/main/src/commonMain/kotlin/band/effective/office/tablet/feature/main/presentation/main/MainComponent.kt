@@ -137,20 +137,20 @@ class MainComponent(
             }
         }
         // reset selected room
-        currentRoomTimer.start(delay = 1.minutes) {
+        /*currentRoomTimer.start(delay = 1.minutes) {
             withContext(Dispatchers.Main) {
                 loadRooms()
             }
-        }
+        }*/
         // update cache when get error
-        errorTimer.init(15.minutes) {
+        /*errorTimer.init(15.minutes) {
             roomInfoUseCase.updateCache()
             withContext(Dispatchers.Main) {
                 loadRooms()
             }
-        }
+        }*/
         // reset select date
-        currentTimeTimer.start(1.minutes) {
+        /*currentTimeTimer.start(1.minutes) {
             withContext(Dispatchers.Main) {
                 mutableState.update {
                     it.copy(
@@ -160,7 +160,7 @@ class MainComponent(
                 }
                 slotComponent.sendIntent(SlotIntent.UpdateDate(currentLocalDateTime))
             }
-        }
+        }*/
     }
 
     fun sendIntent(intent: Intent) {
@@ -207,10 +207,9 @@ class MainComponent(
 
             is ModalWindowsConfig.UpdateEvent -> BookingEditorComponent(
                 componentContext = componentContext,
-                event = modalWindows.event,
-                room = state.value.run { roomList[indexSelectRoom].name },
-
-                onDelete = { slot ->
+                initialEvent = modalWindows.event,
+                roomName = state.value.run { roomList[indexSelectRoom].name },
+                onDeleteEvent = { slot ->
                     slotComponent.sendIntent(
                         SlotIntent.Delete(
                             slot = slot,
