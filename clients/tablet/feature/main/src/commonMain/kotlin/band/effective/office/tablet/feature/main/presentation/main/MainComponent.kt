@@ -48,6 +48,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 
@@ -146,6 +147,14 @@ class MainComponent(
                 if (roomsInfo.isNotEmpty()) {
                     reboot(resetSelectRoom = false)
                 }
+            }
+        }
+
+        // reset select date
+        currentTimeTimer.start(1.minutes) {
+            withContext(Dispatchers.Main) {
+                mutableState.update { it.copy(selectedDate = currentLocalDateTime,) }
+                slotComponent.sendIntent(SlotIntent.UpdateDate(currentLocalDateTime))
             }
         }
     }
@@ -429,7 +438,7 @@ class MainComponent(
             is Either.Success<List<RoomInfo>> -> RoomsResult(
                 isSuccess = true,
                 roomList = result.data,
-                indexSelectRoom = getRoomIndexUseCase(state.value.roomList),
+                indexSelectRoom = state.value.indexSelectRoom,
             )
 
             else -> RoomsResult(
