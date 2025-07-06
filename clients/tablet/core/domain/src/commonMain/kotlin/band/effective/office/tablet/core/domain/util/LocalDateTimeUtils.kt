@@ -14,7 +14,7 @@ val defaultTimeZone = TimeZone.currentSystemDefault()
 
 val currentLocalDateTime: LocalDateTime get() = Clock.System.now().toLocalDateTime(defaultTimeZone)
 val currentLocalDate: LocalDate get() = Clock.System.now().toLocalDateTime(defaultTimeZone).date
-val currentInstant: Instant get() = Instant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds())
+val currentInstant: Instant get() = Clock.System.now().toLocalDateTime(defaultTimeZone).asInstant
 
 fun roundUpToNextQuarter(dateTime: LocalDateTime): LocalDateTime {
     val minutes = dateTime.minute

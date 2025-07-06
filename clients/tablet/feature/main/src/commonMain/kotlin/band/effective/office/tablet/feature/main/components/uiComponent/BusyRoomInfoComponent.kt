@@ -78,7 +78,6 @@ fun BusyRoomInfoComponent(
                 modifier = Modifier
                     .clip(shape = RoundedCornerShape(40.dp))
                     .height(45.dp)
-                    .width(150.dp)
                     .background(color = backgroundColor)
                     .border(
                         width = 3.dp,

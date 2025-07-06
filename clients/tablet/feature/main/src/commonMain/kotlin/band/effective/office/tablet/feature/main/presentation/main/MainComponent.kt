@@ -1,20 +1,23 @@
 package band.effective.office.tablet.feature.main.presentation.main
 
 import band.effective.office.tablet.core.domain.Either
+import band.effective.office.tablet.core.domain.ErrorWithData
+import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
+import band.effective.office.tablet.core.domain.useCase.DeleteBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.TimerUseCase
 import band.effective.office.tablet.core.domain.useCase.UpdateUseCase
 import band.effective.office.tablet.core.domain.util.BootstrapperTimer
-import band.effective.office.tablet.core.domain.util.currentLocalDate
 import band.effective.office.tablet.core.domain.util.currentLocalDateTime
 import band.effective.office.tablet.core.domain.util.minus
 import band.effective.office.tablet.core.domain.util.plus
 import band.effective.office.tablet.core.ui.common.ModalWindow
 import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
-import band.effective.office.tablet.core.domain.useCase.DeleteBookingUseCase
+import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditorComponent
+import band.effective.office.tablet.feature.fastBooking.presentation.FastBookingComponent
 import band.effective.office.tablet.feature.main.domain.FreeUpRoomUseCase
 import band.effective.office.tablet.feature.main.domain.GetRoomIndexUseCase
 import band.effective.office.tablet.feature.main.domain.GetTimeToNextEventUseCase
@@ -22,19 +25,12 @@ import band.effective.office.tablet.feature.main.presentation.freeuproom.FreeSel
 import band.effective.office.tablet.feature.main.presentation.main.navigation.ModalWindowsConfig
 import band.effective.office.tablet.feature.slot.presentation.SlotComponent
 import band.effective.office.tablet.feature.slot.presentation.SlotIntent
-import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditorComponent
-import band.effective.office.tablet.feature.fastBooking.presentation.FastBookingComponent
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.slot.SlotNavigation
 import com.arkivanov.decompose.router.slot.activate
 import com.arkivanov.decompose.router.slot.childSlot
 import com.arkivanov.decompose.router.slot.dismiss
-import kotlin.math.abs
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.ExperimentalTime
-import kotlinx.coroutines.CoroutineScope
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -50,7 +46,15 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import kotlin.math.abs
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
 
+/**
+ * Main component responsible for managing room information, bookings, and navigation.
+ * Handles room selection, date selection, and modal windows for booking and room management.
+ */
 @OptIn(ExperimentalTime::class)
 class MainComponent(
     private val componentContext: ComponentContext,
@@ -59,7 +63,7 @@ class MainComponent(
 
     private val coroutineScope = componentCoroutineScope()
 
-    // region: Dependencies
+    // Use cases
     private val checkSettingsUseCase: CheckSettingsUseCase by inject()
     private val roomInfoUseCase: RoomInfoUseCase by inject()
     private val getRoomIndexUseCase: GetRoomIndexUseCase by inject()
@@ -68,46 +72,58 @@ class MainComponent(
     private val timerUseCase: TimerUseCase by inject()
     private val freeUpRoomUseCase: FreeUpRoomUseCase by inject()
     private val deleteBookingUseCase: DeleteBookingUseCase by inject()
+
+    // Timers
     private val currentTimeTimer = BootstrapperTimer(timerUseCase, coroutineScope)
     private val currentRoomTimer = BootstrapperTimer(timerUseCase, coroutineScope)
-    private val errorTimer = BootstrapperTimer(timerUseCase, coroutineScope)
-    // endregion: Dependencies
 
+    // State management
     private val mutableState = MutableStateFlow(State.defaultState)
     val state: StateFlow<State> = mutableState.asStateFlow()
 
     private val mutableLabel = MutableSharedFlow<Label>()
     val label: SharedFlow<Label> = mutableLabel.asSharedFlow()
 
-    val slotComponent = SlotComponent(
-        componentContext = componentContext,
-        roomName = {
-            with(state.value) {
-                if (roomList.isNotEmpty())
-                    roomList[indexSelectRoom].name
-                else RoomInfo.defaultValue.name
-            }
-        },
-        openBookingDialog = { event, room ->
-            navigation.activate(
-                ModalWindowsConfig.UpdateEvent(
-                    event = event,
-                    room = room,
-                )
-            )
-        }
-    )
+    // Navigation
     private val navigation = SlotNavigation<ModalWindowsConfig>()
     val modalWindowSlot = childSlot(
         source = navigation,
-        childFactory = ::childFactory,
+        childFactory = ::createModalWindow,
         serializer = ModalWindowsConfig.serializer(),
     )
 
+    // Child components
+    val slotComponent = SlotComponent(
+        componentContext = componentContext,
+        roomName = ::getCurrentRoomName,
+        openBookingDialog = ::openBookingDialog
+    )
+
     init {
-        if (checkSettingsUseCase().isEmpty()) onSettings()
+        initializeComponent()
+    }
+
+    /**
+     * Initializes the component, checking settings and setting up timers and event listeners.
+     */
+    private fun initializeComponent() {
+        // Check if settings are configured
+        if (checkSettingsUseCase().isEmpty()) {
+            onSettings()
+        }
+
+        // Load initial room data
         loadRooms()
-        // update events when start/finish event in room
+
+        // Set up event listeners
+        setupEventListeners()
+    }
+
+    /**
+     * Sets up event listeners for updates and timers.
+     */
+    private fun setupEventListeners() {
+        // Listen for room updates
         coroutineScope.launch(Dispatchers.IO) {
             updateUseCase.updateFlow().collect {
                 delay(1.seconds)
@@ -116,148 +132,246 @@ class MainComponent(
                 }
             }
         }
-        // update time to start next event or finish current event
+
+        // Update time to next event periodically
         timerUseCase.timer(coroutineScope, 1.seconds) { _ ->
             withContext(Dispatchers.Main) {
-                mutableState.update {
-                    it.copy(
-                        timeToNextEvent = getTimeToNextEventUseCase(
-                            state.value.roomList,
-                            state.value.indexSelectRoom
-                        )
-                    )
-                }
+                updateTimeToNextEvent()
             }
         }
-        // update events list
-        CoroutineScope(Dispatchers.Main).launch {
+
+        // Listen for room info changes
+        coroutineScope.launch(Dispatchers.Main) {
             roomInfoUseCase.subscribe().collect { roomsInfo ->
-                if (roomsInfo.isNotEmpty())
+                if (roomsInfo.isNotEmpty()) {
                     reboot(resetSelectRoom = false)
+                }
             }
         }
-        // reset selected room
-        /*currentRoomTimer.start(delay = 1.minutes) {
-            withContext(Dispatchers.Main) {
-                loadRooms()
-            }
-        }*/
-        // update cache when get error
-        /*errorTimer.init(15.minutes) {
-            roomInfoUseCase.updateCache()
-            withContext(Dispatchers.Main) {
-                loadRooms()
-            }
-        }*/
-        // reset select date
-        /*currentTimeTimer.start(1.minutes) {
-            withContext(Dispatchers.Main) {
-                mutableState.update {
-                    it.copy(
-                        selectedDate = currentLocalDateTime,
-                        currentDate = currentLocalDateTime,
-                    )
-                }
-                slotComponent.sendIntent(SlotIntent.UpdateDate(currentLocalDateTime))
-            }
-        }*/
     }
 
-    fun sendIntent(intent: Intent) {
-        when (intent) {
-            is Intent.OnFastBooking ->
-                navigation.activate(
-                    ModalWindowsConfig.FastEvent(
-                        minEventDuration = intent.minDuration,
-                        selectedRoom = state.value.run { roomList[indexSelectRoom] },
-                        rooms = state.value.run { roomList }
-                    )
-                )
-
-            Intent.OnOpenFreeRoomModal -> navigation.activate(
-                ModalWindowsConfig.FreeRoom(
-                    state.value.roomList[state.value.indexSelectRoom].currentEvent!!
+    /**
+     * Updates the time to the next event in the selected room.
+     */
+    private fun updateTimeToNextEvent() {
+        mutableState.update {
+            it.copy(
+                timeToNextEvent = getTimeToNextEventUseCase(
+                    state.value.roomList,
+                    state.value.indexSelectRoom
                 )
             )
+        }
+    }
 
+    /**
+     * Gets the name of the currently selected room.
+     */
+    private fun getCurrentRoomName(): String {
+        return with(state.value) {
+            if (roomList.isNotEmpty()) {
+                roomList[indexSelectRoom].name
+            } else {
+                RoomInfo.defaultValue.name
+            }
+        }
+    }
+
+    /**
+     * Opens the booking dialog for the given event and room.
+     */
+    private fun openBookingDialog(event: EventInfo, room: String) {
+        navigation.activate(
+            ModalWindowsConfig.UpdateEvent(
+                event = event,
+                room = room,
+            )
+        )
+    }
+
+    /**
+     * Handles intents from the UI.
+     */
+    fun sendIntent(intent: Intent) {
+        when (intent) {
+            is Intent.OnFastBooking -> handleFastBookingIntent(intent)
+            Intent.OnOpenFreeRoomModal -> handleFreeRoomIntent()
             is Intent.OnSelectRoom -> selectRoom(intent.index)
-            is Intent.OnUpdateSelectDate -> updateSelectDate(intent)
+            is Intent.OnUpdateSelectDate -> updateSelectedDate(intent)
             Intent.RebootRequest -> reboot(refresh = true)
         }
     }
 
-    private fun childFactory(
-        modalWindows: ModalWindowsConfig,
-        componentContext: ComponentContext
-    ): ModalWindow {
-        return when (modalWindows) {
-            is ModalWindowsConfig.FreeRoom -> FreeSelectRoomComponent(
-                componentContext = componentContext,
-                eventInfo = modalWindows.event,
-                onRemoveEvent = { event ->
-                    coroutineScope.launch {
-                        freeUpRoomUseCase(
-                            roomName = state.value.run { roomList[indexSelectRoom].name },
-                            eventInfo = event
-                        )
-                    }
-                },
-                onCloseRequest = navigation::dismiss,
+    /**
+     * Handles the fast booking intent.
+     */
+    private fun handleFastBookingIntent(intent: Intent.OnFastBooking) {
+        val currentState = state.value
+        navigation.activate(
+            ModalWindowsConfig.FastEvent(
+                minEventDuration = intent.minDuration,
+                selectedRoom = currentState.roomList[currentState.indexSelectRoom],
+                rooms = currentState.roomList
             )
+        )
+    }
 
-            is ModalWindowsConfig.UpdateEvent -> BookingEditorComponent(
-                componentContext = componentContext,
-                initialEvent = modalWindows.event,
-                roomName = state.value.run { roomList[indexSelectRoom].name },
-                onDeleteEvent = { slot ->
-                    slotComponent.sendIntent(
-                        SlotIntent.Delete(
-                            slot = slot,
-                            onDelete = {
-                                this.componentContext.componentCoroutineScope().launch {
-                                    (slot as? Slot.EventSlot)?.eventInfo?.apply {
-                                        deleteBookingUseCase(
-                                            eventInfo = this,
-                                            roomName = state.value.run { roomList[indexSelectRoom].name }
-                                        )
-                                    }
-                                }
-                            }
-                        )
-                    )
-                },
-                onCloseRequest = navigation::dismiss,
-            )
+    /**
+     * Handles the free room intent.
+     */
+    private fun handleFreeRoomIntent() {
+        val currentState = state.value
+        val currentEvent = currentState.roomList[currentState.indexSelectRoom].currentEvent
 
-            is ModalWindowsConfig.FastEvent -> FastBookingComponent(
-                componentContext = componentContext,
-                minEventDuration = modalWindows.minEventDuration,
-                selectedRoom = modalWindows.selectedRoom,
-                rooms = modalWindows.rooms,
-                onCloseRequest = navigation::dismiss,
+        if (currentEvent != null) {
+            navigation.activate(
+                ModalWindowsConfig.FreeRoom(currentEvent)
             )
         }
     }
 
-    private fun updateSelectDate(intent: Intent.OnUpdateSelectDate) {
+    /**
+     * Creates a modal window based on the configuration.
+     */
+    private fun createModalWindow(
+        modalConfig: ModalWindowsConfig,
+        componentContext: ComponentContext
+    ): ModalWindow {
+        return when (modalConfig) {
+            is ModalWindowsConfig.FreeRoom -> createFreeRoomComponent(modalConfig, componentContext)
+            is ModalWindowsConfig.UpdateEvent -> createBookingEditorComponent(
+                modalConfig,
+                componentContext
+            )
+
+            is ModalWindowsConfig.FastEvent -> createFastBookingComponent(
+                modalConfig,
+                componentContext
+            )
+        }
+    }
+
+    /**
+     * Creates a FreeSelectRoomComponent.
+     */
+    private fun createFreeRoomComponent(
+        config: ModalWindowsConfig.FreeRoom,
+        componentContext: ComponentContext
+    ): FreeSelectRoomComponent {
+        return FreeSelectRoomComponent(
+            componentContext = componentContext,
+            eventInfo = config.event,
+            onRemoveEvent = ::handleRemoveEvent,
+            onCloseRequest = navigation::dismiss,
+        )
+    }
+
+    /**
+     * Handles removing an event from a room.
+     */
+    private fun handleRemoveEvent(event: EventInfo) {
+        coroutineScope.launch {
+            freeUpRoomUseCase(
+                roomName = getCurrentRoomName(),
+                eventInfo = event
+            )
+        }
+    }
+
+    /**
+     * Creates a BookingEditorComponent.
+     */
+    private fun createBookingEditorComponent(
+        config: ModalWindowsConfig.UpdateEvent,
+        componentContext: ComponentContext
+    ): BookingEditorComponent {
+        return BookingEditorComponent(
+            componentContext = componentContext,
+            initialEvent = config.event,
+            roomName = getCurrentRoomName(),
+            onDeleteEvent = ::handleDeleteEvent,
+            onCloseRequest = navigation::dismiss,
+        )
+    }
+
+    /**
+     * Handles deleting an event.
+     */
+    private fun handleDeleteEvent(slot: Slot) {
+        slotComponent.sendIntent(
+            SlotIntent.Delete(
+                slot = slot,
+                onDelete = {
+                    deleteEventFromSlot(slot)
+                }
+            )
+        )
+    }
+
+    /**
+     * Deletes an event from a slot.
+     */
+    private fun deleteEventFromSlot(slot: Slot) {
+        coroutineScope.launch {
+            (slot as? Slot.EventSlot)?.eventInfo?.let { eventInfo ->
+                deleteBookingUseCase(
+                    eventInfo = eventInfo,
+                    roomName = getCurrentRoomName()
+                )
+            }
+        }
+    }
+
+    /**
+     * Creates a FastBookingComponent.
+     */
+    private fun createFastBookingComponent(
+        config: ModalWindowsConfig.FastEvent,
+        componentContext: ComponentContext
+    ): FastBookingComponent {
+        return FastBookingComponent(
+            componentContext = componentContext,
+            minEventDuration = config.minEventDuration,
+            selectedRoom = config.selectedRoom,
+            rooms = config.rooms,
+            onCloseRequest = navigation::dismiss,
+        )
+    }
+
+    /**
+     * Updates the selected date.
+     */
+    private fun updateSelectedDate(intent: Intent.OnUpdateSelectDate) {
         currentTimeTimer.restart()
         currentRoomTimer.restart()
-        val selectedDate = state.value.selectedDate
-        val newDate = if (intent.updateInDays < 0) {
-            selectedDate.minus(abs(intent.updateInDays).days)
-        } else {
-            selectedDate.plus(intent.updateInDays.days)
-        }
 
-        // there is no point in looking at bookings from the past days
+        val selectedDate = state.value.selectedDate
+        val newDate = calculateNewDate(selectedDate, intent.updateInDays)
+
+        // Only update if the new date is not in the past
         if (newDate.date >= currentLocalDateTime.date) {
             mutableState.update { it.copy(selectedDate = newDate) }
             slotComponent.sendIntent(SlotIntent.UpdateDate(newDate))
         }
     }
 
+    /**
+     * Calculates a new date based on the current date and days to add.
+     */
+    private fun calculateNewDate(currentDate: LocalDateTime, daysToAdd: Int): LocalDateTime {
+        return if (daysToAdd < 0) {
+            currentDate.minus(abs(daysToAdd).days)
+        } else {
+            currentDate.plus(daysToAdd.days)
+        }
+    }
+
+    /**
+     * Selects a room by index.
+     */
     private fun selectRoom(index: Int) {
         currentRoomTimer.restart()
+
         mutableState.update {
             it.copy(
                 indexSelectRoom = index,
@@ -267,77 +381,126 @@ class MainComponent(
                 )
             )
         }
-        updateComponents(state.value.roomList[index], state.value.selectedDate)
+
+        val selectedRoom = state.value.roomList.getOrNull(index)
+        if (selectedRoom != null) {
+            updateComponents(selectedRoom, state.value.selectedDate)
+        }
     }
 
+    /**
+     * Updates child components with new room and date information.
+     */
     private fun updateComponents(roomInfo: RoomInfo, date: LocalDateTime) {
         slotComponent.sendIntent(SlotIntent.UpdateRequest(room = roomInfo.name))
         slotComponent.sendIntent(SlotIntent.UpdateDate(date))
     }
 
+    /**
+     * Data class to hold the result of loading rooms.
+     */
+    private data class RoomsResult(
+        val isSuccess: Boolean,
+        val roomList: List<RoomInfo>,
+        val indexSelectRoom: Int,
+    )
+
+    /**
+     * Loads room information.
+     */
     private fun loadRooms() = coroutineScope.launch {
-
-        data class RoomsResult(
-            val isSuccess: Boolean,
-            val roomList: List<RoomInfo>,
-            val indexSelectRoom: Int,
-        )
-
         val result = roomInfoUseCase()
+        val roomsResult = processRoomInfoResult(result)
 
-        val (isSuccess, roomList, indexSelectRoom) = when (result) {
-            is Either.Error -> RoomsResult(
+        updateStateWithRoomsResult(roomsResult)
+    }
+
+    /**
+     * Processes the result of loading room information.
+     */
+    private fun processRoomInfoResult(result: Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>>): RoomsResult {
+        return when (result) {
+            is Either.Error<ErrorWithData<List<RoomInfo>>> -> RoomsResult(
                 isSuccess = false,
                 roomList = result.error.saveData ?: listOf(RoomInfo.defaultValue),
                 indexSelectRoom = 0
             )
 
-            is Either.Success -> RoomsResult(
+            is Either.Success<List<RoomInfo>> -> RoomsResult(
                 isSuccess = true,
                 roomList = result.data,
                 indexSelectRoom = getRoomIndexUseCase(state.value.roomList),
             )
+
+            else -> RoomsResult(
+                isSuccess = false,
+                roomList = listOf(RoomInfo.defaultValue),
+                indexSelectRoom = 0
+            )
         }
+    }
+
+    /**
+     * Updates the state with room information.
+     */
+    private fun updateStateWithRoomsResult(roomsResult: RoomsResult) {
         mutableState.update {
             it.copy(
                 isLoad = false,
-                isData = isSuccess,
-                isError = !isSuccess,
-                roomList = roomList,
-                indexSelectRoom = indexSelectRoom,
+                isData = roomsResult.isSuccess,
+                isError = !roomsResult.isSuccess,
+                roomList = roomsResult.roomList,
+                indexSelectRoom = roomsResult.indexSelectRoom,
                 timeToNextEvent = getTimeToNextEventUseCase(
                     state.value.roomList,
                     state.value.indexSelectRoom
                 ),
             )
         }
+        val selectedRoom = roomsResult.roomList[roomsResult.indexSelectRoom]
+        updateComponents(selectedRoom, state.value.selectedDate)
     }
 
+    /**
+     * Reboots the component, optionally refreshing data and resetting the selected room.
+     */
     private fun reboot(
         refresh: Boolean = false,
         resetSelectRoom: Boolean = true
     ) = coroutineScope.launch {
-        val state = state.value
-        val roomIndex = if (resetSelectRoom) getRoomIndexUseCase(state.roomList) else state.indexSelectRoom
-        if (refresh) {
-            if (!state.isData) {
-                mutableState.update {
-                    it.copy(
-                        isError = false,
-                        isLoad = true,
-                        indexSelectRoom = roomIndex,
-                        timeToNextEvent = getTimeToNextEventUseCase(
-                            rooms = state.roomList,
-                            selectedRoomIndex = state.indexSelectRoom,
-                        )
-                    )
-                }
-            }
+        val currentState = state.value
+        val roomIndex = if (resetSelectRoom) {
+            getRoomIndexUseCase(currentState.roomList)
+        } else {
+            currentState.indexSelectRoom
+        }
+
+        if (refresh && !currentState.isData) {
+            prepareForRefresh(roomIndex)
             roomInfoUseCase.updateCache()
         }
+
         loadRooms()
-        state.roomList.getOrNull(roomIndex)?.let { roomInfo ->
-            updateComponents(roomInfo, state.selectedDate)
+
+        currentState.roomList.getOrNull(roomIndex)?.let { roomInfo ->
+            updateComponents(roomInfo, currentState.selectedDate)
+        }
+    }
+
+    /**
+     * Prepares the state for a refresh operation.
+     */
+    private fun prepareForRefresh(roomIndex: Int) {
+        mutableState.update {
+            it.copy(
+                isError = false,
+                isLoad = true,
+                indexSelectRoom = roomIndex,
+                timeToNextEvent = getTimeToNextEventUseCase(
+                    rooms = state.value.roomList,
+                    selectedRoomIndex = state.value.indexSelectRoom,
+                )
+            )
         }
     }
 }

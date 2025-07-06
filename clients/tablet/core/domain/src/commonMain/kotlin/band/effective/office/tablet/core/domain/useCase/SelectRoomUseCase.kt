@@ -69,7 +69,7 @@ open class SelectRoomUseCase(
         if (eventList.isEmpty()) return true
 
         val target = currentInstant + duration.minutes
-        val firstEventStart = eventList.first().startTime.asInstant
+        val firstEventStart = eventList.minByOrNull { it.startTime }!!.startTime.asInstant
         return target < firstEventStart
     }
 }
