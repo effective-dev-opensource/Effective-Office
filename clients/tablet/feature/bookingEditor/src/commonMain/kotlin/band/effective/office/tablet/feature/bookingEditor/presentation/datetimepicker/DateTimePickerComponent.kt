@@ -64,7 +64,7 @@ class DateTimePickerComponent(
         val currentDate = state.value.currentDate
         val newDate = LocalDateTime(
             year = year,
-            monthNumber = month.ordinal,
+            month = month,
             dayOfMonth = dayOfMonth,
             hour = currentDate.hour,
             minute = currentDate.minute,
@@ -83,7 +83,7 @@ class DateTimePickerComponent(
         val currentDate = state.value.currentDate
         val newDate = LocalDateTime(
             year = currentDate.year,
-            monthNumber = currentDate.month.ordinal,
+            month = currentDate.month,
             dayOfMonth = currentDate.dayOfMonth,
             hour = hour,
             minute = minute,

@@ -117,26 +117,27 @@ class BookingEditorComponent(
      */
     private fun updateExistingEvent() = coroutineScope.launch {
         mutableState.update { it.copy(isLoadUpdate = true) }
-        withContext(Dispatchers.IO) {
+        val updateBookingResult = withContext(Dispatchers.IO) {
             updateBookingUseCase(
                 roomName = roomName,
                 eventInfo = stateToEventInfoMapper.map(state.value)
-            ).unbox(
-                errorHandler = {
-                    Napier.d { "Update booking failed: ${it.description}" }
-                    mutableState.update {
-                        it.copy(
-                            isLoadUpdate = false,
-                            isErrorUpdate = true
-                        )
-                    }
-                },
-                successHandler = {
-                    mutableState.update { it.copy(isLoadUpdate = false) }
-                    onCloseRequest()
-                }
             )
         }
+        updateBookingResult.unbox(
+            errorHandler = {
+                Napier.d { "Update booking failed: ${it.description}" }
+                mutableState.update {
+                    it.copy(
+                        isLoadUpdate = false,
+                        isErrorUpdate = true
+                    )
+                }
+            },
+            successHandler = {
+                mutableState.update { it.copy(isLoadUpdate = false) }
+                onCloseRequest()
+            }
+        )
     }
 
     /**
@@ -368,22 +369,23 @@ class BookingEditorComponent(
     private fun createNewEvent() = coroutineScope.launch {
         mutableState.update { it.copy(isLoadCreate = true) }
         val eventToCreate = stateToEventInfoMapper.map(state.value)
-        withContext(Dispatchers.IO) {
-            createBookingUseCase(roomName = roomName, eventInfo = eventToCreate).unbox(
-                errorHandler = {
-                    mutableState.update {
-                        it.copy(
-                            isLoadCreate = false,
-                            isErrorCreate = true,
-                        )
-                    }
-                },
-                successHandler = {
-                    mutableState.update { it.copy(isLoadCreate = false) }
-                    onCloseRequest()
-                }
-            )
+        val createBookingResult = withContext(Dispatchers.IO) {
+            createBookingUseCase(roomName = roomName, eventInfo = eventToCreate)
         }
+        createBookingResult.unbox(
+            errorHandler = {
+                mutableState.update {
+                    it.copy(
+                        isLoadCreate = false,
+                        isErrorCreate = true,
+                    )
+                }
+            },
+            successHandler = {
+                mutableState.update { it.copy(isLoadCreate = false) }
+                onCloseRequest()
+            }
+        )
     }
 
     /**

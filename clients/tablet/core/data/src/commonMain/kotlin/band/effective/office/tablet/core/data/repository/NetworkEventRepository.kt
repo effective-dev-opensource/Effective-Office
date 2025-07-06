@@ -38,25 +38,35 @@ class NetworkEventRepository(
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
+    /**
+     * Gets information about all rooms with their bookings.
+     * Rounds the current time down to the nearest 15-minute interval for the start time,
+     * and sets the end time to 14 days from now.
+     *
+     * @return Either containing room information or an error with saved data
+     */
     override suspend fun getRoomsInfo(): Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>> {
-        val now = clock.now().toLocalDateTime(timeZone)
-        val minutes = now.minute
-        val excess = minutes % 15 + 1
-        val adjustedNow = now
-            .toInstant(timeZone)
-            .minus(excess, DateTimeUnit.MINUTE)
-            .toLocalDateTime(timeZone)
+        // Get current time
+        val now = clock.now()
+        val nowLocalDateTime = now.toLocalDateTime(timeZone)
+
+        // Round down to nearest 15-minute interval
+        val minutes = nowLocalDateTime.minute
+        val roundedMinutes = (minutes / 15) * 15
+
+        // Create rounded start time
         val roundedStart = LocalDateTime(
-            year = adjustedNow.year,
-            hour = adjustedNow.hour,
-            minute = adjustedNow.minute,
+            year = nowLocalDateTime.year,
+            month = nowLocalDateTime.month, // Month is 1-based in constructor
+            dayOfMonth = nowLocalDateTime.dayOfMonth,
+            hour = nowLocalDateTime.hour,
+            minute = roundedMinutes,
             second = 0,
-            nanosecond = 0,
-            monthNumber = adjustedNow.month.ordinal,
-            dayOfMonth = adjustedNow.dayOfMonth
+            nanosecond = 0
         )
 
-        val finish = now.toInstant(timeZone).plus(14, DateTimeUnit.DAY, timeZone)
+        // Set end time to 14 days from now
+        val finish = now.plus(14, DateTimeUnit.DAY, timeZone)
 
         val response = workspaceApi.getWorkspacesWithBookings(
             tag = "meeting",
@@ -102,7 +112,17 @@ class NetworkEventRepository(
 
     override fun subscribeOnUpdates(): Flow<Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>>> =
         api.subscribeOnBookingsList("", scope)
-            .map { Either.Success(emptyList()) }
+            .map { response ->
+                when (response) {
+                    is Either.Error -> Either.Error(ErrorWithData(response.error, null))
+                    is Either.Success -> {
+                        // When we receive booking updates, fetch the latest room information
+                        // This is a workaround since we can't directly convert BookingResponseDTO to RoomInfo
+                        val roomsInfo = runCatching { getRoomsInfo() }.getOrNull()
+                        roomsInfo ?: Either.Success(emptyList())
+                    }
+                }
+            }
 
     /** Map domain model to DTO */
     private fun EventInfo.toBookingRequestDTO(room: RoomInfo): BookingRequestDTO = BookingRequestDTO(

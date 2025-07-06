@@ -8,12 +8,14 @@ import band.effective.office.tablet.core.data.api.impl.BookingApiImpl
 import band.effective.office.tablet.core.data.api.impl.UserApiImpl
 import band.effective.office.tablet.core.data.api.impl.WorkspaceApiImpl
 import band.effective.office.tablet.core.data.network.HttpClientProvider
-import band.effective.office.tablet.core.data.repository.EventManager
+import band.effective.office.tablet.core.data.repository.DefaultEventRepositoryMediator
+import band.effective.office.tablet.core.data.repository.EventManagerRepositoryImpl
 import band.effective.office.tablet.core.data.repository.LocalEventStoreRepository
 import band.effective.office.tablet.core.data.repository.NetworkEventRepository
 import band.effective.office.tablet.core.data.repository.OrganizerRepositoryImpl
 import band.effective.office.tablet.core.domain.repository.BookingRepository
 import band.effective.office.tablet.core.domain.repository.EventManagerRepository
+import band.effective.office.tablet.core.domain.repository.EventRepositoryMediator
 import band.effective.office.tablet.core.domain.repository.LocalBookingRepository
 import band.effective.office.tablet.core.domain.repository.OrganizerRepository
 import org.koin.dsl.module
@@ -48,7 +50,19 @@ val dataModule = module {
         LocalEventStoreRepository()
     }
 
+    // Mediator for coordinating between repositories
+    single<EventRepositoryMediator> {
+        DefaultEventRepositoryMediator(
+            networkRepository = get(),
+            localRepository = get()
+        )
+    }
+
     single<EventManagerRepository> {
-        EventManager(networkEventRepository = get(), localEventStoreRepository = get())
+        EventManagerRepositoryImpl(
+            networkEventRepository = get(),
+            localEventStoreRepository = get(),
+            mediator = get()
+        )
     }
 }

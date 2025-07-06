@@ -1,10 +1,7 @@
 package band.effective.office.tablet.core.domain.model
 
 import band.effective.office.tablet.core.domain.util.currentLocalDateTime
-import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -13,8 +10,12 @@ data class EventInfo(
     val finishTime: LocalDateTime,
     val organizer: Organizer,
     val id: String,
-    var isLoading: Boolean,
+    val isLoading: Boolean,
 ) {
+    init {
+        // Validate that start time is before finish time
+        require(startTime <= finishTime) { "Start time must be before or equal to finish time" }
+    }
     companion object {
         const val defaultId: String = ""
 
