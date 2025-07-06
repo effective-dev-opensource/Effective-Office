@@ -5,7 +5,6 @@ import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.Organizer
 import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
-import band.effective.office.tablet.core.domain.useCase.SlotUseCase
 import band.effective.office.tablet.core.domain.useCase.TimerUseCase
 import band.effective.office.tablet.core.domain.util.BootstrapperTimer
 import band.effective.office.tablet.core.domain.util.asInstant
@@ -38,8 +37,6 @@ class SlotComponent(
 ) : ComponentContext by componentContext, KoinComponent {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-
-    private val slotUseCase: SlotUseCase by inject()
     private val roomInfoUseCase: RoomInfoUseCase by inject()
     private val timerUseCase: TimerUseCase by inject()
     private val getSlotsByRoomUseCase: GetSlotsByRoomUseCase by inject()
@@ -108,13 +105,13 @@ class SlotComponent(
             slots.toMutableList().apply { this[intent.slot.index] = original }
         } else {
             val mainSlot =
-                (slots[intent.slot.mainSlotIndex] as SlotUi.MultiSlot).run {
+                (slots[intent.slot.mainSlotIndex as Int] as SlotUi.MultiSlot).run {
                     copy(
                         subSlots = subSlots.toMutableList()
                             .apply { this[intent.slot.index] = original }
                     )
                 }
-            slots.toMutableList().apply { this[intent.slot.mainSlotIndex] = mainSlot }
+            slots.toMutableList().apply { this[intent.slot.mainSlotIndex as Int] = mainSlot }
         }
         mutableState.update { it.copy(slots = newSlots) }
     }

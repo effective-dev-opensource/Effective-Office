@@ -14,22 +14,17 @@ import band.effective.office.tablet.core.domain.util.BootstrapperTimer
 import band.effective.office.tablet.core.domain.util.currentLocalDateTime
 import band.effective.office.tablet.core.domain.util.minus
 import band.effective.office.tablet.core.domain.util.plus
-import band.effective.office.tablet.core.ui.common.ModalWindow
 import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
-import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditorComponent
-import band.effective.office.tablet.feature.fastBooking.presentation.FastBookingComponent
-import band.effective.office.tablet.feature.main.domain.FreeUpRoomUseCase
 import band.effective.office.tablet.feature.main.domain.GetRoomIndexUseCase
 import band.effective.office.tablet.feature.main.domain.GetTimeToNextEventUseCase
-import band.effective.office.tablet.feature.main.presentation.freeuproom.FreeSelectRoomComponent
-import band.effective.office.tablet.feature.main.presentation.main.navigation.ModalWindowsConfig
 import band.effective.office.tablet.feature.slot.presentation.SlotComponent
 import band.effective.office.tablet.feature.slot.presentation.SlotIntent
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.router.slot.SlotNavigation
-import com.arkivanov.decompose.router.slot.activate
-import com.arkivanov.decompose.router.slot.childSlot
-import com.arkivanov.decompose.router.slot.dismiss
+import kotlin.math.abs
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -45,11 +40,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import kotlin.math.abs
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.ExperimentalTime
 
 /**
  * Main component responsible for managing room information, bookings, and navigation.
@@ -58,7 +48,10 @@ import kotlin.time.ExperimentalTime
 @OptIn(ExperimentalTime::class)
 class MainComponent(
     private val componentContext: ComponentContext,
-    val onSettings: () -> Unit
+    val onSettings: () -> Unit,
+    val onFastBooking: (minDuration: Int, selectedRoom: RoomInfo, rooms: List<RoomInfo>) -> Unit,
+    val onOpenFreeRoomModal: (currentEvent: EventInfo, roomName: String) -> Unit,
+    private val openBookingDialog: (event: EventInfo, room: String) -> Unit,
 ) : ComponentContext by componentContext, KoinComponent {
 
     private val coroutineScope = componentCoroutineScope()
@@ -70,7 +63,6 @@ class MainComponent(
     private val getTimeToNextEventUseCase: GetTimeToNextEventUseCase by inject()
     private val updateUseCase: UpdateUseCase by inject()
     private val timerUseCase: TimerUseCase by inject()
-    private val freeUpRoomUseCase: FreeUpRoomUseCase by inject()
     private val deleteBookingUseCase: DeleteBookingUseCase by inject()
 
     // Timers
@@ -84,19 +76,11 @@ class MainComponent(
     private val mutableLabel = MutableSharedFlow<Label>()
     val label: SharedFlow<Label> = mutableLabel.asSharedFlow()
 
-    // Navigation
-    private val navigation = SlotNavigation<ModalWindowsConfig>()
-    val modalWindowSlot = childSlot(
-        source = navigation,
-        childFactory = ::createModalWindow,
-        serializer = ModalWindowsConfig.serializer(),
-    )
-
     // Child components
     val slotComponent = SlotComponent(
         componentContext = componentContext,
         roomName = ::getCurrentRoomName,
-        openBookingDialog = ::openBookingDialog
+        openBookingDialog = openBookingDialog
     )
 
     init {
@@ -152,7 +136,7 @@ class MainComponent(
         // reset select date
         currentTimeTimer.start(1.minutes) {
             withContext(Dispatchers.Main) {
-                mutableState.update { it.copy(selectedDate = currentLocalDateTime,) }
+                mutableState.update { it.copy(selectedDate = currentLocalDateTime) }
                 slotComponent.sendIntent(SlotIntent.UpdateDate(currentLocalDateTime))
             }
         }
@@ -186,18 +170,6 @@ class MainComponent(
     }
 
     /**
-     * Opens the booking dialog for the given event and room.
-     */
-    private fun openBookingDialog(event: EventInfo, room: String) {
-        navigation.activate(
-            ModalWindowsConfig.UpdateEvent(
-                event = event,
-                room = room,
-            )
-        )
-    }
-
-    /**
      * Handles intents from the UI.
      */
     fun sendIntent(intent: Intent) {
@@ -215,12 +187,10 @@ class MainComponent(
      */
     private fun handleFastBookingIntent(intent: Intent.OnFastBooking) {
         val currentState = state.value
-        navigation.activate(
-            ModalWindowsConfig.FastEvent(
-                minEventDuration = intent.minDuration,
-                selectedRoom = currentState.roomList[currentState.indexSelectRoom],
-                rooms = currentState.roomList
-            )
+        onFastBooking(
+            intent.minDuration,
+            currentState.roomList[currentState.indexSelectRoom],
+            currentState.roomList
         )
     }
 
@@ -232,68 +202,14 @@ class MainComponent(
         val currentEvent = currentState.roomList[currentState.indexSelectRoom].currentEvent
 
         if (currentEvent != null) {
-            navigation.activate(
-                ModalWindowsConfig.FreeRoom(currentEvent)
-            )
+            onOpenFreeRoomModal(currentEvent, getCurrentRoomName())
         }
-    }
-
-    /**
-     * Creates a modal window based on the configuration.
-     */
-    private fun createModalWindow(
-        modalConfig: ModalWindowsConfig,
-        componentContext: ComponentContext
-    ): ModalWindow {
-        return when (modalConfig) {
-            is ModalWindowsConfig.FreeRoom -> createFreeRoomComponent(modalConfig, componentContext)
-            is ModalWindowsConfig.UpdateEvent -> createBookingEditorComponent(
-                modalConfig,
-                componentContext
-            )
-
-            is ModalWindowsConfig.FastEvent -> createFastBookingComponent(
-                modalConfig,
-                componentContext
-            )
-        }
-    }
-
-    /**
-     * Creates a FreeSelectRoomComponent.
-     */
-    private fun createFreeRoomComponent(
-        config: ModalWindowsConfig.FreeRoom,
-        componentContext: ComponentContext
-    ): FreeSelectRoomComponent {
-        return FreeSelectRoomComponent(
-            componentContext = componentContext,
-            eventInfo = config.event,
-            roomName = getCurrentRoomName(),
-            onCloseRequest = navigation::dismiss,
-        )
-    }
-
-    /**
-     * Creates a BookingEditorComponent.
-     */
-    private fun createBookingEditorComponent(
-        config: ModalWindowsConfig.UpdateEvent,
-        componentContext: ComponentContext
-    ): BookingEditorComponent {
-        return BookingEditorComponent(
-            componentContext = componentContext,
-            initialEvent = config.event,
-            roomName = getCurrentRoomName(),
-            onDeleteEvent = ::handleDeleteEvent,
-            onCloseRequest = navigation::dismiss,
-        )
     }
 
     /**
      * Handles deleting an event.
      */
-    private fun handleDeleteEvent(slot: Slot) {
+    fun handleDeleteEvent(slot: Slot) {
         slotComponent.sendIntent(
             SlotIntent.Delete(
                 slot = slot,
@@ -316,22 +232,6 @@ class MainComponent(
                 )
             }
         }
-    }
-
-    /**
-     * Creates a FastBookingComponent.
-     */
-    private fun createFastBookingComponent(
-        config: ModalWindowsConfig.FastEvent,
-        componentContext: ComponentContext
-    ): FastBookingComponent {
-        return FastBookingComponent(
-            componentContext = componentContext,
-            minEventDuration = config.minEventDuration,
-            selectedRoom = config.selectedRoom,
-            rooms = config.rooms,
-            onCloseRequest = navigation::dismiss,
-        )
     }
 
     /**
