@@ -30,7 +30,6 @@ import com.arkivanov.decompose.router.slot.SlotNavigation
 import com.arkivanov.decompose.router.slot.activate
 import com.arkivanov.decompose.router.slot.childSlot
 import com.arkivanov.decompose.router.slot.dismiss
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -270,21 +269,9 @@ class MainComponent(
         return FreeSelectRoomComponent(
             componentContext = componentContext,
             eventInfo = config.event,
-            onRemoveEvent = ::handleRemoveEvent,
+            roomName = getCurrentRoomName(),
             onCloseRequest = navigation::dismiss,
         )
-    }
-
-    /**
-     * Handles removing an event from a room.
-     */
-    private fun handleRemoveEvent(event: EventInfo) {
-        coroutineScope.launch {
-            freeUpRoomUseCase(
-                roomName = getCurrentRoomName(),
-                eventInfo = event
-            )
-        }
     }
 
     /**

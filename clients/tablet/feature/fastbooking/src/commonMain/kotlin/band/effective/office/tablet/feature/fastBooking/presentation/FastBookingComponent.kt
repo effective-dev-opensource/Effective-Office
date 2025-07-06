@@ -18,7 +18,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.push
-import kotlin.time.Duration.Companion.minutes
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,7 +28,12 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import kotlin.time.Duration.Companion.minutes
 
+/**
+ * Component responsible for fast booking of rooms.
+ * Handles finding available rooms and creating quick bookings.
+ */
 class FastBookingComponent(
     private val componentContext: ComponentContext,
     val minEventDuration: Int,
@@ -37,19 +42,23 @@ class FastBookingComponent(
     private val onCloseRequest: () -> Unit
 ) : ComponentContext by componentContext, KoinComponent, ModalWindow {
 
-    private val scope = componentCoroutineScope()
+    private val coroutineScope = componentCoroutineScope()
 
-    val selectRoomUseCase: SelectRoomUseCase by inject()
+    // Use cases
+    private val selectRoomUseCase: SelectRoomUseCase by inject()
     private val createFastBookingUseCase: CreateBookingUseCase by inject()
     private val deleteBookingUseCase: DeleteBookingUseCase by inject()
     private val timerUseCase: TimerUseCase by inject()
-    private val currentTimeTimer = BootstrapperTimer(timerUseCase, scope)
 
+    // Timers
+    private val currentTimeTimer = BootstrapperTimer(timerUseCase, coroutineScope)
+
+    // State management
     private val mutableState = MutableStateFlow(State.defaultState)
     val state = mutableState.asStateFlow()
 
+    // Navigation
     private val navigation = StackNavigation<ModalConfig>()
-
     val childStack = childStack(
         source = navigation,
         initialConfiguration = ModalConfig.LoadingModal,
@@ -58,24 +67,21 @@ class FastBookingComponent(
     )
 
     init {
-        scope.launch {
-            val selectRoom: RoomInfo? = selectRoomUseCase.getRoom(
-                currentRoom = selectedRoom,
-                rooms = rooms,
-                minEventDuration = minEventDuration
-            )
+        initializeComponent()
+    }
 
-            if (selectRoom != null) {
-                createEvent(selectRoom.name, minEventDuration)
-                return@launch
-            }
+    /**
+     * Initializes the component, finding available rooms and setting up timers.
+     */
+    private fun initializeComponent() {
+        findAvailableRoom()
+        setupTimeUpdates()
+    }
 
-            mutableState.update { it.copy(isLoad = false, isSuccess = false) }
-            val nearestFreeRoom = selectRoomUseCase.getNearestFreeRoom(rooms, minEventDuration)
-
-            mutableState.update { it.copy(minutesLeft = nearestFreeRoom.second.inWholeMinutes.toInt()) }
-            navigation.push(ModalConfig.FailureModal(nearestFreeRoom.first.name))
-        }
+    /**
+     * Sets up periodic time updates.
+     */
+    private fun setupTimeUpdates() {
         mutableState.update { it.copy(currentTime = currentLocalDateTime) }
 
         currentTimeTimer.start(1.minutes) {
@@ -85,52 +91,175 @@ class FastBookingComponent(
         }
     }
 
+    /**
+     * Finds an available room for booking.
+     */
+    private fun findAvailableRoom() = coroutineScope.launch {
+        try {
+            val availableRoom = findRoomForBooking()
+
+            if (availableRoom != null) {
+                createEvent(availableRoom.name, minEventDuration)
+            } else {
+                handleNoAvailableRooms()
+            }
+        } catch (e: Exception) {
+            Napier.e("Error finding available room", e)
+            mutableState.update { it.copy(isLoad = false, isSuccess = false, isError = true) }
+            navigation.push(ModalConfig.FailureModal(""))
+        }
+    }
+
+    /**
+     * Finds a room that can be booked for the specified duration.
+     */
+    private fun findRoomForBooking(): RoomInfo? {
+        return selectRoomUseCase.getRoom(
+            currentRoom = selectedRoom,
+            rooms = rooms,
+            minEventDuration = minEventDuration
+        )
+    }
+
+    /**
+     * Handles the case when no rooms are available for immediate booking.
+     */
+    private fun handleNoAvailableRooms() {
+        mutableState.update { it.copy(isLoad = false, isSuccess = false) }
+
+        val nearestFreeRoom = selectRoomUseCase.getNearestFreeRoom(rooms, minEventDuration)
+        val minutesUntilAvailable = nearestFreeRoom.second.inWholeMinutes.toInt()
+
+        mutableState.update { it.copy(minutesLeft = minutesUntilAvailable) }
+        navigation.push(ModalConfig.FailureModal(nearestFreeRoom.first.name))
+    }
+
+    /**
+     * Handles intents from the UI.
+     */
     fun sendIntent(intent: Intent) {
         when (intent) {
             is Intent.OnFreeSelectRequest -> freeRoom(intent.room)
-
             Intent.OnCloseWindowRequest -> onCloseRequest()
         }
     }
 
-    private fun createEvent(room: String, minDuration: Int) = scope.launch {
-        val eventInfo = EventInfo.emptyEvent.copy(
+    /**
+     * Creates a new event in the specified room.
+     */
+    private fun createEvent(room: String, minDuration: Int) = coroutineScope.launch {
+        try {
+            val eventInfo = createEventInfo(minDuration)
+
+            when (val result = createFastBookingUseCase(room, eventInfo)) {
+                is Either.Success -> {
+                    handleSuccessfulEventCreation(room, eventInfo, result.data.id)
+                }
+
+                is Either.Error -> {
+                    Napier.e("Failed to create event: ${result.error}")
+                    handleFailedEventCreation(room)
+                }
+            }
+        } catch (e: Exception) {
+            Napier.e("Error creating event", e)
+            handleFailedEventCreation(room)
+        }
+    }
+
+    /**
+     * Creates an EventInfo object with the given duration.
+     */
+    private fun createEventInfo(minDuration: Int): EventInfo {
+        return EventInfo.emptyEvent.copy(
             startTime = currentLocalDateTime.cropSeconds(),
             finishTime = currentInstant.plus(minDuration.minutes).asLocalDateTime.cropSeconds()
         )
-        when (val result = createFastBookingUseCase(room, eventInfo)) {
-            is Either.Success -> {
-                mutableState.update {
-                    it.copy(
-                        event = eventInfo.copy(id = result.data.id),
-                        isLoad = false,
-                        isSuccess = true,
-                    )
-                }
-                navigation.push(ModalConfig.SuccessModal(room, eventInfo))
-            }
+    }
 
-            is Either.Error -> {
-                mutableState.update { it.copy(isSuccess = false) }
-                navigation.push(ModalConfig.FailureModal(room))
+    /**
+     * Handles successful event creation.
+     */
+    private fun handleSuccessfulEventCreation(room: String, eventInfo: EventInfo, eventId: String) {
+        mutableState.update {
+            it.copy(
+                event = eventInfo.copy(id = eventId),
+                isLoad = false,
+                isSuccess = true,
+                isError = false
+            )
+        }
+        navigation.push(ModalConfig.SuccessModal(room, eventInfo))
+    }
+
+    /**
+     * Handles failed event creation.
+     */
+    private fun handleFailedEventCreation(room: String) {
+        mutableState.update {
+            it.copy(
+                isLoad = false,
+                isSuccess = false,
+                isError = true
+            )
+        }
+        navigation.push(ModalConfig.FailureModal(room))
+    }
+
+    /**
+     * Frees up a room by deleting the current event.
+     */
+    private fun freeRoom(room: String) = coroutineScope.launch {
+        try {
+            mutableState.update { it.copy(isLoad = true) }
+
+            when (val result = deleteBookingUseCase(room, state.value.event)) {
+                is Either.Success -> {
+                    mutableState.update { it.copy(isLoad = false) }
+                    onCloseRequest()
+                }
+
+                is Either.Error -> {
+                    Napier.e("Failed to free room: ${result.error}")
+                    mutableState.update {
+                        it.copy(
+                            isLoad = false,
+                            isError = true
+                        )
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Napier.e("Error freeing room", e)
+            mutableState.update {
+                it.copy(
+                    isLoad = false,
+                    isError = true
+                )
             }
         }
     }
 
-    private fun freeRoom(room: String) = scope.launch {
-        mutableState.update { it.copy(isLoad = true) }
-        deleteBookingUseCase(room, state.value.event)
-        onCloseRequest()
-    }
-
+    /**
+     * Modal window configurations.
+     */
     @Serializable
     sealed interface ModalConfig {
+        /**
+         * Shown when a booking is successfully created.
+         */
         @Serializable
         data class SuccessModal(val room: String, val eventInfo: EventInfo) : ModalConfig
 
+        /**
+         * Shown when a booking cannot be created.
+         */
         @Serializable
         data class FailureModal(val room: String) : ModalConfig
 
+        /**
+         * Shown while loading.
+         */
         @Serializable
         object LoadingModal : ModalConfig
     }

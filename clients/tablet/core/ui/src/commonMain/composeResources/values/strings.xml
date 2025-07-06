@@ -32,4 +32,5 @@
     <string name="event_slot">Занято %1$s</string>
     <string name="multislot">%1$s брони</string>
     <string name="loading_slot">Слот загружается</string>
+    <string name="error">Error</string>
 </resources>
