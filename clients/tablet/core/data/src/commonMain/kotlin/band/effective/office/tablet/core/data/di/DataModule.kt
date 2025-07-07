@@ -7,17 +7,20 @@ import band.effective.office.tablet.core.data.api.WorkspaceApi
 import band.effective.office.tablet.core.data.api.impl.BookingApiImpl
 import band.effective.office.tablet.core.data.api.impl.UserApiImpl
 import band.effective.office.tablet.core.data.api.impl.WorkspaceApiImpl
+import band.effective.office.tablet.core.data.mapper.EventInfoMapper
+import band.effective.office.tablet.core.data.mapper.RoomInfoMapper
 import band.effective.office.tablet.core.data.network.HttpClientProvider
-import band.effective.office.tablet.core.data.repository.DefaultEventRepositoryMediator
-import band.effective.office.tablet.core.data.repository.EventManagerRepositoryImpl
-import band.effective.office.tablet.core.data.repository.LocalEventStoreRepository
-import band.effective.office.tablet.core.data.repository.NetworkEventRepository
+import band.effective.office.tablet.core.data.repository.BookingRepositoryImpl
+import band.effective.office.tablet.core.data.repository.LocalBookingRepositoryImpl
+import band.effective.office.tablet.core.data.repository.LocalRoomRepositoryImpl
 import band.effective.office.tablet.core.data.repository.OrganizerRepositoryImpl
+import band.effective.office.tablet.core.data.repository.RoomRepositoryImpl
+import band.effective.office.tablet.core.data.utils.Buffer
 import band.effective.office.tablet.core.domain.repository.BookingRepository
-import band.effective.office.tablet.core.domain.repository.EventManagerRepository
-import band.effective.office.tablet.core.domain.repository.EventRepositoryMediator
 import band.effective.office.tablet.core.domain.repository.LocalBookingRepository
+import band.effective.office.tablet.core.domain.repository.LocalRoomRepository
 import band.effective.office.tablet.core.domain.repository.OrganizerRepository
+import band.effective.office.tablet.core.domain.repository.RoomRepository
 import org.koin.dsl.module
 
 /**
@@ -30,6 +33,10 @@ val dataModule = module {
     // Collectors
     single { Collector("") }
 
+    // Mappers
+    single { EventInfoMapper() }
+    single { RoomInfoMapper(get()) }
+
     // API implementations
     single<BookingApi> { BookingApiImpl(get()) }
 
@@ -37,32 +44,32 @@ val dataModule = module {
 
     single<WorkspaceApi> { WorkspaceApiImpl(get()) }
 
-    // Repository implementations
     single<OrganizerRepository> {
         OrganizerRepositoryImpl(api = get())
     }
 
-    single<BookingRepository> {
-        NetworkEventRepository(api = get(), workspaceApi = get())
-    }
-
     single<LocalBookingRepository> {
-        LocalEventStoreRepository()
+        LocalBookingRepositoryImpl(buffer = get())
     }
 
-    // Mediator for coordinating between repositories
-    single<EventRepositoryMediator> {
-        DefaultEventRepositoryMediator(
-            networkRepository = get(),
-            localRepository = get()
+    single<BookingRepository> {
+        BookingRepositoryImpl(
+            api = get(),
+            eventInfoMapper = get(),
         )
     }
 
-    single<EventManagerRepository> {
-        EventManagerRepositoryImpl(
-            networkEventRepository = get(),
-            localEventStoreRepository = get(),
-            mediator = get()
+    single<LocalRoomRepository> {
+        LocalRoomRepositoryImpl(buffer = get())
+    }
+
+    single<RoomRepository> {
+        RoomRepositoryImpl(
+            api = get(),
+            workspaceApi = get(),
+            roomInfoMapper = get(),
         )
     }
+
+    single { Buffer() }
 }

@@ -1,9 +1,9 @@
 package band.effective.office.tablet.feature.main.presentation.freeuproom
 
 import band.effective.office.tablet.core.domain.model.EventInfo
+import band.effective.office.tablet.core.domain.useCase.DeleteBookingUseCase
 import band.effective.office.tablet.core.ui.common.ModalWindow
 import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
-import band.effective.office.tablet.feature.main.domain.FreeUpRoomUseCase
 import com.arkivanov.decompose.ComponentContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +23,7 @@ class FreeSelectRoomComponent(
     private val mutableState = MutableStateFlow(State.defaultState)
     val state = mutableState.asStateFlow()
 
-    private val freeUpRoomUseCase: FreeUpRoomUseCase by inject()
+    private val deleteBookingUseCase: DeleteBookingUseCase by inject()
 
     fun sendIntent(intent: Intent) {
         when (intent) {
@@ -38,7 +38,7 @@ class FreeSelectRoomComponent(
 
     private fun freeRoom() = scope.launch {
         mutableState.update { it.copy(isLoad = true) }
-        freeUpRoomUseCase(
+        deleteBookingUseCase(
             roomName = roomName,
             eventInfo = eventInfo,
         )

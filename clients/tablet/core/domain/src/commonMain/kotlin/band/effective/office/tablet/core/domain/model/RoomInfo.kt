@@ -2,6 +2,9 @@ package band.effective.office.tablet.core.domain.model
 
 import kotlinx.serialization.Serializable
 
+/**
+ * Domain model representing a room.
+ */
 @Serializable
 data class RoomInfo(
     val name: String,

@@ -1,28 +1,18 @@
 package band.effective.office.tablet.core.data.utils
 
+import band.effective.office.tablet.core.domain.Either
+import band.effective.office.tablet.core.domain.ErrorResponse
+import band.effective.office.tablet.core.domain.ErrorWithData
+import band.effective.office.tablet.core.domain.model.RoomInfo
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 
-class Buffer<T>(private val defaultValue: T, private val getValue: suspend () -> T) {
-    private val buffer: MutableStateFlow<T> = MutableStateFlow(defaultValue)
-    val bufferFlow = buffer.asStateFlow()
-    suspend fun bufferedValue(): T {
-        if (buffer.value == defaultValue) return freshValue()
-        return buffer.value
-    }
-
-    suspend fun freshValue(): T {
-        val newValue = getValue()
-        buffer.emit(newValue)
-        return newValue
-    }
-
-    suspend fun refresh() {
-        buffer.emit(getValue())
-    }
-
-    fun update(value: T) {
-        buffer.update { value }
-    }
+class Buffer {
+    val state = MutableStateFlow<Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>>>(
+        Either.Error(
+            ErrorWithData(
+                error = ErrorResponse.getResponse(400),
+                saveData = emptyList()
+            )
+        )
+    )
 }

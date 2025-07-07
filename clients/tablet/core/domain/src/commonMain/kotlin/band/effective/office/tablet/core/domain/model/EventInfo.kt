@@ -4,6 +4,9 @@ import band.effective.office.tablet.core.domain.util.currentLocalDateTime
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 
+/**
+ * Domain model representing an event or booking.
+ */
 @Serializable
 data class EventInfo(
     val startTime: LocalDateTime,
@@ -16,6 +19,7 @@ data class EventInfo(
         // Validate that start time is before finish time
         require(startTime <= finishTime) { "Start time must be before or equal to finish time" }
     }
+
     companion object {
         const val defaultId: String = ""
 

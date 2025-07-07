@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.update
  * @param T Type of data to collect
  * @param defaultValue Default value for the data
  */
+// TODO rename
 class Collector<T>(defaultValue: T) {
     private data class CollectableElement<T>(val value: T, val number: Long)
 
