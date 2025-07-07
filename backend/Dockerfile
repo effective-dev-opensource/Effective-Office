@@ -16,7 +16,7 @@ COPY build-logic/ build-logic/
 COPY backend/ backend/
 
 # Build the application
-RUN ./gradlew :backend:app:bootJar --no-daemon
+RUN ./gradlew :backend:app:bootJar --no-daemon -Dorg.gradle.jvmargs="-Xmx2048m"
 
 # Stage 2: Run the application
 FROM eclipse-temurin:17-jre
