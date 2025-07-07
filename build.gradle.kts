@@ -1,6 +1,12 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-
+plugins {
+    alias(libs.plugins.multiplatform).apply(false)
+    alias(libs.plugins.compose).apply(false)
+    alias(libs.plugins.android.application).apply(false)
+    //id("org.jetbrains.kotlin.plugin.serialization").apply(false)
+//    alias(libs.plugins.buildConfig).apply(false)
+}
 
 allprojects {
     group = property("group").toString()
@@ -8,6 +14,10 @@ allprojects {
 
     repositories {
         mavenCentral()
+        google()
+        mavenCentral()
+        maven(url = "https://maven.pkg.jetbrains.space/public/p/compose/dev")
+        maven(url = "https://androidx.dev/storage/compose-compiler/repository")
     }
 }
 

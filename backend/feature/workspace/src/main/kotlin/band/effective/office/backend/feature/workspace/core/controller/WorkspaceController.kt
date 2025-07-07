@@ -53,21 +53,21 @@ class WorkspaceController(
         val workspace = workspaceService.findById(id)
             ?: return ResponseEntity.notFound().build()
 
-        return ResponseEntity.ok(convertToDto(workspace))
+        return ResponseEntity.ok(convertToDto(workspace = workspace))
     }
 
     /**
-     * Get workspaces by tag, optionally filtering for free workspaces in a time period.
+     * Get workspaces by tag, optionally including bookings in a time period.
      *
      * @param tag the workspace tag
-     * @param freeFrom start of the time range for free workspaces
-     * @param freeUntil end of the time range for free workspaces
+     * @param withBookingsFrom start of the time range for workspaces with bookings (in milliseconds)
+     * @param withBookingsUntil end of the time range for workspaces with bookings (in milliseconds)
      * @return list of workspaces matching the criteria
      */
     @GetMapping
     @Operation(
         summary = "Get workspaces by tag",
-        description = "Returns workspaces by tag, optionally filtering for free workspaces in a time period",
+        description = "Returns workspaces by tag, optionally including bookings in a time period",
         security = [SecurityRequirement(name = "bearerAuth")]
     )
     @ApiResponse(responseCode = "200", description = "Successfully retrieved workspaces")
@@ -76,20 +76,22 @@ class WorkspaceController(
         @Parameter(description = "Workspace tag", required = true, example = "meeting")
         @RequestParam(name = "workspace_tag") tag: String,
 
-        @Parameter(description = "Start of the time range for free workspaces", example = "2023-01-01T00:00:00Z")
-        @RequestParam(name = "free_from", required = false) freeFrom: Instant?,
+        @Parameter(description = "Start of the time range for workspaces with bookings", example = "1751565600000")
+        @RequestParam(name = "with_bookings_from", required = false) withBookingsFrom: Long?,
 
-        @Parameter(description = "End of the time range for free workspaces", example = "2023-01-01T02:00:00Z")
-        @RequestParam(name = "free_until", required = false) freeUntil: Instant?
+        @Parameter(description = "End of the time range for workspaces with bookings", example = "1752824530612")
+        @RequestParam(name = "with_bookings_until", required = false) withBookingsUntil: Long?
     ): ResponseEntity<List<WorkspaceDTO>> {
         val workspaces = workspaceService.findAllByTag(tag)
-        /*val workspaces = if (freeFrom != null && freeUntil != null) {
-            // TODO workspaceService.findAllFreeByPeriod(tag, freeFrom, freeUntil)
-        } else {
-            workspaceService.findAllByTag(tag)
-        }*/
 
-        return ResponseEntity.ok(workspaces.map { convertToDto(it) })
+        return ResponseEntity.ok(workspaces.map {
+                convertToDto(
+                    workspace = it,
+                    freeFrom = withBookingsFrom?.let { timestamp -> Instant.ofEpochMilli(timestamp) },
+                    freeUntil = withBookingsUntil?.let { timestamp -> Instant.ofEpochMilli(timestamp) }
+                )
+            }
+        )
     }
 
     /**
@@ -112,15 +114,19 @@ class WorkspaceController(
     /**
      * Convert a domain Workspace to a WorkspaceDTO.
      */
-    private fun convertToDto(workspace: Workspace): WorkspaceDTO {
-        // Get bookings for the workspace for the next 1 day
-        val now = Instant.now()
-        val oneDayLater = now.plusSeconds(24 * 60 * 60) // 1 day in seconds
-        val bookings = bookingService.getBookingsByWorkspace(
-            workspaceId = workspace.id,
-            from = now,
-            to = oneDayLater
-        )
+    private fun convertToDto(
+        workspace: Workspace,
+        freeFrom: Instant? = null,
+        freeUntil: Instant? = null
+    ): WorkspaceDTO {
+        val bookings = if (freeFrom != null && freeUntil != null) {
+            bookingService.getBookingsByWorkspace(
+                workspaceId = workspace.id,
+                from = freeFrom,
+                to = freeUntil,
+            )
+        } else null
+
 
         return WorkspaceDTO(
             id = workspace.id.toString(),
@@ -140,7 +146,7 @@ class WorkspaceController(
                 )
             },
             tag = workspace.tag,
-            bookings = bookings.map { BookingDto.fromDomain(it) }
+            bookings = bookings?.map { BookingDto.fromDomain(it) }
         )
     }
 

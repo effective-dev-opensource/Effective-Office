@@ -1,45 +1,109 @@
 [versions]
-# Kotlin
+# Common
+## Kotlin
 kotlin = "2.1.21"
 kotlinCoroutines = "1.10.2"
+kotlinx-serialization = "1.8.1"
 
-# Spring
-springBoot = "3.5.0"
-springDependencyManagement = "1.1.7"
-springDoc = "2.8.8"
-
-# Security
-jwt = "0.11.5"
-
-# Database
-postgresql = "42.7.6"
-flyway = "11.8.2"
-hikari = "6.3.0"
-
-# Testing
+## Testing
 junit = "5.12.2"
 mockk = "1.14.2"
 testcontainers = "1.20.2"
 
-# Utilities
+## Utilities
 jackson = "2.19.0"
 slf4j = "2.0.17"
 logback = "1.5.18"
 jakarta = "3.0.2"
 jakarta-servlet = "6.0.0"
+napier = "2.7.1"
 
-# Google
+# Backend
+## Spring
+springBoot = "3.5.0"
+springDependencyManagement = "1.1.7"
+springDoc = "2.8.8"
+
+## Security
+jwt = "0.11.5"
+
+## Database
+postgresql = "42.7.6"
+flyway = "11.8.2"
+hikari = "6.3.0"
+
+## Google
 googleApiClient = "1.33.0"
 googleOAuthClient = "1.33.3"
 
+# Client
+## Android
+android-compileSdk = "35"
+android-minSdk = "26"
+android-targetSdk = "35"
+agp = "8.9.3"
+
+## Compose
+compose = "1.8.1"
+hotReload = "1.0.0-alpha09"
+
+## Androidx
+androidx-activityCompose = "1.10.1"
+androidx-uiTest = "1.8.1"
+androidx-lifecycle = "2.9.0"
+androidx-navigation = "2.9.0-beta02"
+
+## Networking
+ktor = "3.1.3"
+
+## UI
+coil = "3.2.0"
+
+## DI
+koin = "4.1.0"
+
+## Storage
+multiplatformSettings = "1.3.0"
+buildkonfig = "0.15.1"
+
+## Datetime
+datetime = "0.6.2"
+
+## Decompose
+decompose = "3.3.0"
+essenty = "2.5.0"
+essenty-ios = "0.2.4"
+
+## Settings
+settings = "1.3.0"
+firebaseMessagingKtx = "24.1.2"
+
 [libraries]
-# Kotlin
+# Common
+## Kotlin
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlin-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }
 kotlin-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "kotlinCoroutines" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 
-# Spring Boot
+## Testing
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
+testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
+
+## Utilities
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+jakarta = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta"}
+jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet"}
+napier = { module = "io.github.aakira:napier", version.ref = "napier" }
+
+# Backend
+## Spring Boot
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux" }
 spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
@@ -48,54 +112,120 @@ spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 
-# Database
+## Database
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 hikari-cp = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 
-# Documentation
+## Documentation
 springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springDoc" }
 
-# Testing
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
-mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
-testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
-testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
-
-# Utilities
-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
-logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-jakarta = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta"}
-jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet"}
-
-# Security
+## Security
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
 jwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jwt" }
 jwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jwt" }
 jwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jwt" }
 
-# Google API Client
+## Google API Client
 google-api-client = { module = "com.google.api-client:google-api-client", version.ref = "googleApiClient" }
 google-http-client-gson = { module = "com.google.http-client:google-http-client-gson", version.ref = "googleApiClient" }
 google-oauth-client = { module = "com.google.oauth-client:google-oauth-client", version.ref = "googleOAuthClient" }
 
+# Client
+## Android
+androidGradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
+
+## Kotlin Multiplatform
+kotlinMultiplatformPlugin = { group = "org.jetbrains.kotlin.multiplatform", name = "org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin" }
+composeMultiplatformPlugin = { group = "org.jetbrains.compose", name = "org.jetbrains.compose.gradle.plugin", version.ref = "compose" }
+
+## Androidx
+androidx-uitest-testManifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "androidx-uiTest" }
+androidx-uitest-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "androidx-uiTest" }
+androidx-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-runtime = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
+androidx-activityCompose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
+androidx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
+
+## Networking
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktor" }
+ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
+ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
+ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
+
+## UI
+coil = { module = "io.coil-kt.coil3:coil-compose-core", version.ref = "coil" }
+coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+
+## DI
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
+koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
+koin-compose-viewmodel-navigation = { module = "io.insert-koin:koin-compose-viewmodel-navigation", version.ref = "koin" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+
+## Storage
+multiplatformSettings = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatformSettings" }
+
+## Coroutines
+coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
+
+## Datetime
+kotlinx-datetime = { module="org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
+
+## Decompose
+decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
+decompose-compose-jetbrains = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
+essenty-lifecycle = { module = "com.arkivanov.essenty:lifecycle", version.ref = "essenty" }
+essenty-state-keeper = { module = "com.arkivanov.essenty:state-keeper", version.ref = "essenty" }
+essenty-darwin-runtime = { module = "com.arkivanov.parcelize.darwin:runtime", version.ref = "essenty-ios" }
+
+## Settings
+settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "settings" }
+firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
+
 [plugins]
+# Common
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+
+# Backend
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }
 spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "springDependencyManagement" }
 
+# Client
+multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+compose = { id = "org.jetbrains.compose", version = "1.8.1" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+hotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "hotReload" }
+buildkonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildkonfig" }
+
 [bundles]
+# Common
 kotlin-core = ["kotlin-stdlib", "kotlin-reflect"]
 kotlin-coroutines = ["kotlin-coroutines-core", "kotlin-coroutines-reactor"]
-spring-web = ["spring-boot-starter-web", "spring-boot-starter-validation", "spring-boot-starter-actuator"]
-spring-data = ["spring-boot-starter-data-jpa"]
 jackson = ["jackson-module-kotlin", "jackson-datatype-jsr310"]
 testing = ["spring-boot-starter-test", "junit-jupiter", "mockk"]
 testcontainers = ["testcontainers-junit-jupiter", "testcontainers-postgresql"]
+
+# Backend
+spring-web = ["spring-boot-starter-web", "spring-boot-starter-validation", "spring-boot-starter-actuator"]
+spring-data = ["spring-boot-starter-data-jpa"]
 jwt = ["jwt-api", "jwt-impl", "jwt-jackson"]
 google-api = ["google-api-client", "google-http-client-gson", "google-oauth-client"]
+
+# Client
+koin = ["koin-core", "koin-compose", "koin-compose-viewmodel", "koin-compose-viewmodel-navigation"]
+ktor-client = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-client-serialization", "ktor-serialization-json", "ktor-client-logging"]
+androidx-lifecycle = ["androidx-lifecycle-viewmodel", "androidx-lifecycle-runtime"]
+coil-compose = ["coil", "coil-network-ktor"]

@@ -78,3 +78,7 @@ coverage/
 /oldBackendExample
 /scripts
 /backend/app/src/main/resources/firebase-credentials.json
+/keystore/
+/oldProject/
+/clients/tablet/composeApp/google-services.json
+/local.properties
