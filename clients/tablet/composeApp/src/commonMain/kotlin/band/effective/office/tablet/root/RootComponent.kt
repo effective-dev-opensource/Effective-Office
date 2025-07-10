@@ -3,6 +3,7 @@ package band.effective.office.tablet.root
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.model.Slot
+import band.effective.office.tablet.core.domain.useCase.ResourceDisposerUseCase
 import band.effective.office.tablet.core.ui.common.ModalWindow
 import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditorComponent
 import band.effective.office.tablet.feature.fastBooking.presentation.FastBookingComponent
@@ -21,13 +22,17 @@ import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class RootComponent(
     componentContext: ComponentContext,
-) : ComponentContext by componentContext {
+) : ComponentContext by componentContext, KoinComponent {
 
     private val navigation = StackNavigation<Config>()
     private val modalNavigation = SlotNavigation<ModalWindowsConfig>()
+
+    private val resourceDisposerUseCase: ResourceDisposerUseCase by inject()
 
     val modalWindowSlot = childSlot(
         source = modalNavigation,
@@ -42,6 +47,10 @@ class RootComponent(
         serializer = kotlinx.serialization.serializer<Config>(),
         childFactory = ::createChild,
     )
+
+    init {
+        resourceDisposerUseCase()
+    }
 
     private fun createChild(
         config: Config,

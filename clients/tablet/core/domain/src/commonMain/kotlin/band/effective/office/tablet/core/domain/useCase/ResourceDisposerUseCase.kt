@@ -21,9 +21,9 @@ class ResourceDisposerUseCase(
     private val refreshDataUseCase: RefreshDataUseCase,
 ) {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private val updateJob: Job
+    private var updateJob: Job? = null
 
-    init {
+    operator fun invoke() {
         updateJob = scope.launch {
             networkRoomRepository.subscribeOnUpdates().collect {
                 refreshDataUseCase()
@@ -36,7 +36,7 @@ class ResourceDisposerUseCase(
      * Should be called when the use case is no longer needed to prevent memory leaks.
      */
     fun dispose() {
-        updateJob.cancel()
+        updateJob?.cancel()
         scope.cancel()
     }
 }

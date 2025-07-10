@@ -7,8 +7,7 @@
             android:label="Effective Office Tablet"
             android:name=".App"
             android:theme="@android:style/Theme.Material.NoActionBar"
-            android:lockTaskMode="if_whitelisted"
-            android:networkSecurityConfig="@xml/network_security_config">
+            android:lockTaskMode="if_whitelisted">
         <activity
                 android:name=".AppActivity"
                 android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"

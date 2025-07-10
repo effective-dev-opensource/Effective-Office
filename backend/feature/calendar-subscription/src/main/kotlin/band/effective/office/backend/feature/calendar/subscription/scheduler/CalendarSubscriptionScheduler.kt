@@ -30,6 +30,8 @@ class CalendarSubscriptionScheduler(
 
         // Subscribe to production calendars
         val productionCalendars = config.getCalendars()
+        logger.debug("productionCalendars: {}", productionCalendars)
+        logger.debug("applicationUrl: {}", config.applicationUrl)
         if (config.applicationUrl.isNotBlank() && productionCalendars.isNotEmpty()) {
             googleCalendarService.subscribeToCalendarNotifications(config.applicationUrl, productionCalendars)
         } else {
@@ -38,6 +40,8 @@ class CalendarSubscriptionScheduler(
 
         // Subscribe to test calendars
         val testCalendars = config.getTestCalendars()
+        logger.debug("testCalendars: {}", testCalendars)
+        logger.debug("testApplicationUrl: {}", config.testApplicationUrl)
         if (config.testApplicationUrl.isNotBlank() && testCalendars.isNotEmpty()) {
             googleCalendarService.subscribeToCalendarNotifications(config.testApplicationUrl, testCalendars)
         } else {

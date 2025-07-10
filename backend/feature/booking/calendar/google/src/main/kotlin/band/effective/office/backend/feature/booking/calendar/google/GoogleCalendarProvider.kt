@@ -298,7 +298,6 @@ class GoogleCalendarProvider(
 
     private fun convertToBooking(event: Event): Booking {
         // Get the organizer's email and find the corresponding user
-        logger.debug("event.organizer?.email: ${event.organizer?.email}")
         val organizer = event?.organizer?.email
 
         // Check if the user found by organizer email is a system user
