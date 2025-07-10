@@ -47,7 +47,7 @@ class GoogleCalendarConfig(
     fun googleCredentials(): GoogleCredentials {
         val credentials = GoogleCredentials
             .fromStream(resourceLoader.getResource(credentialsFile).inputStream)
-            .createScoped(CalendarScopes.CALENDAR, CalendarScopes.CALENDAR_EVENTS)
+            .createScoped(CalendarScopes.CALENDAR)
 
         return if (delegatedUser.isNotBlank()) {
             credentials.createDelegated(delegatedUser)

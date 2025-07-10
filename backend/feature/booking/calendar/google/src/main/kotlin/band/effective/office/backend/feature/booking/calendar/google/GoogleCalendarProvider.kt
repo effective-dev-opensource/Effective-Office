@@ -271,10 +271,10 @@ class GoogleCalendarProvider(
     private fun convertToBooking(event: Event, calendarId: String? = null): Booking {
         // Get the organizer's email and find the corresponding user
         logger.debug("event.organizer?.email: ${event.organizer?.email}")
-        val organizer = event.organizer.email
+        val organizer = event?.organizer?.email
 
         // Check if the user found by organizer email is a system user
-        val user = userDomainService.findByEmail(organizer)
+        val user =  organizer?.let { userDomainService.findByEmail(it) }
         val email = if (user != null && user.tag == "system") {
             logger.trace("[toBookingDTO] organizer email derived from event description")
             event.description?.substringBefore(" ") ?: ""
@@ -283,7 +283,7 @@ class GoogleCalendarProvider(
             organizer
         }
 
-        val owner = findOrCreateUserByEmail(email)
+        val owner = email?.let { findOrCreateUserByEmail(email) }
 
         // Get the attendees' emails and find the corresponding users
         val participants = event.attendees?.mapNotNull { attendee ->
@@ -332,18 +332,15 @@ class GoogleCalendarProvider(
             return user
         }
 
-        // If not found, create a new user
-        val newUser = User(
+        // If not found, create a system user
+        return User(
             id = UUID.randomUUID(),
             username = email.substringBefore("@"),
             email = email,
             firstName = "Service",
             lastName = "Account",
-            tag = "employee" // TODO to enum
+            tag = "system" // TODO to enum
         )
-
-        // Save the new user
-        return userDomainService.createUser(newUser)
     }
 
     private fun getUserEmailById(userId: UUID): String {

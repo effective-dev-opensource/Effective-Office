@@ -1,5 +1,7 @@
 server:
   port: 8080
+  address: 0.0.0.0
+
   servlet:
     context-path: /api
 
@@ -7,9 +9,19 @@ spring:
   application:
     name: effective-office
 
+  jpa:
+    hibernate:
+      ddl-auto: update
+
   profiles:
     include:
       - repository
+
+  flyway:
+    enabled: ${MIGRATIONS_ENABLE:true}
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    table: flyway_schema_history
 
   jackson:
     serialization:
@@ -40,10 +52,35 @@ management:
     health:
       show-details: always
 
+logging:
+  level:
+    root: ${LOG_LEVEL:INFO}
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    band.effective.office.backend: ${LOG_LEVEL:DEBUG}
+
+jwt:
+  secret: ${JWT_SECRET:defaultSecretKeyForDevelopmentOnly}
+  access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS:900000}
+  refresh-token-expiration-ms: ${JWT_REFRESH_TOKEN_EXPIRATION_MS:2592000000}
+
+application:
+  url: ${APPLICATION_URL:http://localhost:8080}
+
 # Calendar provider configuration
 calendar:
   provider: google # Options: google, dummy
-  default-calendar: ${DEFAULT_CALENDAR} # Default calendar ID, can be overridden with DEFAULT_CALENDAR environment variable
+  default-calendar: ${DEFAULT_CALENDAR} # Default calendar ID
   application-name: ${CALENDAR_APPLICATION_NAME} # Application name for Google Calendar API
   delegated-user: ${CALENDAR_DELEGATED_USER} # Email of the user to impersonate (optional)
-  credentials.file: ${GOOGLE_CREDENTIALS_FILE:google-credentials.json}
+  credentials.file: ${GOOGLE_CREDENTIALS_FILE:classpath:google-credentials.json}
+  # Calendar subscription configuration
+  subscription:
+    default-app-email: ${DEFAULT_APP_EMAIL}
+    google-credentials: ${GOOGLE_CREDENTIALS_FILE:classpath:google-credentials.json}
+    application-url: ${APPLICATION_URL}
+    test-application-url: ${TEST_APPLICATION_URL}
+    calendars: ${CALENDARS:}
+    test-calendars: ${TEST_CALENDARS}
+    firebase-credentials: ${FIREBASE_CREDENTIALS:classpath:firebase-credentials.json}
