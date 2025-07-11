@@ -10,7 +10,9 @@ class SettingsManager(private val settings: Settings) {
         private var currentInstance: SettingsManager? = null
 
         fun init(settings: Settings) {
-            currentInstance = SettingsManager(settings)
+            if(currentInstance == null) {
+                currentInstance = SettingsManager(settings)
+            }
         }
 
         fun current(): SettingsManager {

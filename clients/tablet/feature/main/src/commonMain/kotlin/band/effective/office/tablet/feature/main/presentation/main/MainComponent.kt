@@ -48,7 +48,6 @@ import org.koin.core.component.inject
 @OptIn(ExperimentalTime::class)
 class MainComponent(
     private val componentContext: ComponentContext,
-    val onSettings: () -> Unit,
     val onFastBooking: (minDuration: Int, selectedRoom: RoomInfo, rooms: List<RoomInfo>) -> Unit,
     val onOpenFreeRoomModal: (currentEvent: EventInfo, roomName: String) -> Unit,
     private val openBookingDialog: (event: EventInfo, room: String) -> Unit,
@@ -91,11 +90,6 @@ class MainComponent(
      * Initializes the component, checking settings and setting up timers and event listeners.
      */
     private fun initializeComponent() {
-        // Check if settings are configured
-        if (checkSettingsUseCase().isEmpty()) {
-            onSettings()
-        }
-
         // Load initial room data
         loadRooms()
 
@@ -322,11 +316,17 @@ class MainComponent(
                 indexSelectRoom = 0
             )
 
-            is Either.Success<List<RoomInfo>> -> RoomsResult(
-                isSuccess = true,
-                roomList = result.data,
-                indexSelectRoom = state.value.indexSelectRoom,
-            )
+            is Either.Success<List<RoomInfo>> -> {
+                val selectedRoomName = checkSettingsUseCase()
+                val roomIndex =
+                    result.data.indexOfFirst { it.name == selectedRoomName }
+                        .coerceAtLeast(0)
+                RoomsResult(
+                    isSuccess = true,
+                    roomList = result.data,
+                    indexSelectRoom = roomIndex,
+                )
+            }
 
             else -> RoomsResult(
                 isSuccess = false,

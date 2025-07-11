@@ -3,6 +3,7 @@ package band.effective.office.tablet.root
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.model.Slot
+import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.ResourceDisposerUseCase
 import band.effective.office.tablet.core.ui.common.ModalWindow
 import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditorComponent
@@ -18,7 +19,6 @@ import com.arkivanov.decompose.router.slot.dismiss
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
@@ -33,6 +33,7 @@ class RootComponent(
     private val modalNavigation = SlotNavigation<ModalWindowsConfig>()
 
     private val resourceDisposerUseCase: ResourceDisposerUseCase by inject()
+    private val checkSettingsUseCase: CheckSettingsUseCase by inject()
 
     val modalWindowSlot = childSlot(
         source = modalNavigation,
@@ -42,7 +43,11 @@ class RootComponent(
 
     val childStack: Value<ChildStack<*, Child>> = childStack(
         source = navigation,
-        initialConfiguration = Config.Main,
+        initialConfiguration = if (checkSettingsUseCase().isEmpty()) {
+            Config.Settings
+        } else {
+            Config.Main
+        },
         handleBackButton = true,
         serializer = kotlinx.serialization.serializer<Config>(),
         childFactory = ::createChild,
@@ -60,7 +65,6 @@ class RootComponent(
             Child.MainChild(
                 MainComponent(
                     componentContext = componentContext,
-                    onSettings = { navigation.push(Config.Settings) },
                     onFastBooking = ::handleFastBookingIntent,
                     onOpenFreeRoomModal = ::handleFreeRoomIntent,
                     openBookingDialog = ::openBookingDialog,
