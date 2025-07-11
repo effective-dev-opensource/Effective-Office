@@ -7,6 +7,8 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 
 /**
@@ -25,7 +27,7 @@ class ResourceDisposerUseCase(
 
     operator fun invoke() {
         updateJob = scope.launch {
-            networkRoomRepository.subscribeOnUpdates().collect {
+            networkRoomRepository.subscribeOnUpdates().debounce(2000).collectLatest {
                 refreshDataUseCase()
             }
         }
