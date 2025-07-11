@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
             android:icon="@mipmap/ic_launcher"
-            android:label="BookingApp"
+            android:label="Effective Office Tablet"
             android:name=".App"
             android:theme="@android:style/Theme.Material.NoActionBar"
             android:lockTaskMode="if_whitelisted">
