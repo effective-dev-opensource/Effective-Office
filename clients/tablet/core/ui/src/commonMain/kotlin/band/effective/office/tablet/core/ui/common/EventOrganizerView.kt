@@ -2,22 +2,26 @@ package band.effective.office.tablet.core.ui.common
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -35,13 +39,21 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import androidx.compose.ui.window.PopupProperties
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.arrow_to_down
 import band.effective.office.tablet.core.ui.selectbox_organizer_error
@@ -67,6 +79,28 @@ fun EventOrganizerView(
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
+
+    var textFieldCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    val density = LocalDensity.current
+
+    val popupPositionProvider = remember(textFieldCoords) {
+        object : PopupPositionProvider {
+            override fun calculatePosition(
+                anchorBounds: IntRect,
+                windowSize: IntSize,
+                layoutDirection: LayoutDirection,
+                popupContentSize: IntSize
+            ): IntOffset {
+                return if (textFieldCoords != null) {
+                    val anchorTop = textFieldCoords!!.positionInWindow().y.toInt()
+                    val y = anchorTop - popupContentSize.height
+                    IntOffset(anchorBounds.left, y.coerceAtLeast(0) - 60)
+                } else {
+                    IntOffset.Zero
+                }
+            }
+        }
+    }
     Column(modifier = modifier) {
         Text(
             text = stringResource(Res.string.selectbox_organizer_title),
@@ -90,7 +124,6 @@ fun EventOrganizerView(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             TextField(
                 modifier = Modifier.onFocusChanged(
                     onFocusChanged = {
@@ -98,7 +131,10 @@ fun EventOrganizerView(
                             onExpandedChange()
                         }
                     }
-                ).focusRequester(focusRequester).fillMaxWidth(0.8f),
+                ).onSizeChanged({ mTextFieldSize = it.toSize() })
+                    .focusRequester(focusRequester)
+                    .fillMaxWidth(0.8f)
+                    .onGloballyPositioned { textFieldCoords = it },
                 value = inputText,
                 singleLine = true,
                 onValueChange = {
@@ -137,26 +173,45 @@ fun EventOrganizerView(
                 contentDescription = null
             )
         }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { },
-            properties = PopupProperties(focusable = false),
-            modifier = Modifier.width(with(LocalDensity.current) { mTextFieldSize.width.toDp() })
-        ) {
-            selectOrganizers.forEach { organizer ->
-                DropdownMenuItem(
-                    modifier = Modifier.background(color = LocalCustomColorsPalette.current.elevationBackground)
-                        .fillMaxWidth(),
-                    onClick = {
-                        onSelectItem(organizer)
-                        focusRequester.freeFocus()
-                        focusManager.clearFocus()
-                        onExpandedChange()
-                    },
-                    text = { Text(text = organizer) },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                )
+        if (expanded) {
+            Popup(
+                popupPositionProvider = popupPositionProvider,
+                onDismissRequest = { },
+            ) {
+                Column(
+                    modifier = Modifier
+                        .width(with(density) { mTextFieldSize.width.toDp() })
+                        .heightIn(max = 150.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(
+                            LocalCustomColorsPalette.current.elevationBackground,
+                            RoundedCornerShape(8.dp)
+                        )
+                        .border(3.dp, Color.DarkGray, RoundedCornerShape(8.dp))
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    selectOrganizers.forEach { organizer ->
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onSelectItem(organizer)
+                                    focusRequester.freeFocus()
+                                    focusManager.clearFocus()
+                                    onExpandedChange()
+                                }
+                                .padding(16.dp),
+                        ) {
+                            Text(
+                                text = organizer,
+                            )
+                        }
+                        HorizontalDivider()
+                    }
+                }
             }
         }
     }
+
+
 }
