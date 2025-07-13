@@ -17,7 +17,7 @@ data class WorkspaceEntity(
     val id: UUID = UUID.randomUUID(),
     @Column(name = "name", nullable = false, unique = true, length = 255)
     val name: String,
-    @Column(name = "tag", nullable = false, unique = true, length = 255)
+    @Column(name = "tag", nullable = false, unique = false, length = 255)
     val tag: String,
     @ManyToMany
     @JoinTable(

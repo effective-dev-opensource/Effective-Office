@@ -27,7 +27,9 @@ dependencies {
     implementation("org.jetbrains.kotlin.multiplatform:org.jetbrains.kotlin.multiplatform.gradle.plugin:2.1.21")
     implementation("org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:2.1.21")
     implementation("org.jetbrains.kotlin.plugin.serialization:org.jetbrains.kotlin.plugin.serialization.gradle.plugin:2.1.21")
-    implementation("com.android.tools.build:gradle:8.9.1")
+    implementation("com.android.tools.build:gradle:8.9.1") {
+        exclude(group = "org.apache.commons", module = "commons-compress")
+    }
     implementation("org.jetbrains.compose:org.jetbrains.compose.gradle.plugin:1.8.1")
     implementation("com.google.gms:google-services:4.4.3")
 }

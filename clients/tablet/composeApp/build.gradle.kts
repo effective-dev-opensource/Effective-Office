@@ -24,6 +24,7 @@ kotlin {
 
             export(libs.decompose)
             export(libs.decompose.compose.jetbrains)
+            export(libs.essenty.lifecycle)
 
             export("com.mohamedrejeb.calf:calf-ui:0.8.0")
         }

@@ -1,30 +1,36 @@
-FROM eclipse-temurin:17-jdk-alpine as build
-WORKDIR /workspace/app
+# Stage 1: Build the application
+FROM gradle:7.6.1-jdk17 AS build
 
-# Copy gradle files
-COPY gradle gradle
+WORKDIR /app
+
+# Copy the gradle files first to leverage Docker cache
+COPY gradle/ gradle/
 COPY gradlew .
 COPY gradlew.bat .
 COPY settings.gradle.kts .
 COPY build.gradle.kts .
 COPY gradle.properties .
-COPY buildSrc buildSrc
-COPY backend/app app
-COPY backend/domain domain
-COPY backend/repository repository
+COPY build-logic/ build-logic/
+
+# Copy the source code
+COPY backend/ backend/
 
 # Build the application
-RUN ./gradlew clean build -x test
+RUN ./gradlew :backend:app:bootJar --no-daemon -Dorg.gradle.jvmargs="-Xmx2048m"
 
-# Extract the layers
-FROM eclipse-temurin:17-jre-alpine
-VOLUME /tmp
-ARG JAR_FILE=/workspace/app/app/build/libs/app-boot.jar
-COPY --from=build ${JAR_FILE} app.jar
+# Stage 2: Run the application
+FROM eclipse-temurin:17-jre
 
-# Set up environment variables
-ENV SPRING_PROFILES_ACTIVE=live
-ENV JAVA_OPTS="-Xms512m -Xmx1024m"
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy the built jar file from the build stage
+COPY --from=build /app/backend/app/build/libs/*.jar app.jar
+
+# Expose the port
+EXPOSE 8080
 
 # Run the application
-ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar /app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

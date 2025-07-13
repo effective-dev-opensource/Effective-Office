@@ -43,10 +43,6 @@ fun MainScreen(component: MainComponent) {
                     onOpenDateTimePickerModalRequest = {}, // TODO
                 )
             }
-
-            state.isSettings -> {
-                component.onSettings()
-            }
         }
     }
 }

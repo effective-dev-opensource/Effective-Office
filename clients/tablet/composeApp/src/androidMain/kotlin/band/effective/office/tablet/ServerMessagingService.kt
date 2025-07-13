@@ -12,7 +12,7 @@ class ServerMessagingService() :
     private val collector: Collector<String> by inject()
 
     override fun onMessageReceived(message: RemoteMessage) {
-        Log.i("ReceivedMessage", message.toString())
+        Log.i("ReceivedMessage", message.data.toString())
         collector.emit(message.from?.substringAfter("topics/")?.replace("-test", "") ?: "")
     }
 }

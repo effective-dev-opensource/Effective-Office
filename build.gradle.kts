@@ -1,5 +1,12 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+buildscript {
+    configurations.all {
+        resolutionStrategy {
+            force("org.apache.commons:commons-compress:1.27.1")
+        }
+    }
+}
 plugins {
     alias(libs.plugins.multiplatform).apply(false)
     alias(libs.plugins.compose).apply(false)
@@ -37,5 +44,12 @@ subprojects {
 
     tasks.withType<Test> {
         useJUnitPlatform()
+    }
+}
+allprojects {
+    configurations.all {
+        resolutionStrategy {
+            force("org.apache.commons:commons-compress:1.24.0")
+        }
     }
 }

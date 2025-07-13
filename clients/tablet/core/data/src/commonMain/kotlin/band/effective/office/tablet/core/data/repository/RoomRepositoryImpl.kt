@@ -36,12 +36,7 @@ class RoomRepositoryImpl(
             .map { response ->
                 when (response) {
                     is Either.Error -> Either.Error(ErrorWithData(response.error, null))
-                    is Either.Success -> {
-                        // When we receive booking updates, fetch the latest room information
-                        // This is a workaround since we can't directly convert BookingResponseDTO to RoomInfo
-                        val roomsInfo = runCatching { getRoomsInfo() }.getOrNull()
-                        roomsInfo ?: Either.Success(emptyList())
-                    }
+                    is Either.Success -> Either.Success(emptyList())
                 }
             }
     }
