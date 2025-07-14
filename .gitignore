@@ -76,11 +76,9 @@ coverage/
 /backend/app/src/main/resources/.env.properties
 /backend/app/src/main/resources/google-credentials.json
 /oldBackendExample
-/scripts
 /backend/app/src/main/resources/firebase-credentials.json
 /keystore/
 /oldProject/
 /clients/tablet/composeApp/google-services.json
 /local.properties
-/deploy-backend.sh
 /deploy/
