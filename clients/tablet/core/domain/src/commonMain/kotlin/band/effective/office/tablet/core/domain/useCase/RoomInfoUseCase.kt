@@ -3,6 +3,7 @@ package band.effective.office.tablet.core.domain.useCase
 import band.effective.office.tablet.core.domain.map
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.unbox
+import io.github.aakira.napier.Napier
 import kotlin.collections.filter
 import kotlinx.datetime.Clock
 import kotlinx.coroutines.flow.map
@@ -23,6 +24,7 @@ class RoomInfoUseCase(
 
     /** Get all room names */
     suspend fun getRoomsNames(): List<String> {
+        Napier.d { "[RoomInfoUseCase] Fetching room names" }
         return getRoomNamesUseCase()
     }
 
@@ -32,13 +34,19 @@ class RoomInfoUseCase(
     /** Get info about all rooms (filtered by future events) */
     suspend operator fun invoke() = getRoomsInfoUseCase()
         .map(
-            errorMapper = { it },
-            successMapper = {
+            errorMapper = { error ->
+                Napier.e { "[RoomInfoUseCase] Failed to fetch rooms info: code=${error.error.code}, description=${error.error.description}" }
+                error
+            },
+            successMapper = { rooms ->
+                Napier.d { "[RoomInfoUseCase] Fetched ${rooms.size} rooms, filtering events" }
                 val now = clock.now()
-                it.map { room ->
+                rooms.map { room ->
                     room.copy(eventList = room.eventList.filter { event ->
                         event.startTime.toInstant(timeZone) > now
                     })
+                }.also {
+                    Napier.d { "[RoomInfoUseCase] Filtered to ${it.size} rooms with future events" }
                 }
             }
         )
@@ -46,8 +54,12 @@ class RoomInfoUseCase(
     /** Get updated room flow (filtered by future events) */
     fun subscribe() =
         getEventsFlowUseCase().map { either ->
+            Napier.d { "[RoomInfoUseCase] Processing events flow" }
             either.unbox(
-                errorHandler = { it.saveData }
+                errorHandler = { error ->
+                    Napier.e { "[RoomInfoUseCase] Error in events flow: code=${error.error.code}, description=${error.error.description}" }
+                    error.saveData
+                }
             ) ?: emptyList()
         }
 

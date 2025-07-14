@@ -67,7 +67,7 @@ class FastBookingComponent(
     )
 
     init {
-        initializeComponent()
+        initializeComponent().also { Napier.d { "[FastBookingComponent] Initialized with minEventDuration=$minEventDuration, selectedRoom=${selectedRoom.name}, roomsCount=${rooms.size}" } }
     }
 
     /**
@@ -96,6 +96,7 @@ class FastBookingComponent(
      */
     private fun findAvailableRoom() = coroutineScope.launch {
         try {
+            Napier.d { "[FastBookingComponent] Finding available room" }
             val availableRoom = findRoomForBooking()
 
             if (availableRoom != null) {
@@ -132,6 +133,7 @@ class FastBookingComponent(
 
         mutableState.update { it.copy(minutesLeft = minutesUntilAvailable) }
         navigation.push(ModalConfig.FailureModal(nearestFreeRoom.first.name))
+        Napier.d { "[FastBookingComponent] No available rooms, nearest free in $minutesUntilAvailable minutes" }
     }
 
     /**
@@ -149,6 +151,7 @@ class FastBookingComponent(
      */
     private fun createEvent(room: String, minDuration: Int) = coroutineScope.launch {
         try {
+            Napier.d { "[FastBookingComponent] Creating event in room: $room" }
             val eventInfo = createEventInfo(minDuration)
 
             when (val result = createFastBookingUseCase(room, eventInfo)) {
@@ -190,6 +193,7 @@ class FastBookingComponent(
             )
         }
         navigation.push(ModalConfig.SuccessModal(room, eventInfo))
+        Napier.i { "[FastBookingComponent] Event created successfully: eventId=$eventId" }
     }
 
     /**

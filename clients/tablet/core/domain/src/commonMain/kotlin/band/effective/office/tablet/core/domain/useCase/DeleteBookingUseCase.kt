@@ -6,6 +6,7 @@ import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.repository.BookingRepository
 import band.effective.office.tablet.core.domain.repository.LocalBookingRepository
+import io.github.aakira.napier.Napier
 
 /**
  * Use case for deleting an existing booking in a room.
@@ -33,8 +34,12 @@ class DeleteBookingUseCase(
         roomName: String,
         eventInfo: EventInfo,
     ): Either<ErrorResponse, String> {
+        Napier.d("[DeleteBookingUseCase]: Start deleting booking, room=$roomName, eventId=${eventInfo.id}")
+
         val roomInfo = getRoomByNameUseCase(roomName)
-            ?: return Either.Error(ErrorResponse(404, "Couldn't find a room with name $roomName"))
+            ?: return Either.Error(ErrorResponse(404, "Couldn't find a room with name $roomName")).also {
+                Napier.e("[DeleteBookingUseCase]: Room not found, room=$roomName")
+            }
         val loadingEvent = eventInfo.copy(isLoading = true)
 
         // Save the original event state before attempting to delete
@@ -49,11 +54,13 @@ class DeleteBookingUseCase(
         when (response) {
             is Either.Error -> {
                 // On error, restore the original event in local repository
+                Napier.e("DeleteBookingUseCase: Failed to delete, room=$roomName, eventId=${eventInfo.id}, errorCode=${response.error.code}, error=${response.error.description}")
                 localBookingRepository.updateBooking(originalEvent, roomInfo)
             }
 
             is Either.Success -> {
                 // On success, delete from local repository
+                Napier.d("[DeleteBookingUseCase]: Booking deleted, room=$roomName, eventId=${eventInfo.id}")
                 localBookingRepository.deleteBooking(loadingEvent, roomInfo)
             }
         }

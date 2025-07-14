@@ -3,6 +3,7 @@ package band.effective.office.tablet.core.domain.useCase
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.util.asInstant
 import band.effective.office.tablet.core.domain.util.currentInstant
+import io.github.aakira.napier.Napier
 import kotlin.math.absoluteValue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -18,6 +19,7 @@ open class SelectRoomUseCase(
 ) {
 
     open fun getRoom(currentRoom: RoomInfo, rooms: List<RoomInfo>, minEventDuration: Int): RoomInfo? {
+        Napier.d { "[SelectRoomUseCase] Selecting room, currentRoom=${currentRoom.name}, minDuration=$minEventDuration minutes" }
         val candidates = rooms.filter { it.isFreeOn(minEventDuration) }
             .sortedBy { (it.capacity - currentRoom.capacity).absoluteValue }
         return if (candidates.contains(currentRoom)) currentRoom else candidates.firstOrNull()
@@ -28,7 +30,9 @@ open class SelectRoomUseCase(
         return rooms.map { room ->
             val nearestFreeInstant = room.getNearestFreeTime(minDuration)
             room to (nearestFreeInstant - currentTime)
-        }.minBy { it.second }
+        }.minBy { it.second }.also { result ->
+            Napier.d { "[SelectRoomUseCase] Finding nearest free room for minDuration=$minDuration minutes, selected: ${result.first.name}, free in ${result.second}" }
+        }
     }
 
     private fun RoomInfo.getNearestFreeTime(minDuration: Int): Instant {
@@ -36,8 +40,9 @@ open class SelectRoomUseCase(
         val minGap = minDuration.minutes
 
         // Если нет событий и нет текущего — можно прямо сейчас
-        if (currentEvent == null && eventList.isEmpty()) return now
-
+        if (currentEvent == null && eventList.isEmpty()) return now.also {
+            Napier.d { "[SelectRoomUseCase] Room ${name} is free now" }
+        }
         val firstStart = eventList.firstOrNull()?.startTime?.toInstant(timeZone)
         val currentEnd = currentEvent?.finishTime?.toInstant(timeZone)
 
@@ -47,7 +52,9 @@ open class SelectRoomUseCase(
         if (currentEnd != null && firstStart != null &&
             currentEnd + minGap < firstStart
         ) {
-            return currentEnd
+            return currentEnd.also {
+                Napier.d { "[SelectRoomUseCase] Found free slot for room=${name} after current event ends at $currentEnd" }
+            }
         }
 
         // Перебираем список событий и ищем окно между ними
@@ -56,18 +63,26 @@ open class SelectRoomUseCase(
             val nextStart = eventList[i + 1].startTime.toInstant(timeZone)
 
             if (end + minGap < nextStart) {
-                return end
+                return end.also {
+                    Napier.d { "[SelectRoomUseCase] Found free slot for room=${name} between events at $end" }
+                }
             }
 
             nearest = end
         }
 
-        return nearest
+        return nearest.also {
+            Napier.d { "[SelectRoomUseCase] Nearest free time for room=${name} is $it" }
+        }
     }
 
     private fun RoomInfo.isFreeOn(duration: Int): Boolean {
-        if (currentEvent != null) return false
-        if (eventList.isEmpty()) return true
+        if (currentEvent != null) return false.also {
+            Napier.d { "[SelectRoomUseCase] Room ${name} is not free due to current event" }
+        }
+        if (eventList.isEmpty()) return true.also {
+            Napier.d { "[SelectRoomUseCase] Room ${name} is free" }
+        }
 
         val target = currentInstant + duration.minutes
         val firstEventStart = eventList.minByOrNull { it.startTime }!!.startTime.asInstant

@@ -5,6 +5,7 @@ import band.effective.office.tablet.core.domain.ErrorResponse
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.repository.BookingRepository
 import band.effective.office.tablet.core.domain.repository.LocalBookingRepository
+import io.github.aakira.napier.Napier
 
 /**
  * Use case for updating an existing booking in a room.
@@ -32,30 +33,44 @@ class UpdateBookingUseCase(
         roomName: String,
         eventInfo: EventInfo,
     ): Either<ErrorResponse, EventInfo> {
+        Napier.d { "[UpdateBookingUseCase] Starting update for booking, room=$roomName, eventId=${eventInfo.id}" }
         val roomInfo = getRoomByNameUseCase(roomName)
-            ?: return Either.Error(ErrorResponse(404, "Couldn't find a room with name $roomName"))
+            ?: return Either.Error(ErrorResponse(404, "Couldn't find a room with name $roomName")).also {
+                Napier.e { "[UpdateBookingUseCase] Room not found: $roomName" }
+            }
         val loadingEvent = eventInfo.copy(isLoading = true)
 
         // Get the original event to restore in case of failure
         val oldEvent = localBookingRepository.getBooking(eventInfo) as? Either.Success
-            ?: return Either.Error(ErrorResponse(404, "Old event with id ${eventInfo.id} wasn't found"))
+            ?: return Either.Error(ErrorResponse(404, "Old event with id ${eventInfo.id} wasn't found")).also {
+                Napier.e { "[UpdateBookingUseCase] Old event not found: eventId=${eventInfo.id}" }
+            }
 
         // Update local repository with loading state
         localBookingRepository.updateBooking(loadingEvent, roomInfo)
+            .also { Napier.d { "[UpdateBookingUseCase] Updated local repository with loading state for eventId=${loadingEvent.id}" } }
 
         // Attempt to update booking in network repository
         val response = networkBookingRepository.updateBooking(loadingEvent, roomInfo)
+            .also { result ->
+                when (result) {
+                    is Either.Error -> Napier.e { "[UpdateBookingUseCase] Failed to update booking: room=$roomName, eventId=${eventInfo.id}, code=${result.error.code}, description=${result.error.description}" }
+                    is Either.Success -> Napier.i { "[UpdateBookingUseCase] Successfully updated booking: room=$roomName, eventId=${result.data.id}" }
+                }
+            }
 
         when (response) {
             is Either.Error -> {
                 // On error, restore the original event in local repository
                 localBookingRepository.updateBooking(oldEvent.data, roomInfo)
+                    .also { Napier.d { "[UpdateBookingUseCase] Restore original event in local repository: eventId=${oldEvent.data.id}" } }
             }
 
             is Either.Success -> {
                 // On success, update the booking in local repository with the response data
                 val event = response.data
                 localBookingRepository.updateBooking(event, roomInfo)
+                    .also { Napier.d { "[UpdateBookingUseCase] Updated local repository with new event: eventId=${event.id}" } }
             }
         }
 

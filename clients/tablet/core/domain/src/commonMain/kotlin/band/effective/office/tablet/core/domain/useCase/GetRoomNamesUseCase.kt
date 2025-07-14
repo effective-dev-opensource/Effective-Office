@@ -2,6 +2,7 @@ package band.effective.office.tablet.core.domain.useCase
 
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.unbox
+import io.github.aakira.napier.Napier
 
 /**
  * Use case for getting the names of all available rooms.
@@ -21,6 +22,8 @@ class GetRoomNamesUseCase(
         val rooms = getRoomsInfoUseCase().unbox(
             errorHandler = { it.saveData }
         )
-        return rooms?.map { it.name } ?: listOf(RoomInfo.defaultValue.name)
+        return rooms?.map { it.name } ?: listOf(RoomInfo.defaultValue.name).also { result ->
+            Napier.d("[GetRoomNamesUseCase]: Fetched ${if (rooms != null) "${result.size} rooms" else "default=${result[0]}"}")
+        }
     }
 }

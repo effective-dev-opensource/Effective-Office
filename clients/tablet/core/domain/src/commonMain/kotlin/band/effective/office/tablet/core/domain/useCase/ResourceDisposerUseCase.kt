@@ -1,6 +1,7 @@
 package band.effective.office.tablet.core.domain.useCase
 
 import band.effective.office.tablet.core.domain.repository.RoomRepository
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -26,8 +27,10 @@ class ResourceDisposerUseCase(
     private var updateJob: Job? = null
 
     operator fun invoke() {
+        Napier.d { "[ResourceDisposerUseCase] Starting subscription to network updates" }
         updateJob = scope.launch {
             networkRoomRepository.subscribeOnUpdates().debounce(2000).collectLatest {
+                Napier.d { "[ResourceDisposerUseCase] Received update, triggering data refresh" }
                 refreshDataUseCase()
             }
         }

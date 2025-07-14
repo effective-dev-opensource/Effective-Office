@@ -7,6 +7,7 @@ import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.repository.LocalRoomRepository
 import band.effective.office.tablet.core.domain.repository.RoomRepository
 import band.effective.office.tablet.core.domain.unbox
+import io.github.aakira.napier.Napier
 
 /**
  * Use case for refreshing room information from the network repository.
@@ -25,6 +26,7 @@ class RefreshDataUseCase(
      * @return Either containing the updated room information or error with saved data
      */
     suspend operator fun invoke(): Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>> {
+        Napier.d { "[RefreshDataUseCase] Starting data refresh" }
         return synchronizeData()
     }
 
@@ -42,12 +44,16 @@ class RefreshDataUseCase(
         val roomInfos = networkRoomRepository.getRoomsInfo()
             .map(
                 errorMapper = { error ->
+                    Napier.e { "[RefreshDataUseCase] Failed to fetch rooms from network: code=${error.error.code}, description=${error.error.description}" }
                     // Prevent NPE by handling null save data
                     error.copy(saveData = save)
                 },
-                successMapper = { it }
+                successMapper = { rooms ->
+                    Napier.i { "[RefreshDataUseCase] Successfully fetched ${rooms.size} rooms from network" }
+                    rooms }
             )
         localRoomRepository.updateRoomsInfo(roomInfos)
+        Napier.d { "[RefreshDataUseCase] Local repository updated with new rooms data" }
         return roomInfos
     }
 }

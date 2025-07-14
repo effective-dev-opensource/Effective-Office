@@ -6,6 +6,7 @@ import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.repository.BookingRepository
 import band.effective.office.tablet.core.domain.repository.LocalBookingRepository
+import io.github.aakira.napier.Napier
 
 /**
  * Use case for creating a new booking in a room.
@@ -30,8 +31,12 @@ class CreateBookingUseCase(
      * @return Either containing the created event information or an error
      */
     suspend operator fun invoke(roomName: String, eventInfo: EventInfo): Either<ErrorResponse, EventInfo> {
+        Napier.d("[CreateBookingUseCase]: Start creating booking, room=$roomName, eventId=${eventInfo.id}")
+
         val roomInfo = getRoomByNameUseCase(roomName)
-            ?: return Either.Error(ErrorResponse(404, "Couldn't find a room with name $roomName"))
+            ?: return Either.Error(ErrorResponse(404, "Couldn't find a room with name $roomName")).also {
+                Napier.e("[CreateBookingUseCase]: Room not found, room=$roomName")
+            }
 
         val loadingEvent = eventInfo.copy(isLoading = true)
 
@@ -43,11 +48,13 @@ class CreateBookingUseCase(
 
         when (response) {
             is Either.Error -> {
+                Napier.e("[CreateBookingUseCase]: Failed, room=$roomName, eventId=${eventInfo.id}, errorCode=${response.error.code}")
                 // On error, remove the booking from local repository
                 localBookingRepository.deleteBooking(loadingEvent, roomInfo)
             }
 
             is Either.Success -> {
+                Napier.d("[CreateBookingUseCase]: Booking created, room=$roomName, eventId=${response.data.id}")
                 // On success, update the booking in local repository with the response data
                 val event = response.data
                 localBookingRepository.updateBooking(event, roomInfo)

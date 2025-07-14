@@ -8,6 +8,7 @@ import band.effective.office.tablet.core.domain.util.currentLocalDateTime
 import band.effective.office.tablet.core.ui.common.ModalWindow
 import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
 import com.arkivanov.decompose.ComponentContext
+import io.github.aakira.napier.Napier
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,16 +44,17 @@ class DateTimePickerComponent(
             Intent.CloseModal -> {
                 onSelectDate(state.value.currentDate)
                 onCloseRequest()
+                Napier.d { "[DateTimePickerComponent] Closed modal with selected date: ${state.value.currentDate}" }
             }
             is Intent.OnChangeDate -> changeDate(
                 intent.date.year,
                 intent.date.month,
                 intent.date.dayOfMonth,
-            )
+            ).also { Napier.d { "[DateTimePickerComponent] Changed date to ${intent.date}" } }
             is Intent.OnChangeTime -> changeTime(
                 intent.time.hour,
                 intent.time.minute
-            )
+            ).also { Napier.d { "[DateTimePickerComponent] Changed time to ${intent.time}" } }
         }
     }
 

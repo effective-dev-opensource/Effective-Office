@@ -88,7 +88,7 @@ class BookingEditorComponent(
     )
 
     init {
-        loadOrganizers()
+        loadOrganizers().also { Napier.d { "[BookingEditorComponent] Initialized with eventId=${initialEvent.id}, room=$roomName" } }
     }
 
     /**
@@ -96,19 +96,19 @@ class BookingEditorComponent(
      */
     fun sendIntent(intent: Intent) {
         when (intent) {
-            Intent.OnBooking -> createNewEvent()
-            Intent.OnClose -> onCloseRequest()
-            Intent.OnCloseSelectDateDialog -> closeSelectDateDialog()
-            Intent.OnDeleteEvent -> deleteEvent()
-            Intent.OnDoneInput -> finalizeOrganizerSelection()
-            Intent.OnExpandedChange -> toggleExpandedState()
-            is Intent.OnInput -> handleOrganizerInput(intent.input)
-            Intent.OnOpenSelectDateDialog -> openSelectDateDialog()
-            is Intent.OnSelectOrganizer -> selectOrganizer(intent.newOrganizer)
-            is Intent.OnSetDate -> updateEventDate(intent.calendar)
-            is Intent.OnUpdateDate -> updateEventDetails(daysToAdd = intent.updateInDays)
-            is Intent.OnUpdateEvent -> updateExistingEvent()
-            is Intent.OnUpdateLength -> updateEventDetails(durationChange = intent.update)
+            Intent.OnBooking -> createNewEvent().also { Napier.d { "[BookingEditorComponent] Intent: OnBooking" } }
+            Intent.OnClose -> onCloseRequest().also { Napier.d { "[BookingEditorComponent] Intent: OnClose" } }
+            Intent.OnCloseSelectDateDialog -> closeSelectDateDialog().also { Napier.d { "[BookingEditorComponent] Intent: OnCloseSelectDateDialog" } }
+            Intent.OnDeleteEvent -> deleteEvent().also { Napier.d { "[BookingEditorComponent] Intent: OnDeleteEvent" } }
+            Intent.OnDoneInput -> finalizeOrganizerSelection().also { Napier.d { "[BookingEditorComponent] Intent: OnDoneInput" } }
+            Intent.OnExpandedChange -> toggleExpandedState().also { Napier.d { "[BookingEditorComponent] Intent: OnExpandedChange" } }
+            is Intent.OnInput -> handleOrganizerInput(intent.input).also { Napier.d { "[BookingEditorComponent] Intent: OnInput, input=${intent.input}" } }
+            Intent.OnOpenSelectDateDialog -> openSelectDateDialog().also { Napier.d { "[BookingEditorComponent] Intent: OnOpenSelectDateDialog" } }
+            is Intent.OnSelectOrganizer -> selectOrganizer(intent.newOrganizer).also { Napier.d { "[BookingEditorComponent] Intent: OnSelectOrganizer, organizer=${intent.newOrganizer.fullName}" } }
+            is Intent.OnSetDate -> updateEventDate(intent.calendar).also { Napier.d { "[BookingEditorComponent] Intent: OnSetDate, date=${intent.calendar}" } }
+            is Intent.OnUpdateDate -> updateEventDetails(daysToAdd = intent.updateInDays).also { Napier.d { "[BookingEditorComponent] Intent: OnUpdateDate, daysToAdd=${intent.updateInDays}" } }
+            is Intent.OnUpdateEvent -> updateExistingEvent().also { Napier.d { "[BookingEditorComponent] Intent: OnUpdateEvent" } }
+            is Intent.OnUpdateLength -> updateEventDetails(durationChange = intent.update).also { Napier.d { "[BookingEditorComponent] Intent: OnUpdateLength, durationChange=${intent.update}" } }
         }
     }
 
@@ -117,6 +117,7 @@ class BookingEditorComponent(
      */
     private fun updateExistingEvent() = coroutineScope.launch {
         mutableState.update { it.copy(isLoadUpdate = true) }
+        Napier.d { "[BookingEditorComponent] Updating event: eventId=${state.value.event.id}" }
         val updateBookingResult = withContext(Dispatchers.IO) {
             updateBookingUseCase(
                 roomName = roomName,
@@ -134,6 +135,7 @@ class BookingEditorComponent(
                 }
             },
             successHandler = {
+                Napier.i { "[BookingEditorComponent] Update booking succeeded: eventId=${state.value.event.id}" }
                 mutableState.update { it.copy(isLoadUpdate = false) }
                 onCloseRequest()
             }
@@ -144,6 +146,7 @@ class BookingEditorComponent(
      * Loads the list of organizers from the database
      */
     private fun loadOrganizers() = coroutineScope.launch {
+        Napier.d { "[BookingEditorComponent] Loading organizers" }
         val organizers = organizersInfoUseCase().unbox(errorHandler = { emptyList() })
         mutableState.update {
             it.copy(
@@ -151,6 +154,7 @@ class BookingEditorComponent(
                 selectOrganizers = organizers,
             )
         }
+        Napier.d { "[BookingEditorComponent] Loaded ${organizers.size} organizers" }
     }
 
     /**
@@ -158,6 +162,7 @@ class BookingEditorComponent(
      */
     private fun deleteEvent() = coroutineScope.launch {
         mutableState.update { it.copy(isLoadDelete = true) }
+        Napier.d { "[BookingEditorComponent] Deleting event: eventId=${state.value.event.id}" }
         onDeleteEvent(eventInfoMapper.mapToSlot(state.value.event))
         mutableState.update { it.copy(isLoadDelete = false) }
         onCloseRequest()
@@ -243,6 +248,7 @@ class BookingEditorComponent(
                     busyEvent = busyEvents.isNotEmpty()
                 )
             }
+            Napier.d { "[BookingEditorComponent] Updated event date: newDate=$newDate" }
         }
     }
 
@@ -280,6 +286,7 @@ class BookingEditorComponent(
                     busyEvent = busyEvents.isNotEmpty()
                 )
             }
+            Napier.d { "[BookingEditorComponent] Updated event details: date=$newDate, duration=$newDuration" }
         }
     }
 
@@ -368,12 +375,14 @@ class BookingEditorComponent(
      */
     private fun createNewEvent() = coroutineScope.launch {
         mutableState.update { it.copy(isLoadCreate = true) }
+        Napier.d { "[BookingEditorComponent] Creating new event" }
         val eventToCreate = stateToEventInfoMapper.map(state.value)
         val createBookingResult = withContext(Dispatchers.IO) {
             createBookingUseCase(roomName = roomName, eventInfo = eventToCreate)
         }
         createBookingResult.unbox(
             errorHandler = {
+                Napier.e { "[BookingEditorComponent] Create booking failed: ${it.description}" }
                 mutableState.update {
                     it.copy(
                         isLoadCreate = false,
@@ -382,6 +391,7 @@ class BookingEditorComponent(
                 }
             },
             successHandler = {
+                Napier.i { "[BookingEditorComponent] Create booking succeeded" }
                 mutableState.update { it.copy(isLoadCreate = false) }
                 onCloseRequest()
             }

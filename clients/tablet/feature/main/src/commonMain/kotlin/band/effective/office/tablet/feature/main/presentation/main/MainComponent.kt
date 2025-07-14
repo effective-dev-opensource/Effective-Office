@@ -20,6 +20,7 @@ import band.effective.office.tablet.feature.main.domain.GetTimeToNextEventUseCas
 import band.effective.office.tablet.feature.slot.presentation.SlotComponent
 import band.effective.office.tablet.feature.slot.presentation.SlotIntent
 import com.arkivanov.decompose.ComponentContext
+import io.github.aakira.napier.Napier
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
@@ -168,11 +169,11 @@ class MainComponent(
      */
     fun sendIntent(intent: Intent) {
         when (intent) {
-            is Intent.OnFastBooking -> handleFastBookingIntent(intent)
-            Intent.OnOpenFreeRoomModal -> handleFreeRoomIntent()
-            is Intent.OnSelectRoom -> selectRoom(intent.index)
-            is Intent.OnUpdateSelectDate -> updateSelectedDate(intent)
-            Intent.RebootRequest -> reboot(refresh = true)
+            is Intent.OnFastBooking -> handleFastBookingIntent(intent).also { Napier.d { "[MainComponent] Intent: OnFastBooking, minDuration=${intent.minDuration}" } }
+            Intent.OnOpenFreeRoomModal -> handleFreeRoomIntent().also { Napier.d { "[MainComponent] Intent: OnOpenFreeRoomModal" } }
+            is Intent.OnSelectRoom -> selectRoom(intent.index).also { Napier.d { "[MainComponent] Intent: OnSelectRoom, index=${intent.index}" } }
+            is Intent.OnUpdateSelectDate -> updateSelectedDate(intent).also { Napier.d { "[MainComponent] Intent: OnUpdateSelectDate, updateInDays=${intent.updateInDays}" } }
+            Intent.RebootRequest -> reboot(refresh = true).also { Napier.d { "[MainComponent] Intent: RebootRequest" } }
         }
     }
 

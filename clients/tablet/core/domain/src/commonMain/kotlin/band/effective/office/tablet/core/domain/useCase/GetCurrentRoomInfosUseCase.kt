@@ -4,6 +4,7 @@ import band.effective.office.tablet.core.domain.Either
 import band.effective.office.tablet.core.domain.ErrorWithData
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.repository.LocalRoomRepository
+import io.github.aakira.napier.Napier
 
 /**
  * Use case for getting the current information about all rooms from the local repository.
@@ -20,6 +21,7 @@ class GetCurrentRoomInfosUseCase(
      * @return Either containing room information or an error with saved data
      */
     suspend operator fun invoke(): Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>> {
+        Napier.d { "[GetCurrentRoomInfosUseCase] Fetching current rooms from local repository" }
         return localRoomRepository.getRoomsInfo()
     }
 }

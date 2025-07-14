@@ -3,6 +3,7 @@ package band.effective.office.tablet.core.domain.useCase
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.util.cropSeconds
+import io.github.aakira.napier.Napier
 
 /**Use case for checking booking room opportunity*/
 class CheckBookingUseCase(
@@ -13,13 +14,17 @@ class CheckBookingUseCase(
      * @param room room name
      * @return Event busy with room booking, if room free, return null*/
     suspend operator fun invoke(event: EventInfo, room: String) =
-        busyEvents(event, room)
+        busyEvents(event, room).also {
+            Napier.d("[CheckBookingUseCase]: Checked booking for room=$room, eventId=${event.id}, conflicts=${it.size}")
+        }
+
 
     /** get events blocking room for booking
      * @param event info about event
      * @param room room name
      * @return List events busy with room booking, if room's free then empty list will be returned*/
     suspend fun busyEvents(event: EventInfo, room: String): List<EventInfo> {
+        Napier.d("[CheckBookingUseCase]: Fetching for room=$room, eventId=${event.id}")
         val eventList = eventList(room)
         return eventList.getBusy(event)
     }
