@@ -52,7 +52,7 @@ logs/
 **/application-local.properties
 
 ### Docker ###
-.env
+backend/app/src/main/resources/.env
 docker-compose.override.yml
 
 ### Coverage reports ###
