@@ -1,0 +1,87 @@
+### Gradle ###
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+### Kotlin ###
+.kotlin/
+
+### Logs ###
+*.log
+logs/
+
+### Local configuration ###
+**/application-local.yml
+**/application-local-dev.yml
+**/application-local.properties
+
+### Docker ###
+backend/app/src/main/resources/.env
+docker-compose.override.yml
+
+### Coverage reports ###
+*.coverage
+htmlcov/
+.coverage.*
+coverage/
+.nyc_output/
+
+### Temporary files ###
+*.tmp
+*.swp
+*.swo
+*~
+
+### Database ###
+*.db
+*.sqlite
+*.sqlite3
+
+/backend/app/src/main/resources/.env.properties
+/backend/app/src/main/resources/google-credentials.json
+/oldBackendExample
+/backend/app/src/main/resources/firebase-credentials.json
+/keystore/
+/oldProject/
+/clients/tablet/composeApp/google-services.json
+/local.properties
+/deploy/dev/.env
+/deploy/dev/*.jar
+/deploy/prod/.env
+/deploy/prod/*.jar

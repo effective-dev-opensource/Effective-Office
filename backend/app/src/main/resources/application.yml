@@ -1,0 +1,81 @@
+server:
+  port: 8080
+  address: 0.0.0.0
+
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: effective-office
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  profiles:
+    include:
+      - repository
+
+  flyway:
+    enabled: ${MIGRATIONS_ENABLE:true}
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    table: flyway_schema_history
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+    default-property-inclusion: non_null
+    mapper:
+      accept-case-insensitive-enums: true
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+  packages-to-scan: band.effective.office.backend.app.controller,
+    band.effective.office.backend.feature.authorization.controller,
+    band.effective.office.backend.feature.booking.core.controller,
+    band.effective.office.backend.feature.workspace.core.controller
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: ${LOG_LEVEL:INFO}
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    band.effective.office.backend: ${LOG_LEVEL:DEBUG}
+
+application:
+  url: ${APPLICATION_URL:http://localhost:8080}
+
+# Calendar provider configuration
+calendar:
+  provider: google # Options: google, dummy
+  default-calendar: ${DEFAULT_CALENDAR} # Default calendar ID
+  application-name: ${CALENDAR_APPLICATION_NAME} # Application name for Google Calendar API
+  delegated-user: ${CALENDAR_DELEGATED_USER} # Email of the user to impersonate (optional)
+  credentials.file: ${GOOGLE_CREDENTIALS_FILE:classpath:google-credentials.json}
+  # Calendar subscription configuration
+  subscription:
+    default-app-email: ${DEFAULT_APP_EMAIL}
+    google-credentials: ${GOOGLE_CREDENTIALS_FILE:classpath:google-credentials.json}
+    application-url: ${APPLICATION_URL}
+    test-application-url: ${TEST_APPLICATION_URL}
+    calendars: ${CALENDARS}
+    test-calendars: ${TEST_CALENDARS}
+    firebase-credentials: ${FIREBASE_CREDENTIALS:classpath:firebase-credentials.json}
