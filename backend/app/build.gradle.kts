@@ -43,27 +43,51 @@ tasks.register("deployProd") {
     dependsOn("bootJar")
 
     doLast {
-        // Get deployment parameters
+        println("🚀 Starting production deployment process...")
+
         val remoteUser = project.findProperty("remoteUser") ?: "remoteUser"
         val remoteHost = project.findProperty("remoteHost") ?: "remoteHost"
         val remotePath = project.findProperty("remotePath") ?: "remotePath"
         val jarVersion = project.version.toString()
 
-        // Create deploy directory if it doesn't exist
-        mkdir("${rootProject.projectDir}/deploy/prod")
+        println("📦 Deployment parameters:")
+        println("  remoteUser=$remoteUser")
+        println("  remoteHost=$remoteHost")
+        println("  remotePath=$remotePath")
+        println("  jarVersion=$jarVersion")
 
-        // Copy the JAR file to the deploy folder and rename it
+        val deployDir = file("${rootProject.projectDir}/deploy/prod")
+        mkdir(deployDir)
+
+        println("🛠️ Preparing JAR file...")
         copy {
             from("${project.buildDir}/libs/app-${jarVersion}-boot.jar")
-            into("${rootProject.projectDir}/deploy/prod")
+            into(deployDir)
+            rename { "app-${jarVersion}-boot.jar" }
         }
 
-        // Copy the deploy directory to the remote server
+        println("🧹 Cleaning remote JARs...")
         exec {
-            commandLine("scp", "-r", "${rootProject.projectDir}/deploy/prod", "${remoteUser}@${remoteHost}:${remotePath}")
+            commandLine("ssh", "$remoteUser@$remoteHost", "rm -rf $remotePath/prod")
         }
 
-        println("Production deployment completed successfully.")
+        println("📤 Copying deploy directory to remote server (rsync)...")
+        val rsyncCommand = listOf(
+            "rsync", "-az", "--progress",
+            "${deployDir.absolutePath}/",
+            "$remoteUser@$remoteHost:$remotePath/prod/"
+        )
+
+        val process = ProcessBuilder(rsyncCommand)
+            .inheritIO()
+            .start()
+
+        val exitCode = process.waitFor()
+        if (exitCode != 0) {
+            throw GradleException("❌ rsync failed with exit code $exitCode")
+        }
+
+        println("✅ Production deployment completed successfully.")
     }
 }
 
@@ -74,28 +98,50 @@ tasks.register("deployDev") {
     dependsOn("bootJar")
 
     doLast {
-        // Get deployment parameters
+        println("🚀 Starting development deployment process...")
+
         val remoteUser = project.findProperty("remoteUser") ?: "remoteUser"
         val remoteHost = project.findProperty("remoteHost") ?: "remoteHost"
         val remotePath = project.findProperty("remotePath") ?: "remotePath"
         val jarVersion = project.version.toString()
 
-        // Create deploy directory if it doesn't exist
-        mkdir("${rootProject.projectDir}/deploy/dev")
+        println("📦 Deployment parameters:")
+        println("  remoteUser=$remoteUser")
+        println("  remoteHost=$remoteHost")
+        println("  remotePath=$remotePath")
+        println("  jarVersion=$jarVersion")
 
-        // Copy the JAR file to the deploy folder and rename it
+        val deployDir = file("${rootProject.projectDir}/deploy/dev")
+        mkdir(deployDir)
+
+        println("🛠️ Preparing JAR file...")
         copy {
             from("${project.buildDir}/libs/app-${jarVersion}-boot.jar")
-            into("${rootProject.projectDir}/deploy/dev")
+            into(deployDir)
             rename { "app-${jarVersion}-dev-boot.jar" }
         }
 
-        // Copy the deploy directory to the remote server
+        println("🧹 Cleaning remote JARs...")
         exec {
-            commandLine("scp", "-r", "${rootProject.projectDir}/deploy/dev", "${remoteUser}@${remoteHost}:${remotePath}")
+            commandLine("ssh", "$remoteUser@$remoteHost", "rm -rf $remotePath/dev")
         }
 
-        println("Development deployment completed successfully.")
+        println("📤 Copying deploy directory to remote server (rsync)...")
+        val rsyncCommand = listOf(
+            "rsync", "-az", "--progress",
+            "${deployDir.absolutePath}/",
+            "$remoteUser@$remoteHost:$remotePath/dev/"
+        )
+
+        val process = ProcessBuilder(rsyncCommand)
+            .inheritIO()
+            .start()
+
+        val exitCode = process.waitFor()
+        if (exitCode != 0) {
+            throw GradleException("❌ rsync failed with exit code $exitCode")
+        }
+
+        println("✅ Deployment completed successfully.")
     }
 }
-
