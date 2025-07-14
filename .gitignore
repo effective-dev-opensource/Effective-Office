@@ -81,4 +81,7 @@ coverage/
 /oldProject/
 /clients/tablet/composeApp/google-services.json
 /local.properties
-/deploy/
+/deploy/dev/.env
+/deploy/dev/*.jar
+/deploy/prod/.env
+/deploy/prod/*.jar

@@ -60,11 +60,6 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     band.effective.office.backend: ${LOG_LEVEL:DEBUG}
 
-jwt:
-  secret: ${JWT_SECRET:defaultSecretKeyForDevelopmentOnly}
-  access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS:900000}
-  refresh-token-expiration-ms: ${JWT_REFRESH_TOKEN_EXPIRATION_MS:2592000000}
-
 application:
   url: ${APPLICATION_URL:http://localhost:8080}
 

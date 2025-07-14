@@ -1,0 +1,80 @@
+# docker-compose.yml (production-ready template)
+# Replace all environment variables in a `.env` file (not committed)
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: effective-office-app
+    expose:
+      - "8080"
+    environment:
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - effective-office-network
+      - caddy
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/api/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    labels:
+      caddy: ${LABEL}
+      caddy.reverse_proxy: "{{upstreams 8080}}"
+
+  db:
+    image: postgres:15-alpine
+    container_name: effective-office-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - deploy_postgres-data:/var/lib/postgresql/data
+    networks:
+      - effective-office-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  caddy:
+    image: lucaslorentz/caddy-docker-proxy:latest
+    container_name: effective-office-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - CADDY_INGRESS_NETWORK=caddy
+    networks:
+      - caddy
+    restart: unless-stopped
+
+networks:
+  effective-office-network:
+    driver: bridge
+  caddy:
+    external: true
+
+volumes:
+  deploy_postgres-data:
+    external: true
+  caddy_data:
+  caddy_config:
