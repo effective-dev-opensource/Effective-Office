@@ -23,6 +23,13 @@ backend/
 ├── docs/              # API documentation
 └── scripts/           # Backend-specific utility scripts
 ```
+For detailed documentation:
+- [Feature authorization](./backend/feature/authorization/README.md)
+- [Feature booking](./backend/feature/booking/README.md)
+- [Feature calendar-subscription](./backend/feature/calendar-subscription/README.md)
+- [Feature notifications](./backend/feature/notifications/README.md)
+- [Feature user](./backend/feature/user/README.md)
+- [Feature workspace](./backend/feature/workspace/README.md)
 
 ## Technology Stack
 
@@ -107,7 +114,6 @@ The database schema includes tables for:
    ./gradlew :backend:app:bootRun --args='--spring.profiles.active=local'
    ```
    This will use the configuration from `application-local.yml`.
-
 
 ## Deployment
 ### Using Docker

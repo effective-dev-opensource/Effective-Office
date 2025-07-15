@@ -70,6 +70,7 @@ effective-office/
 For detailed documentation:
 - [Backend Documentation](./backend/README.md)
 - [Client Documentation](./clients/README.md)
+- [Build Logic Documentation](./build-logic/README.md)
 - [Calendar Integration Documentation](docs/CALENDAR_INTEGRATION.md)
 
 ## Development Tools
