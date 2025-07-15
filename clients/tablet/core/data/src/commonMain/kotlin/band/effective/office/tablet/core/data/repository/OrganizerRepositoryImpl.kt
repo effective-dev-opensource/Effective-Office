@@ -63,6 +63,6 @@ class OrganizerRepositoryImpl(private val api: UserApi) : OrganizerRepository {
                 )
             },
             successMapper = { user ->
-                user.filter { it.tag == "employer" }.map { it.toOrganizer() }
+                user.filter { it.tag == "employer" }.map { it.toOrganizer() }.sortedBy { it.fullName }
             })
 }
