@@ -135,6 +135,41 @@ To deploy the application to the production environment, use the deployProd Grad
 ./gradlew deployProd -PremoteUser=user -PremoteHost=host -PremotePath=path
 ```
 
+### Docker Container Management
+After deployment, you may need to restart Docker containers to apply changes:
+
+1. Stop the running containers:
+```
+cd deploy/dev  # or deploy/prod for production environment
+docker compose down
+```
+
+2. Start the containers in detached mode:
+```
+docker compose up -d
+```
+
+3. Verify the containers are running:
+```
+docker ps
+```
+
+4. View container logs:
+```
+# View logs for a specific container
+docker logs [container_name_or_id]
+
+# Follow log output in real-time
+docker logs -f [container_name_or_id]
+
+# Show only the last N lines of logs
+docker logs --tail [number_of_lines] [container_name_or_id]
+
+# Show logs since a specific time
+docker logs --since [time] [container_name_or_id]
+# Example: docker logs --since 2023-10-01T10:00:00 backend-app
+```
+
 ## Configuration
 Configuration is managed through:
 - Application properties files
