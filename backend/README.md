@@ -25,11 +25,42 @@ backend/
 ```
 
 ## Technology Stack
-- **Framework**: Spring Boot
-- **Database**: PostgreSQL
-- **API Documentation**: Swagger/OpenAPI
-- **Authentication**: JWT-based authentication
-- **Build Tool**: Gradle with Kotlin DSL
+
+### Core Technologies
+- **Language**: Kotlin 2.1.21
+- **Framework**: Spring Boot 3.5.0
+- **Build Tool**: Gradle 8.x with Kotlin DSL
+- **Java Version**: JDK 17
+
+### Database
+- **RDBMS**: PostgreSQL 42.7.6
+- **Migration Tool**: Flyway 11.8.2
+- **Connection Pool**: HikariCP 6.3.0
+- **ORM**: Spring Data JPA
+
+### Security
+- **Framework**: Spring Security
+- **Authentication**: JWT (JSON Web Token) 0.11.5
+- **Authorization**: Role-based access control
+
+### API & Documentation
+- **API Style**: RESTful
+- **Documentation**: SpringDoc OpenAPI 2.8.8 (Swagger UI)
+- **Validation**: Jakarta Bean Validation 3.0.2
+
+### Integration
+- **Google Calendar**: Google API Client 1.33.0
+- **OAuth**: Google OAuth Client 1.33.3
+
+### Testing
+- **Unit Testing**: JUnit 5.12.2
+- **Mocking**: MockK 1.14.2
+- **Integration Testing**: Testcontainers 1.20.2
+
+### Utilities
+- **JSON Processing**: Jackson 2.19.0
+- **Logging**: SLF4J 2.0.17 with Logback 1.5.18
+- **Environment Variables**: Spring dotenv for .env file support
 
 ## API Endpoints
 The backend exposes RESTful APIs for:

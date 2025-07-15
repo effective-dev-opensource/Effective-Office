@@ -11,7 +11,7 @@ This module provides functionality to subscribe to Google Calendar notifications
 
 ## Configuration
 
-The module can be configured through the following properties in `application-local.yml` or environment variables:
+The module can be configured through the following properties in `application.yml` , `application-local.yml` or environment variables:
 
 | Property | Environment Variable | Description |
 |----------|---------------------|-------------|
