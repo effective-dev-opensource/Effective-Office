@@ -1,6 +1,6 @@
 # Effective Office
 ## Overview
-Effective Office is a comprehensive office management system designed to streamline workplace operations, resource management, and employee interactions. The project consists of a backend server, web clients, and mobile applications that work together to create an efficient office environment.
+Effective Office is a comprehensive office management system designed to streamline workplace operations, resource management, and employee interactions. The project consists of a backend server and tablet clients that work together to create an efficient office environment.
 
 ## Features
 - Resource booking and management
@@ -13,7 +13,7 @@ Effective Office is a comprehensive office management system designed to streaml
 ## Architecture
 The project follows a client-server architecture:
 - **Backend**: Spring Boot application with PostgreSQL database
-- **Clients**: Web applications and iOS mobile app
+- **Clients**: Client applications and iOS tablet app
 - **Deployment**: Docker-based containerization for easy deployment
 - **Security**: Git hooks for leak detection to prevent sensitive information exposure
 
@@ -55,7 +55,7 @@ The project follows a client-server architecture:
 effective-office/
 ├── backend/           # Server-side application
 │   └── README.md      # Detailed backend documentation
-├── clients/           # Web client applications
+├── clients/           # Client applications
 │   └── README.md      # Detailed client documentation
 ├── iosApp/            # iOS mobile application
 ├── deploy/            # Deployment configurations
@@ -70,6 +70,8 @@ effective-office/
 For detailed documentation:
 - [Backend Documentation](./backend/README.md)
 - [Client Documentation](./clients/README.md)
+- [Build Logic Documentation](./build-logic/README.md)
+- [Calendar Integration Documentation](docs/CALENDAR_INTEGRATION.md)
 
 ## Development Tools
 - **Build System**: Gradle with Kotlin DSL
@@ -86,7 +88,7 @@ For detailed documentation:
 
 ## Contributing
 1. Ensure you've run the installation script (`./scripts/install.sh`)
-2. Follow our [Git Flow](./GIT_FLOW.md) for branching and commit conventions
+2. Follow our [Git Flow](docs/GIT_FLOW.md) for branching and commit conventions
 3. Create a feature branch (`git checkout -b feature/amazing-feature`)
 4. Commit your changes (`git commit -m 'Add some amazing feature'`)
 5. Push to the branch (`git push origin feature/amazing-feature`)

@@ -40,15 +40,6 @@ class YourService(
     fun someMethod() {
         // Send an empty notification
         notificationSender.sendEmptyMessage("your-topic")
-        
-        // Send a notification about a workspace modification
-        notificationSender.sendContentMessage(HttpMethod.POST, workspaceDTO)
-        
-        // Send a notification about a user modification
-        notificationSender.sendContentMessage(HttpMethod.PUT, userDto)
-        
-        // Send a notification about a booking modification
-        notificationSender.sendContentMessage(HttpMethod.DELETE, bookingDto)
     }
 }
 ```
