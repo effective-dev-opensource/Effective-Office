@@ -4,8 +4,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
-import jakarta.persistence.JoinTable
-import jakarta.persistence.ManyToMany
+import jakarta.persistence.OneToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import java.util.UUID
@@ -19,13 +18,8 @@ data class WorkspaceEntity(
     val name: String,
     @Column(name = "tag", nullable = false, unique = false, length = 255)
     val tag: String,
-    @ManyToMany
-    @JoinTable(
-        name = "workspace_utilities",
-        joinColumns = [JoinColumn(name = "workspace_id")],
-        inverseJoinColumns = [JoinColumn(name = "utility_id")]
-    )
-    val utilities: List<UtilityEntity> = emptyList(),
+    @OneToMany(mappedBy = "workspace")
+    val workspaceUtilities: List<WorkspaceUtilityEntity> = emptyList(),
 
     @ManyToOne
     @JoinColumn(name = "zone_id")
