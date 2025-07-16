@@ -82,11 +82,20 @@ class SlotComponent(
 
     fun sendIntent(intent: SlotIntent) {
         when (intent) {
-            is SlotIntent.ClickOnSlot -> intent.slot.execute(state.value)
+            is SlotIntent.ClickToEdit -> handleClickToEdit(intent.slot)
+            is SlotIntent.ClickToToggle -> openMultislot(intent.slot)
             is SlotIntent.Delete -> deleteSlot(intent)
             is SlotIntent.OnCancelDelete -> cancelDeletingSlot(intent)
             is SlotIntent.UpdateDate -> updateDate(intent.newDate)
             is SlotIntent.UpdateRequest -> updateRequest(intent)
+        }
+    }
+
+    private fun handleClickToEdit(slot: SlotUi) {
+        when (slot) {
+            is SlotUi.SimpleSlot -> slot.slot.execute()
+            is SlotUi.NestedSlot -> slot.slot.execute()
+            else -> {}
         }
     }
 
@@ -129,10 +138,10 @@ class SlotComponent(
         when {
             uiSlot == null -> {}
             mainSlot != null -> {
-                val indexInMultiSlot = mainSlot.subSlots.indexOf(uiSlot)
+                val indexInMultiSlot = mainSlot!!.subSlots.indexOf(uiSlot)
                 val indexMultiSlot = slots.indexOf(mainSlot)
-                val newMainSlot = mainSlot.copy(
-                    subSlots = mainSlot.subSlots.toMutableList().apply {
+                val newMainSlot = mainSlot!!.copy(
+                    subSlots = mainSlot!!.subSlots.toMutableList().apply {
                         this[indexInMultiSlot] =
                             SlotUi.DeleteSlot(
                                 slot = intent.slot,
@@ -168,27 +177,16 @@ class SlotComponent(
             }
         }
     }
-
-    private fun SlotUi.execute(state: State) = when (this) {
-        is SlotUi.DeleteSlot -> {}
-        is SlotUi.MultiSlot -> openMultislot(this, state)
-        is SlotUi.SimpleSlot -> slot.execute(state)
-        is SlotUi.NestedSlot -> slot.execute(state)
-        is SlotUi.LoadingSlot -> {
-            slot.execute(state)
-        }
-    }
-
-    private fun Slot.execute(state: State) = when (this) {
+    private fun Slot.execute() = when (this) {
         is Slot.EmptySlot -> executeFreeSlot(this)
         is Slot.EventSlot -> executeEventSlot(this)
-        is Slot.MultiEventSlot -> {}
-        is Slot.LoadingEventSlot -> {}
+        else -> {}
     }
 
-    private fun openMultislot(multislot: SlotUi.MultiSlot, state: State) {
-        val slots = state.slots.toMutableList()
+    private fun openMultislot(multislot: SlotUi.MultiSlot) {
+        val slots = state.value.slots.toMutableList()
         val index = slots.indexOf(multislot)
+        if (index < 0) return
         slots[index] = multislot.copy(isOpen = !multislot.isOpen)
         mutableState.update { it.copy(slots = slots) }
     }
