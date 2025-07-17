@@ -7,7 +7,7 @@ import band.effective.office.backend.core.domain.service.WorkspaceDomainService
 import band.effective.office.backend.feature.workspace.core.repository.CalendarIdRepository
 import band.effective.office.backend.feature.workspace.core.repository.WorkspaceRepository
 import band.effective.office.backend.feature.workspace.core.repository.mapper.CalendarIdMapper
-import band.effective.office.backend.feature.workspace.core.repository.mapper.WokplaceMapper
+import band.effective.office.backend.feature.workspace.core.repository.mapper.WorkspaceMapper
 import java.util.UUID
 import kotlin.jvm.optionals.getOrNull
 import org.springframework.stereotype.Service
@@ -27,7 +27,7 @@ class WorkspaceService(
      */
     @Transactional(readOnly = true)
     override fun findById(id: UUID): Workspace? {
-        return repository.findById(id).getOrNull()?.let { WokplaceMapper.toDomain(it) }
+        return repository.findById(id).getOrNull()?.let { WorkspaceMapper.toDomain(it) }
     }
 
     /**
@@ -38,7 +38,7 @@ class WorkspaceService(
      */
     @Transactional(readOnly = true)
     override fun findAllByTag(tag: String): List<Workspace> {
-        return repository.findAllByTag(tag).map { WokplaceMapper.toDomain(it) }
+        return repository.findAllByTag(tag).map { WorkspaceMapper.toDomain(it) }
     }
 
     /**
