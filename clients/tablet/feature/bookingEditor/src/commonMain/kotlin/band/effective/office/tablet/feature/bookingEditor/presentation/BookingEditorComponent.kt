@@ -11,8 +11,6 @@ import band.effective.office.tablet.core.domain.useCase.OrganizersInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.UpdateBookingUseCase
 import band.effective.office.tablet.core.domain.util.asInstant
 import band.effective.office.tablet.core.domain.util.asLocalDateTime
-import band.effective.office.tablet.core.domain.util.currentLocalDateTime
-import band.effective.office.tablet.core.domain.util.defaultTimeZone
 import band.effective.office.tablet.core.ui.common.ModalWindow
 import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
 import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.DateTimePickerComponent
@@ -31,8 +29,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -216,7 +216,7 @@ class BookingEditorComponent(
         inputError: Boolean,
         busyEvent: Boolean
     ) = mutableState.update {
-        it.copy(enableUpdateButton = !inputError && !busyEvent)
+        it.copy(enableUpdateButton = !inputError && !busyEvent && !it.isTimeInPastError)
     }
 
     /**
@@ -229,12 +229,14 @@ class BookingEditorComponent(
                 duration = duration,
                 organizer = selectOrganizer
             )
+            val isTimeInPast = newDate <= getCurrentTime()
 
             updateStateWithNewEventDetails(
                 newDate = newDate,
                 newDuration = duration,
                 newOrganizer = selectOrganizer,
-                busyEvents = busyEvents
+                busyEvents = busyEvents,
+                isTimeInPast = isTimeInPast
             )
 
             if (selectOrganizer != Organizer.default) {
@@ -260,45 +262,33 @@ class BookingEditorComponent(
             val resolvedOrganizer = organizers.firstOrNull {
                 it.fullName == newOrganizer.fullName
             } ?: event.organizer
-
+            val isTimeInPast = newDate <= getCurrentTime()
             val busyEvents = checkForBusyEvents(
                 date = newDate,
                 duration = newDuration,
                 organizer = resolvedOrganizer
             )
 
-            if (isValidEventTime(newDate, newDuration)) {
-                updateStateWithNewEventDetails(
-                    newDate = newDate,
-                    newDuration = newDuration,
-                    newOrganizer = resolvedOrganizer,
-                    busyEvents = busyEvents
-                )
+            updateStateWithNewEventDetails(
+                newDate = newDate,
+                newDuration = newDuration,
+                newOrganizer = resolvedOrganizer,
+                busyEvents = busyEvents,
+                isTimeInPast = isTimeInPast
+            )
 
-                updateButtonState(
-                    inputError = !organizers.contains(resolvedOrganizer),
-                    busyEvent = busyEvents.isNotEmpty()
-                )
-            }
+            updateButtonState(
+                inputError = !organizers.contains(resolvedOrganizer),
+                busyEvent = busyEvents.isNotEmpty()
+            )
         }
     }
 
     /**
-     * Checks if the event time is valid
+     * Gets the current time
      */
-    private fun isValidEventTime(date: LocalDateTime, duration: Int): Boolean {
-        val today = getTodayStartTime()
-        val officeEndTime = OfficeTime.finishWorkTime(date.date)
-        val eventEndTime = date.asInstant.plus(duration.minutes).asLocalDateTime
-
-        return duration > 0 && date > today && eventEndTime < officeEndTime
-    }
-
-    /**
-     * Gets the start time of today
-     */
-    private fun getTodayStartTime(): LocalDateTime =
-        currentLocalDateTime.date.atStartOfDayIn(defaultTimeZone).asLocalDateTime
+    private fun getCurrentTime(): LocalDateTime =
+        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
 
     /**
      * Checks for busy events that conflict with the given parameters
@@ -343,7 +333,8 @@ class BookingEditorComponent(
         newDate: LocalDateTime,
         newDuration: Int,
         newOrganizer: Organizer,
-        busyEvents: List<EventInfo>
+        busyEvents: List<EventInfo>,
+        isTimeInPast: Boolean
     ) {
         val updatedEvent = createEventInfo(
             id = state.value.event.id,
@@ -358,7 +349,8 @@ class BookingEditorComponent(
                 duration = newDuration,
                 selectOrganizer = newOrganizer,
                 event = updatedEvent,
-                isBusyEvent = busyEvents.isNotEmpty()
+                isBusyEvent = busyEvents.isNotEmpty(),
+                isTimeInPastError = isTimeInPast
             )
         }
     }

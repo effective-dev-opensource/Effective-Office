@@ -23,7 +23,8 @@ data class State(
     val isErrorCreate: Boolean,
     val showSelectDate: Boolean,
     val enableUpdateButton: Boolean,
-    val isBusyEvent: Boolean
+    val isBusyEvent: Boolean,
+    val isTimeInPastError: Boolean
 ) {
     companion object {
         val defaultValue = State(
@@ -44,7 +45,8 @@ data class State(
             isErrorCreate = false,
             showSelectDate = false,
             enableUpdateButton = false,
-            isBusyEvent = false
+            isBusyEvent = false,
+            isTimeInPastError = false
         )
     }
 

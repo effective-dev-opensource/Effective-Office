@@ -11,10 +11,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +47,9 @@ import band.effective.office.tablet.feature.bookingEditor.booking_view_title
 import band.effective.office.tablet.feature.bookingEditor.create_view_title
 import band.effective.office.tablet.feature.bookingEditor.delete_button
 import band.effective.office.tablet.feature.bookingEditor.error
+import band.effective.office.tablet.feature.bookingEditor.error_creating_event
+import band.effective.office.tablet.feature.bookingEditor.error_deleting_event
+import band.effective.office.tablet.feature.bookingEditor.is_time_in_past_error
 import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.DateTimePickerModalView
 import band.effective.office.tablet.feature.bookingEditor.update_button
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -109,6 +119,7 @@ fun BookingEditor(
                         start = state.event.startTime.format(timeFormatter),
                         finish = state.event.finishTime.format(timeFormatter),
                         room = component.roomName,
+                        isTimeInPastError = state.isTimeInPastError
                     )
                 }
             }
@@ -149,9 +160,20 @@ private fun BookingEditor(
     isNewEvent: Boolean,
     start: String,
     finish: String,
-    room: String
+    room: String,
+    isTimeInPastError: Boolean
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val timeInPastErrorMessage = stringResource(Res.string.is_time_in_past_error)
 
+    LaunchedEffect(isTimeInPastError) {
+        if (isTimeInPastError) {
+            snackbarHostState.showSnackbar(
+                message = timeInPastErrorMessage,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
     Box {
         Column(
             modifier = Modifier
@@ -212,7 +234,7 @@ private fun BookingEditor(
                     when {
                         isCreateLoad -> Loader()
                         isCreateError -> Text(
-                            text = "Error creating event", // Ideally, this should be a string resource
+                            text = stringResource(Res.string.error_creating_event),
                             style = MaterialTheme.typography.h6
                         )
                         else -> Text(
@@ -247,7 +269,7 @@ private fun BookingEditor(
                     when {
                         isDeleteLoad -> Loader()
                         isDeleteError -> Text(
-                            text = "Error deleting event", // Ideally, this should be a string resource
+                            text = stringResource(Res.string.error_deleting_event),
                             style = MaterialTheme.typography.h6
                         )
 
@@ -266,5 +288,22 @@ private fun BookingEditor(
                 .fillMaxWidth().padding(35.dp),
             onDismissRequest = onDismissRequest
         )
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 32.dp)
+        ) { snackbarData ->
+            Snackbar(
+                modifier = Modifier.padding(16.dp),
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            ) {
+                Text(
+                    text = snackbarData.visuals.message,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
     }
 }
