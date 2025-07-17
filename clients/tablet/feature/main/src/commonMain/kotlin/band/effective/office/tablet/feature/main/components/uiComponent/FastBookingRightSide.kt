@@ -87,13 +87,13 @@ fun RoomList(list: List<RoomInfo>, indexSelectRoom: Int, onClick: (Int) -> Unit)
         list.forEachIndexed() { index, roomInfo ->
             RoomButton(
                 modifier = Modifier
+                    .clip(CircleShape)
                     .background(
                         color = if (index == indexSelectRoom) MaterialTheme.colorScheme.surface else Color.Transparent,
                         shape = CircleShape
                     )
                     .clickable { onClick(index) }
                     .fillMaxWidth()
-                    .clip(CircleShape)
                     .padding(10.dp),
                 room = roomInfo,
             )
