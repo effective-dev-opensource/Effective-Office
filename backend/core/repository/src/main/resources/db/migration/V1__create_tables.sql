@@ -51,17 +51,13 @@ CREATE TABLE utilities
     icon_url VARCHAR(255) NOT NULL UNIQUE
 );
 
--- Create workspace_utilities table with count column
+-- Create workspace_utilities table
 CREATE TABLE workspace_utilities
 (
     workspace_id UUID REFERENCES workspaces (id),
     utility_id   UUID REFERENCES utilities (id),
-    count        INTEGER NOT NULL DEFAULT 1,
     PRIMARY KEY (workspace_id, utility_id)
 );
-
-COMMENT ON TABLE workspace_utilities IS 'Table linking workspaces to utilities with their quantities';
-COMMENT ON COLUMN workspace_utilities.count IS 'Number of utility items associated with the workspace';
 
 -- Create api_keys table from V2
 CREATE TABLE api_keys
