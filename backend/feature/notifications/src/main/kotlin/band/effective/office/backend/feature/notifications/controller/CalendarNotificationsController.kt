@@ -1,15 +1,21 @@
 package band.effective.office.backend.feature.notifications.controller
 
-import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.http.ResponseEntity
+import band.effective.office.backend.feature.calendar.subscription.repository.ChannelRepository
+import band.effective.office.backend.feature.calendar.subscription.service.GoogleCalendarService
 import band.effective.office.backend.feature.notifications.service.INotificationSender
-import org.slf4j.LoggerFactory
+import com.google.api.client.util.DateTime
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletRequest
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import kotlin.time.ExperimentalTime
+import org.slf4j.LoggerFactory
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 /**
  * Controller for Google calendar push notifications
@@ -18,7 +24,10 @@ import jakarta.servlet.http.HttpServletRequest
 @RequestMapping("/notifications")
 @Tag(name = "Notifications", description = "API for handling notifications")
 class CalendarNotificationsController(
-    private val notificationSender: INotificationSender
+    private val notificationSender: INotificationSender,
+    private val deduplicator: NotificationDeduplicator,
+    private val channelRepository: ChannelRepository,
+    private val googleCalendarService: GoogleCalendarService,
 ) {
     private val logger = LoggerFactory.getLogger(CalendarNotificationsController::class.java)
 
@@ -28,6 +37,7 @@ class CalendarNotificationsController(
     /**
      * Endpoint for receiving Google calendar push notifications
      */
+    @OptIn(ExperimentalTime::class)
     @PostMapping
     @Operation(
         summary = "Receive Google calendar push notification",
@@ -37,46 +47,43 @@ class CalendarNotificationsController(
         @RequestBody(required = false) payload: String?,
         request: HttpServletRequest
     ): ResponseEntity<Void> {
-        // Extract headers for deduplication
-        val messageNumber = request.getHeader("X-Goog-Message-Number")
-        val resourceState = request.getHeader("X-Goog-Resource-State")
+        val channelId = request.getHeader("X-Goog-Channel-ID") ?: return ResponseEntity.ok().build()
+        val resourceState = request.getHeader("X-Goog-Resource-State") ?: return ResponseEntity.ok().build()
 
-        logger.info("Received push notification: messageNumber={}, resourceState={}, payload=\n{}", 
-            messageNumber, resourceState, payload)
+        if (resourceState != "exists") return ResponseEntity.ok().build()
 
-        // Check if this is a duplicate notification
-        if (messageNumber != null) {
-            if (processedMessageNumbers.contains(messageNumber)) {
-                logger.info("Skipping duplicate notification with message number: {}", messageNumber)
-                return ResponseEntity.ok().build()
+        val calendarId = channelRepository.findByChannelId(channelId)?.calendarId
+            ?: return ResponseEntity.ok().build()
+
+        val updatedEvents = fetchRecentlyUpdatedEvents(calendarId)
+
+        for (event in updatedEvents) {
+            val eventId = event.id
+
+            if (eventId != null && !deduplicator.isDuplicate(eventId)) {
+                logger.info("Triggering FCM push for event: ${event.summary}")
+                notificationSender.sendEmptyMessage("effectiveoffice-booking")
+            } else {
+                logger.info("Duplicate event ignored: $eventId")
             }
-
-            // Add to processed set for future deduplication
-            processedMessageNumbers.add(messageNumber)
-
-            // Limit the size of the set to prevent memory leaks
-            if (processedMessageNumbers.size > 1000) {
-                // Remove the oldest entries (assuming they're added in order)
-                val toRemove = processedMessageNumbers.size - 1000
-                processedMessageNumbers.toList().take(toRemove).forEach { 
-                    processedMessageNumbers.remove(it) 
-                }
-            }
-        } else {
-            logger.warn("Received notification without X-Goog-Message-Number header")
         }
-
-        // Process the notification
-        // Note: For duplicate notifications, we've already returned at line 51,
-        // so this code is only executed for non-duplicate notifications
-
-        // Only send message if resourceState is "exists"
-        if (resourceState == "exists") {
-            notificationSender.sendEmptyMessage("booking")
-        } else {
-            logger.info("Skipping notification with resourceState: {}", resourceState)
-        }
-
         return ResponseEntity.ok().build()
+    }
+
+    private fun fetchRecentlyUpdatedEvents(
+        calendarId: String
+    ): List<com.google.api.services.calendar.model.Event> {
+        val now = OffsetDateTime.now(ZoneOffset.UTC)
+        val updatedMin = now.minusMinutes(2)
+
+        return googleCalendarService.createCalendarService().events()
+            .list(calendarId)
+            .setShowDeleted(false)
+            .setSingleEvents(true)
+            .setMaxResults(10)
+            .setOrderBy("updated")
+            .setUpdatedMin(DateTime(updatedMin.toInstant().toEpochMilli()))
+            .execute()
+            .items
     }
 }

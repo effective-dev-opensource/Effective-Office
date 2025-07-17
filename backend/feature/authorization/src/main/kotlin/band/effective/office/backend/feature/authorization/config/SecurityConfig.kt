@@ -1,5 +1,6 @@
 package band.effective.office.backend.feature.authorization.config
 
+import band.effective.office.backend.feature.authorization.config.PublicEndpoints
 import band.effective.office.backend.feature.authorization.security.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -28,11 +29,7 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { authorize ->
                 authorize
-                    .requestMatchers("/auth/**").permitAll()
-                    .requestMatchers("/swagger-ui.html/**", "/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
-                    .requestMatchers("/api/swagger-ui.html/**", "/api/swagger-ui/**", "/api/api-docs/**", "/api/v3/api-docs/**").permitAll()
-                    .requestMatchers("/actuator/**").permitAll()
-                    .requestMatchers("/notifications/**").permitAll()
+                    .requestMatchers(*PublicEndpoints.PATTERNS.toTypedArray()).permitAll()
                     .anyRequest().authenticated()
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)

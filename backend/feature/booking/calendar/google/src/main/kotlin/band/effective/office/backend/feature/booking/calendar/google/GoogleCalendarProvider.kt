@@ -243,10 +243,11 @@ class GoogleCalendarProvider(
     }
 
     private fun convertToGoogleEvent(booking: Booking, workspaceCalendarId: String? = null): Event {
+        val ownerEmail = booking.owner?.email ?: defaultCalendar
         val event = Event()
             .setSummary("Meet${booking.owner?.let { " ${it.firstName} ${it.lastName}" }.orEmpty()}")
             .setDescription(
-                "${booking.owner?.email} - почта организатора"
+                "$ownerEmail - почта организатора"
             )
             .setStart(createEventDateTime(booking.beginBooking.toEpochMilli()))
             .setEnd(createEventDateTime(booking.endBooking.toEpochMilli()))
@@ -262,7 +263,7 @@ class GoogleCalendarProvider(
         }.toMutableList()
 
         // Add the owner as the organizer
-        booking.owner?.email?.let { event.organizer = Event.Organizer().setEmail(it) }
+        event.organizer = Event.Organizer().setEmail(ownerEmail)
 
         // Add workspace as an attendee if workspaceCalendarId is provided
         workspaceCalendarId?.let {

@@ -4,5 +4,5 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val firebaseTopicsModule = module {
-    single(named("FireBaseTopics")) { listOf("workspace", "user", "booking") }
+    single(named("FireBaseTopics")) { listOf("effectiveoffice-workspace", "effectiveoffice-user", "effectiveoffice-booking") }
 }

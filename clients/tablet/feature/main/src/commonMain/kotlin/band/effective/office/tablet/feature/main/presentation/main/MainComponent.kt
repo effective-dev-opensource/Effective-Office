@@ -66,7 +66,6 @@ class MainComponent(
 
     // Timers
     private val currentTimeTimer = BootstrapperTimer(timerUseCase, coroutineScope)
-    private val currentRoomTimer = BootstrapperTimer(timerUseCase, coroutineScope)
 
     // State management
     private val mutableState = MutableStateFlow(State.defaultState)
@@ -106,7 +105,7 @@ class MainComponent(
             updateUseCase.updateFlow().collect {
                 delay(1.seconds)
                 withContext(Dispatchers.Main) {
-                    loadRooms()
+                    loadRooms(state.value.indexSelectRoom)
                 }
             }
         }
@@ -233,7 +232,6 @@ class MainComponent(
      */
     private fun updateSelectedDate(intent: Intent.OnUpdateSelectDate) {
         currentTimeTimer.restart()
-        currentRoomTimer.restart()
 
         val selectedDate = state.value.selectedDate
         val newDate = calculateNewDate(selectedDate, intent.updateInDays)
@@ -260,8 +258,6 @@ class MainComponent(
      * Selects a room by index.
      */
     private fun selectRoom(index: Int) {
-        currentRoomTimer.restart()
-
         mutableState.update {
             it.copy(
                 indexSelectRoom = index,
@@ -298,9 +294,9 @@ class MainComponent(
     /**
      * Loads room information.
      */
-    private fun loadRooms() = coroutineScope.launch {
+    private fun loadRooms(roomIndex: Int? = null) = coroutineScope.launch {
         val result = roomInfoUseCase()
-        val roomsResult = processRoomInfoResult(result)
+        val roomsResult = processRoomInfoResult(result, roomIndex)
 
         updateStateWithRoomsResult(roomsResult)
     }
@@ -308,7 +304,10 @@ class MainComponent(
     /**
      * Processes the result of loading room information.
      */
-    private fun processRoomInfoResult(result: Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>>): RoomsResult {
+    private fun processRoomInfoResult(
+        result: Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>>,
+        roomIndex: Int? = null,
+    ): RoomsResult {
         return when (result) {
             is Either.Error<ErrorWithData<List<RoomInfo>>> -> RoomsResult(
                 isSuccess = false,
@@ -317,10 +316,7 @@ class MainComponent(
             )
 
             is Either.Success<List<RoomInfo>> -> {
-                val selectedRoomName = checkSettingsUseCase()
-                val roomIndex =
-                    result.data.indexOfFirst { it.name == selectedRoomName }
-                        .coerceAtLeast(0)
+                val roomIndex = roomIndex ?: result.data.indexOfFirst { it.name == checkSettingsUseCase() }
                 RoomsResult(
                     isSuccess = true,
                     roomList = result.data,
@@ -376,7 +372,7 @@ class MainComponent(
             roomInfoUseCase.updateCache()
         }
 
-        loadRooms()
+        loadRooms(roomIndex)
 
         currentState.roomList.getOrNull(roomIndex)?.let { roomInfo ->
             updateComponents(roomInfo, currentState.selectedDate)

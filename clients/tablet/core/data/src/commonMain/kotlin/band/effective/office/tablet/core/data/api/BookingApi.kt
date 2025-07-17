@@ -82,7 +82,6 @@ interface BookingApi {
      */
     fun subscribeOnBookingsList(
         workspaceId: String,
-        scope: CoroutineScope
     ): Flow<Either<ErrorResponse, List<BookingResponseDTO>>>
 
     /**

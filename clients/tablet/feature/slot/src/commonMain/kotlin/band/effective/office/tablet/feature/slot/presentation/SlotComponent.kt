@@ -58,16 +58,6 @@ class SlotComponent(
                 updateSlots(uiSlots)
             }
         }
-        /*coroutineScope.launch(Dispatchers.IO) {
-            roomInfoUseCase.subscribe().collect { roomsInfo ->
-                val roomInfo = roomsInfo.firstOrNull { it.name == roomName() } ?: return@collect
-                val uiSlots = getSlotsByRoomUseCase(
-                    roomInfo = roomInfo,
-
-                ).map(slotUiMapper::map)
-                updateSlots(uiSlots)
-            }
-        }*/
     }
 
     private suspend fun updateSlots(uiSlots: List<SlotUi>) = withContext(Dispatchers.Main.immediate) {

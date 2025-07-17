@@ -55,10 +55,20 @@ management:
 logging:
   level:
     root: ${LOG_LEVEL:INFO}
-    org.hibernate.SQL: INFO
-    org.hibernate.type.descriptor.sql: INFO
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     band.effective.office.backend: ${LOG_LEVEL:DEBUG}
+    org.postgresql: WARN
+    org.hibernate: WARN
+    org.springframework: WARN
+    org.springframework.boot.autoconfigure: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.hibernate.orm: WARN
+    com.zaxxer.hikari: INFO
+    org.apache.coyote.http11: WARN
+    com.google.api.client.http.HttpTransport: WARN
+    sun.net.www.protocol.http.HttpURLConnection: WARN
+    jdk.event.security: WARN
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
 
 application:
   url: ${APPLICATION_URL:http://localhost:8080}
@@ -75,7 +85,7 @@ calendar:
     default-app-email: ${DEFAULT_APP_EMAIL}
     google-credentials: ${GOOGLE_CREDENTIALS_FILE:classpath:google-credentials.json}
     application-url: ${APPLICATION_URL}
-    test-application-url: ${TEST_APPLICATION_URL}
+    test-application-url: ${TEST_APPLICATION_URL:}
     calendars: ${CALENDARS}
-    test-calendars: ${TEST_CALENDARS}
+    test-calendars: ${TEST_CALENDARS:}
     firebase-credentials: ${FIREBASE_CREDENTIALS:classpath:firebase-credentials.json}

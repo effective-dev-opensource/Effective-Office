@@ -102,8 +102,8 @@ class WorkspaceApiImpl(
         id: String,
         scope: CoroutineScope
     ): Flow<Either<ErrorResponse, WorkspaceDTO>> {
-        return collector.flow(scope)
-            .filter { it == "workspace" }
+        return collector.flow()
+            .filter { it == "effectiveoffice-workspace" }
             .map {
                 Either.Success(
                     WorkspaceDTO(

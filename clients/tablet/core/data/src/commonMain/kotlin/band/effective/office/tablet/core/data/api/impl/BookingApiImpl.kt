@@ -141,10 +141,9 @@ class BookingApiImpl(
 
     override fun subscribeOnBookingsList(
         workspaceId: String,
-        scope: CoroutineScope
     ): Flow<Either<ErrorResponse, List<BookingResponseDTO>>> {
-        return collector.flow(scope)
-            .filter { it == "booking" }
+        return collector.flow()
+            .filter { it == "effectiveoffice-booking" }
             .map { Either.Success(listOf()) }
     }
 

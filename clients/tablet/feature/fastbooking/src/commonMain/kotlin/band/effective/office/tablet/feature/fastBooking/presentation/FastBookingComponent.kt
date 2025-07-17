@@ -29,6 +29,7 @@ import kotlinx.serialization.Serializable
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.delay
 
 /**
  * Component responsible for fast booking of rooms.
@@ -153,6 +154,7 @@ class FastBookingComponent(
 
             when (val result = createFastBookingUseCase(room, eventInfo)) {
                 is Either.Success -> {
+                    delay(2000) // NOTE(radchenko): wait for the event to be created in an external service
                     handleSuccessfulEventCreation(room, eventInfo, result.data.id)
                 }
 
@@ -215,6 +217,7 @@ class FastBookingComponent(
 
             when (val result = deleteBookingUseCase(room, state.value.event)) {
                 is Either.Success -> {
+                    delay(3000) // NOTE(radchenko): wait for the event to be created in an external service
                     mutableState.update { it.copy(isLoad = false) }
                     onCloseRequest()
                 }

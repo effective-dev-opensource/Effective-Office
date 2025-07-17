@@ -88,8 +88,8 @@ class UserApiImpl(
     }
 
     override fun subscribeOnOrganizersList(scope: CoroutineScope): Flow<Either<ErrorResponse, List<UserDTO>>> {
-        return collector.flow(scope)
-            .filter { it == "organizer" }
+        return collector.flow()
+            .filter { it == "effectiveoffice-organizer" }
             .map { Either.Success(listOf()) }
     }
 }
