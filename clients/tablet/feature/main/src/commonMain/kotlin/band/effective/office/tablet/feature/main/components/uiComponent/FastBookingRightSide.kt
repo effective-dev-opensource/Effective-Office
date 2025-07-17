@@ -2,6 +2,7 @@ package band.effective.office.tablet.feature.main.components.uiComponent
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -84,16 +86,20 @@ fun FastBookingButtons(onBooking: (Int) -> Unit) {
 @Composable
 fun RoomList(list: List<RoomInfo>, indexSelectRoom: Int, onClick: (Int) -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        list.forEachIndexed() { index, roomInfo ->
+        list.forEachIndexed { index, roomInfo ->
+            val interactionSource = remember { MutableInteractionSource() }
             RoomButton(
                 modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(CircleShape)
                     .background(
                         color = if (index == indexSelectRoom) MaterialTheme.colorScheme.surface else Color.Transparent,
                         shape = CircleShape
                     )
-                    .clickable { onClick(index) }
-                    .fillMaxWidth()
-                    .clip(CircleShape)
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = androidx.compose.material3.ripple(bounded = false)
+                    ) { onClick(index) }
                     .padding(10.dp),
                 room = roomInfo,
             )
