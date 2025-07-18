@@ -23,5 +23,6 @@ data class Booking(
     val beginBooking: Instant,
     val endBooking: Instant,
     val recurrence: RecurrenceModel? = null,
-    val recurringBookingId: String? = null // ID of the recurring booking this booking belongs to
+    val recurringBookingId: String? = null, // ID of the recurring booking this booking belongs to
+    val isEditable: Boolean = true, // Flag indicating if booking can be edited/deleted from tablet client
 )

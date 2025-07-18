@@ -14,6 +14,7 @@ import kotlinx.serialization.Serializable
  * @property endBooking End time of the booking (Unix timestamp)
  * @property recurrence Recurrence pattern for recurring bookings
  * @property recurringBookingId ID of the recurring booking series this booking belongs to
+ * @property isEditable Flag indicating if the booking can be edited or deleted from tablet client
  */
 @Serializable
 data class BookingResponseDTO(
@@ -24,5 +25,6 @@ data class BookingResponseDTO(
     val beginBooking: Long,
     val endBooking: Long,
     val recurrence: RecurrenceDTO? = null,
-    val recurringBookingId: String? = null
+    val recurringBookingId: String? = null,
+    val isEditable: Boolean = true
 )

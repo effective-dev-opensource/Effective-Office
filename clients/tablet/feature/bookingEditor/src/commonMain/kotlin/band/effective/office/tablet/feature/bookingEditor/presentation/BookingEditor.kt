@@ -119,7 +119,8 @@ fun BookingEditor(
                         start = state.event.startTime.format(timeFormatter),
                         finish = state.event.finishTime.format(timeFormatter),
                         room = component.roomName,
-                        isTimeInPastError = state.isTimeInPastError
+                        isTimeInPastError = state.isTimeInPastError,
+                        isEditable = state.event.isEditable
                     )
                 }
             }
@@ -161,7 +162,8 @@ private fun BookingEditor(
     start: String,
     finish: String,
     room: String,
-    isTimeInPastError: Boolean
+    isTimeInPastError: Boolean,
+    isEditable: Boolean = true
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val timeInPastErrorMessage = stringResource(Res.string.is_time_in_past_error)
@@ -247,7 +249,7 @@ private fun BookingEditor(
                 SuccessButton(
                     modifier = Modifier.fillMaxWidth().height(60.dp),
                     onClick = onUpdateEvent,
-                    enable = enableUpdateButton && !isUpdateLoad
+                    enable = enableUpdateButton && !isUpdateLoad && isEditable
                 ) {
                     when {
                         isUpdateLoad -> Loader()
@@ -264,7 +266,8 @@ private fun BookingEditor(
                 Spacer(modifier = Modifier.height(10.dp))
                 AlertButton(
                     modifier = Modifier.fillMaxWidth().height(60.dp),
-                    onClick = onDeleteEvent
+                    onClick = onDeleteEvent,
+                    enabled = isEditable
                 ) {
                     when {
                         isDeleteLoad -> Loader()

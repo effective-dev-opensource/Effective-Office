@@ -41,7 +41,10 @@ data class BookingDto(
     val recurrence: RecurrenceDto? = null,
 
     @Schema(description = "ID of the recurring booking this booking belongs to")
-    val recurringBookingId: String? = null
+    val recurringBookingId: String? = null,
+
+    @Schema(description = "Flag indicating if booking can be edited/deleted from tablet client", example = "true")
+    val isEditable: Boolean = true
 ) {
     companion object {
         /**
@@ -56,7 +59,8 @@ data class BookingDto(
                 beginBooking = booking.beginBooking.toEpochMilli(),
                 endBooking = booking.endBooking.toEpochMilli(),
                 recurrence = booking.recurrence?.let { RecurrenceDto.fromDomain(it) },
-                recurringBookingId = booking.recurringBookingId
+                recurringBookingId = booking.recurringBookingId,
+                isEditable = booking.isEditable
             )
         }
     }
