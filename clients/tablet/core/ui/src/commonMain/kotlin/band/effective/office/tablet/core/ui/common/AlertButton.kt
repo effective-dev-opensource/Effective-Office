@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 fun AlertButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
+    enabled: Boolean = true,
     content: @Composable RowScope.() -> Unit
 ) {
     Button(
@@ -26,7 +27,8 @@ fun AlertButton(
                 color = MaterialTheme.colorScheme.onPrimary
             ),
         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-        onClick = { onClick() }
+        onClick = { onClick() },
+        enabled = enabled
     ) {
         content()
     }

@@ -14,6 +14,7 @@ data class EventInfo(
     val organizer: Organizer,
     val id: String,
     val isLoading: Boolean,
+    val isEditable: Boolean = true,
 ) {
     init {
         // Validate that start time is before finish time

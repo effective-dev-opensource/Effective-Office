@@ -19,6 +19,7 @@ class EventInfoMapper {
             finishTime = Instant.fromEpochMilliseconds(dto.endBooking).asLocalDateTime,
             organizer = dto.owner?.toOrganizer() ?: Organizer.default,
             isLoading = false,
+            isEditable = dto.isEditable,
         )
 
     fun mapToRequest(eventInfo: EventInfo, roomInfo: RoomInfo): BookingRequestDTO = BookingRequestDTO(

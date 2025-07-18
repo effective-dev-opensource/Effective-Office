@@ -16,4 +16,12 @@ interface ChannelRepository : JpaRepository<ChannelEntity, String> {
      * @return the channel entity if found, null otherwise
      */
     fun findByCalendarId(calendarId: String): ChannelEntity?
+
+    /**
+     * Find a channel by channel ID.
+     *
+     * @param channelId the channel ID to search for
+     * @return the channel entity if found, null otherwise
+     */
+    fun findByChannelId(channelId: String): ChannelEntity?
 }

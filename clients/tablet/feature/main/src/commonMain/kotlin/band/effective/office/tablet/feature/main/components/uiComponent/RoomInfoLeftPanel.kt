@@ -22,6 +22,7 @@ import band.effective.office.tablet.core.ui.date.DateTimeView
 import band.effective.office.tablet.feature.main.components.RoomInfoComponent
 import band.effective.office.tablet.feature.slot.presentation.SlotComponent
 import band.effective.office.tablet.feature.slot.presentation.SlotIntent
+import band.effective.office.tablet.feature.slot.presentation.SlotUi
 import band.effective.office.tablet.feature.slot.presentation.components.SlotView
 import kotlin.time.ExperimentalTime
 import kotlinx.datetime.LocalDateTime
@@ -88,7 +89,8 @@ fun RoomInfoLeftPanel(
                 ) {
                     SlotView(
                         slotUi = it,
-                        onClick = { slotComponent.sendIntent(SlotIntent.ClickOnSlot(it)) },
+                        onClick = { slotComponent.sendIntent(SlotIntent.ClickToEdit(this)) },
+                        onToggle = { (it as? SlotUi.MultiSlot)?.let { slotComponent.sendIntent(SlotIntent.ClickToToggle(it)) } },
                         onCancel = { deleteSlot -> slotComponent.sendIntent(SlotIntent.OnCancelDelete(deleteSlot)) }
                     )
                 }

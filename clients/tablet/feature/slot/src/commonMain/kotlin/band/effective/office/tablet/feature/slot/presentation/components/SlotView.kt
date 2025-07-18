@@ -29,21 +29,30 @@ import org.jetbrains.compose.resources.stringResource
 fun SlotView(
     slotUi: SlotUi,
     onClick: SlotUi.() -> Unit,
+    onToggle: SlotUi.() -> Unit,
     onCancel: (SlotUi.DeleteSlot) -> Unit
 ) {
     val borderShape = CircleShape
-    val itemModifier = Modifier
+    val baseModifier = Modifier
         .fillMaxWidth()
         .clip(borderShape)
         .background(MaterialTheme.colorScheme.surface)
-        .clickable { slotUi.onClick() }
+
+    val itemModifier = baseModifier
         .run {
-            if (slotUi !is SlotUi.DeleteSlot) border(
+            when (slotUi) {
+                is SlotUi.MultiSlot -> this
+                else -> clickable { slotUi.onClick() }
+            }
+        }
+        .then(
+            if (slotUi !is SlotUi.DeleteSlot) Modifier.border(
                 width = 5.dp,
                 color = slotUi.borderColor(),
                 shape = borderShape
-            ).padding(vertical = 15.dp, horizontal = 30.dp) else this
-        }
+            ).padding(vertical = 15.dp, horizontal = 30.dp)
+            else Modifier
+        )
 
     when (slotUi) {
         is SlotUi.DeleteSlot -> DeletedSlotView(
@@ -56,7 +65,8 @@ fun SlotView(
         is SlotUi.MultiSlot -> MultiSlotView(
             modifier = itemModifier,
             slotUi = slotUi,
-            onItemClick = { item -> item.onClick() },
+            onItemClick = onClick,
+            onToggle = onToggle,
             onCancel = onCancel
         )
 

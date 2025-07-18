@@ -90,11 +90,7 @@ class GoogleCalendarProvider(
             calendar.events().delete(defaultCalendar, eventId).execute()
         } catch (e: GoogleJsonResponseException) {
             logger.error("Failed to delete event: {}", e.details)
-            if (e.statusCode != 404 && e.statusCode != 410) {
-                throw e
-            }
-            // If the event doesn't exist (404) or has been deleted (410), ignore the exception
-            logger.warn("Event with ID {} not found or already deleted", eventId)
+            throw e
         }
     }
 
@@ -243,10 +239,11 @@ class GoogleCalendarProvider(
     }
 
     private fun convertToGoogleEvent(booking: Booking, workspaceCalendarId: String? = null): Event {
+        val ownerEmail = booking.owner?.email ?: defaultCalendar
         val event = Event()
             .setSummary("Meet${booking.owner?.let { " ${it.firstName} ${it.lastName}" }.orEmpty()}")
             .setDescription(
-                "${booking.owner?.email} - почта организатора"
+                "$ownerEmail - почта организатора"
             )
             .setStart(createEventDateTime(booking.beginBooking.toEpochMilli()))
             .setEnd(createEventDateTime(booking.endBooking.toEpochMilli()))
@@ -262,7 +259,7 @@ class GoogleCalendarProvider(
         }.toMutableList()
 
         // Add the owner as the organizer
-        booking.owner?.email?.let { event.organizer = Event.Organizer().setEmail(it) }
+        event.organizer = Event.Organizer().setEmail(ownerEmail)
 
         // Add workspace as an attendee if workspaceCalendarId is provided
         workspaceCalendarId?.let {
@@ -343,6 +340,11 @@ class GoogleCalendarProvider(
             matchResult?.groupValues?.get(1)
         }
 
+        // Determine if the booking is editable based on the organizer
+        // If the organizer is the defaultCalendar, then the booking is editable
+        // Otherwise, it's not editable (created from Google Calendar)
+        val isEditable = organizer == defaultCalendar
+
         return Booking(
             id = event.id,
             owner = owner,
@@ -351,7 +353,8 @@ class GoogleCalendarProvider(
             beginBooking = Instant.ofEpochMilli(event.start.dateTime.value),
             endBooking = Instant.ofEpochMilli(event.end.dateTime.value),
             recurrence = RecurrenceRuleConverter.fromGoogleRecurrenceRule(event.recurrence),
-            recurringBookingId = recurringBookingIdStr
+            recurringBookingId = recurringBookingIdStr,
+            isEditable = isEditable
         )
     }
 

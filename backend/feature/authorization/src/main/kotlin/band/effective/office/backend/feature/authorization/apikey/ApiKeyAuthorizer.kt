@@ -42,12 +42,10 @@ class ApiKeyAuthorizer(
         }
 
         val token = authHeader.substring(BEARER_PREFIX.length)
-        logger.debug("Authorization header found: $token")
 
         try {
             // Hash the token and check if it exists in the database
             val hashedToken = encryptKey(HASH_ALGORITHM, token)
-            logger.debug("Hashed token: $hashedToken")
             val apiKey = apiKeyRepository.findByKeyValue(hashedToken.lowercase())
 
             if (apiKey == null) {

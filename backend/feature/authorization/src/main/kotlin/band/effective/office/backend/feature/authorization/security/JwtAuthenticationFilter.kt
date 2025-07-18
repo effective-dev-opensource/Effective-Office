@@ -1,6 +1,7 @@
 package band.effective.office.backend.feature.authorization.security
 
 import band.effective.office.backend.core.data.ErrorDto
+import band.effective.office.backend.feature.authorization.config.PublicEndpoints
 import band.effective.office.backend.feature.authorization.exception.AuthorizationException
 import band.effective.office.backend.feature.authorization.exception.AuthorizationErrorCodes
 import band.effective.office.backend.feature.authorization.service.AuthorizationService
@@ -29,17 +30,13 @@ class JwtAuthenticationFilter(
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     /**
-     * Checks if the request is for Swagger UI or API docs.
-     *
-     * @param requestURI The request URI to check
-     * @return True if the request is for Swagger UI or API docs, false otherwise
+     * Determines whether the filter should not be applied to this request.
+     * This method is called by the OncePerRequestFilter before doFilterInternal.
+     * 
+     * @param request The HTTP request
+     * @return True if the filter should not be applied, false otherwise
      */
-    private fun isSwaggerUIRequest(requestURI: String): Boolean { // TODO fix this hacky code
-        return requestURI.contains("/swagger-ui") ||
-               requestURI.contains("/api-docs") ||
-               requestURI.contains("/v3/api-docs") ||
-                requestURI.contains("/notifications")
-    }
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean = PublicEndpoints.matches(request.requestURI)
 
     /**
      * Filters incoming requests and attempts to authenticate them.
@@ -53,13 +50,6 @@ class JwtAuthenticationFilter(
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        // Check if the request is for Swagger UI or API docs
-        val requestURI = request.requestURI
-        if (isSwaggerUIRequest(requestURI)) {
-            logger.debug("Skipping authorization for Swagger UI request: {}", requestURI)
-            filterChain.doFilter(request, response)
-            return
-        }
 
         try {
             // Attempt to authorize the request

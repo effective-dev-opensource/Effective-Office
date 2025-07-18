@@ -29,10 +29,8 @@ class RoomRepositoryImpl(
     private val roomInfoMapper: RoomInfoMapper,
 ) : RoomRepository {
 
-    private val scope = CoroutineScope(Dispatchers.IO)
-
     override fun subscribeOnUpdates(): Flow<Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>>> {
-        return api.subscribeOnBookingsList("", scope)
+        return api.subscribeOnBookingsList("")
             .map { response ->
                 when (response) {
                     is Either.Error -> Either.Error(ErrorWithData(response.error, null))

@@ -1,6 +1,7 @@
 package band.effective.office.tablet
 
 import android.app.Application
+import android.util.Log
 import band.effective.office.tablet.core.domain.model.SettingsManager
 import band.effective.office.tablet.di.KoinInitializer
 import com.google.firebase.messaging.FirebaseMessaging

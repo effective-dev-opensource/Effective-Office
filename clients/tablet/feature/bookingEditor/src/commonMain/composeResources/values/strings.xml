@@ -6,4 +6,7 @@
     <string name="update_button">Изменить</string>
     <string name="delete_button">Удалить бронь</string>
     <string name="error">Произошла ошибка</string>
+    <string name="is_time_in_past_error">Ошибка, выбрана неправильная дата</string>
+    <string name="error_creating_event">Error creating event</string>
+    <string name="error_deleting_event">Error deleting event"</string>
 </resources>

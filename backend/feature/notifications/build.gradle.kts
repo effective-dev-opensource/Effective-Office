@@ -14,6 +14,9 @@ dependencies {
     implementation(libs.jackson.module.kotlin)
     implementation(libs.jackson.datatype.jsr310)
 
+    implementation("com.google.apis:google-api-services-calendar:v3-rev411-1.25.0")
+
     // Project dependencies
     implementation(project(":backend:feature:booking:core"))
+    implementation(project(":backend:feature:calendar-subscription"))
 }

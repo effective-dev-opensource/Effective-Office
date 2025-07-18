@@ -18,17 +18,8 @@ class Collector<T>(defaultValue: T) {
 
     private val collection = MutableStateFlow(CollectableElement(defaultValue, 0))
 
-    /**
-     * Creates a flow that emits the collected values.
-     * @param scope CoroutineScope for sharing the flow
-     * @return Flow of collected values
-     */
-    fun flow(scope: CoroutineScope) =
-        collection.map { it.value }.shareIn(
-            scope = scope,
-            started = SharingStarted.Lazily,
-            replay = 1
-        )
+    fun flow() =
+        collection.map { it.value }
 
     /**
      * Emits a new value to the collection.

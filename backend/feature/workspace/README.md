@@ -45,7 +45,7 @@ The module exposes the following REST endpoints:
 Represents a physical workspace in the office:
 - ID
 - Name
-- Utilities (equipment and amenities)
+- Utilities (equipment and amenities, with count from `workspace_utilities`)
 - Zone (location within the office)
 - Tag (type of workspace, e.g., "meeting", "desk")
 
@@ -60,6 +60,12 @@ Represents equipment or amenities available in a workspace:
 - Name
 - Icon URL
 - Count
+
+### WorkspaceUtility
+Links workspaces to utilities with quantity:
+- Workspace ID
+- Utility ID
+- Count (number of utility items)
 
 ## Integration
 The Workspace module integrates with:

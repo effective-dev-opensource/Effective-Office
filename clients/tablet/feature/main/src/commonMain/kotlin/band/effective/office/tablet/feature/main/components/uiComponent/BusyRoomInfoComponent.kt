@@ -74,23 +74,25 @@ fun BusyRoomInfoComponent(
                 color = roomInfoColor
             )
             Spacer(modifier = Modifier.height(10.dp))
-            Button(
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(40.dp))
-                    .height(45.dp)
-                    .background(color = backgroundColor)
-                    .border(
-                        width = 3.dp,
-                        color = roomInfoColor,
-                        shape = RoundedCornerShape(40.dp),
+            if (event.isEditable) {
+                Button(
+                    modifier = Modifier
+                        .clip(shape = RoundedCornerShape(40.dp))
+                        .height(45.dp)
+                        .background(color = backgroundColor)
+                        .border(
+                            width = 3.dp,
+                            color = roomInfoColor,
+                            shape = RoundedCornerShape(40.dp),
+                        ),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorButton
                     ),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorButton
-                ),
-                interactionSource = interactionSource,
-                onClick = onButtonClick
-            ) {
-                Text(text = stringResource(Res.string.stop_meeting_button), color = colorTextButton)
+                    interactionSource = interactionSource,
+                    onClick = onButtonClick
+                ) {
+                    Text(text = stringResource(Res.string.stop_meeting_button), color = colorTextButton)
+                }
             }
         }
     }
