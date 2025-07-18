@@ -1,10 +1,12 @@
 package band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.components
 
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerLayoutType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import com.mohamedrejeb.calf.ui.timepicker.AdaptiveTimePicker
 import com.mohamedrejeb.calf.ui.timepicker.rememberAdaptiveTimePickerState
 import kotlinx.datetime.LocalDateTime
@@ -32,5 +34,8 @@ fun TimePickerView(
         state = state,
         modifier = modifier,
         layoutType = TimePickerLayoutType.Vertical,
+        colors = TimePickerDefaults.colors(
+            containerColor = LocalCustomColorsPalette.current.elevationBackground,
+        )
     )
 }
