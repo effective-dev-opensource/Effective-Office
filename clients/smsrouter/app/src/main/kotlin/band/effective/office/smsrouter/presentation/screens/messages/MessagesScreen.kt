@@ -14,11 +14,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,12 +24,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import band.effective.office.smsrouter.domain.repository.SmsLogsRepository
 import band.effective.office.smsrouter.presentation.SmsLog
-import band.effective.office.smsrouter.presentation.SmsReceiver
 import band.effective.office.smsrouter.presentation.ui.theme.SmsRouterTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import org.koin.compose.koinInject
 
 @Composable
 fun MessagesScreen() {
@@ -42,14 +40,8 @@ fun MessagesScreen() {
 @Composable
 private fun MessagesScreenContent() {
     // Use mutableStateOf to hold the SMS logs
-    var smsLogs by remember { mutableStateOf<List<SmsLog>>(emptyList()) }
-
-    // Use LaunchedEffect to collect the flow
-    LaunchedEffect(key1 = true) {
-        SmsReceiver.Companion.smsLogs.collect { logs ->
-            smsLogs = logs
-        }
-    }
+    val smsLogsRepository: SmsLogsRepository = koinInject()
+    val smsLogs by smsLogsRepository.state.collectAsState()
 
     Column(
         modifier = Modifier

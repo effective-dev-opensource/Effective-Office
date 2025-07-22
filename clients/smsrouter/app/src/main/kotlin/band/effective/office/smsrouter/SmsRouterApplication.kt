@@ -4,8 +4,10 @@ import android.app.Application
 import band.effective.office.smsrouter.data.di.dataModule
 import band.effective.office.smsrouter.domain.di.domainModule
 import band.effective.office.smsrouter.presentation.di.appModule
+import band.effective.office.smsrouter.presentation.di.presentationModule
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
 class SmsRouterApplication : Application() {
@@ -18,10 +20,12 @@ class SmsRouterApplication : Application() {
         }
 
         startKoin {
+            androidContext(this@SmsRouterApplication)
             modules(
                 appModule,
                 dataModule,
                 domainModule,
+                presentationModule,
             )
         }
     }

@@ -21,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import band.effective.office.smsrouter.presentation.navigation.Routes
 import band.effective.office.smsrouter.presentation.navigation.topLevelRoutes
 import band.effective.office.smsrouter.presentation.screens.messages.MessagesScreen
+import band.effective.office.smsrouter.presentation.screens.settings.SettingsScreen
 
 @Composable
 fun Root() {
@@ -60,7 +61,7 @@ fun Root() {
     ) { innerPadding ->
         NavHost(navController, Routes.Messages, Modifier.padding(innerPadding)) {
             composable<Routes.Messages> { MessagesScreen() }
-            composable<Routes.Settings> { }
+            composable<Routes.Settings> { SettingsScreen() }
         }
     }
 }

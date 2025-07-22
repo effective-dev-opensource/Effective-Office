@@ -5,5 +5,5 @@ import band.effective.office.smsrouter.domain.usecase.ForwardSmsUseCaseImpl
 import org.koin.dsl.module
 
 val domainModule = module {
-    single<ForwardSmsUseCase> { ForwardSmsUseCaseImpl(get()) }
+    single<ForwardSmsUseCase> { ForwardSmsUseCaseImpl(get(), get()) }
 }
