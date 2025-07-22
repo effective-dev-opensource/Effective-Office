@@ -40,6 +40,8 @@ include(
     "backend:feature:calendar-subscription",
     "backend:feature:notifications",
 
+    "clients:base:data",
+
     "clients:tablet:composeApp",
     "clients:tablet:core:ui",
     "clients:tablet:core:domain",
@@ -49,4 +51,6 @@ include(
     "clients:tablet:feature:bookingEditor",
     "clients:tablet:feature:fastBooking",
     "clients:tablet:feature:slot",
+
+    "clients:smsrouter:app",
 )
