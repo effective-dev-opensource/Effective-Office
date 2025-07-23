@@ -48,27 +48,48 @@ class SmsReceiver : BroadcastReceiver(), KoinComponent {
         }
 
         for (sms in smsList) {
-            smsLogsRepository.put(
-                SmsLog(
-                    sms.sender,
-                    sms.messageBody,
-                    sms.operatorName,
-                    System.currentTimeMillis()
-                )
-            )
             sendSmsToBackend(sms)
         }
     }
 
     private fun sendSmsToBackend(sms: SmsData) {
+        // Create a unique ID for this SMS to track it
+        val smsId = "${sms.sender}-${System.currentTimeMillis()}"
+
+        // Create initial log with IN_PROGRESS status
+        val initialLog = SmsLog(
+            id = smsId,
+            sender = sms.sender,
+            message = sms.messageBody,
+            simType = sms.operatorName,
+            timestamp = System.currentTimeMillis(),
+            status = SmsStatus.IN_PROGRESS
+        )
+
+        // Add the log to the repository
+        smsLogsRepository.put(initialLog)
+
         CoroutineScope(Dispatchers.IO).launch {
             Log.d(TAG, "Sending SMS data to backend...")
             forwardSmsUseCase(sms).unbox(
                 errorHandler = { error ->
                     Log.e(TAG, "Failed to send SMS data to backend: ${error.code} - ${error.description}")
+
+                    // Update log with ERROR status and error details
+                    val updatedLog = initialLog.copy(
+                        status = SmsStatus.ERROR,
+                        errorDetails = "Error ${error.code}: ${error.description}"
+                    )
+                    smsLogsRepository.put(updatedLog)
                 },
                 successHandler = {
                     Log.d(TAG, "SMS data sent to backend successfully")
+
+                    // Update log with DELIVERED status
+                    val updatedLog = initialLog.copy(
+                        status = SmsStatus.DELIVERED
+                    )
+                    smsLogsRepository.put(updatedLog)
                 },
             )
         }
@@ -76,8 +97,17 @@ class SmsReceiver : BroadcastReceiver(), KoinComponent {
 }
 
 data class SmsLog(
+    val id: String,
     val sender: String,
     val message: String,
     val simType: String,
-    val timestamp: Long
+    val timestamp: Long,
+    val status: SmsStatus = SmsStatus.IN_PROGRESS,
+    val errorDetails: String? = null
 )
+
+enum class SmsStatus {
+    DELIVERED,
+    ERROR,
+    IN_PROGRESS
+}

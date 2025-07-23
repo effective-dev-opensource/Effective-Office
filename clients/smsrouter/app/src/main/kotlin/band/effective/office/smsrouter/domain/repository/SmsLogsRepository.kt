@@ -7,4 +7,6 @@ interface SmsLogsRepository {
     val state: StateFlow<List<SmsLog>>
 
     fun put(log: SmsLog)
+
+    suspend fun clearAllLogs()
 }

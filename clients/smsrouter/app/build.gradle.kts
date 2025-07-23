@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlinx.serialization)
+    id("kotlin-kapt")
 }
 
 android {
@@ -57,6 +58,11 @@ dependencies {
     implementation(libs.bundles.ktor.client)
 
     implementation(libs.napier)
+
+    // Room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    kapt(libs.androidx.room.compiler)
 
     implementation(project(":clients:base:data"))
     implementation("org.slf4j:slf4j-android:1.7.36")

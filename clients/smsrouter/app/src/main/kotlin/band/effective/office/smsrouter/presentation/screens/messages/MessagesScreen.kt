@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,8 +26,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import band.effective.office.smsrouter.domain.repository.SmsLogsRepository
 import band.effective.office.smsrouter.presentation.SmsLog
+import band.effective.office.smsrouter.presentation.SmsStatus
 import band.effective.office.smsrouter.presentation.ui.theme.SmsRouterTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -35,13 +36,13 @@ import org.koin.compose.koinInject
 
 @Composable
 fun MessagesScreen() {
-    MessagesScreenContent()
+    val viewModel: MessageScreenViewModel = koinInject()
+    MessagesScreenContent(viewModel)
 }
 
 @Composable
-private fun MessagesScreenContent() {
-    val smsLogsRepository: SmsLogsRepository = koinInject()
-    val smsLogs by smsLogsRepository.state.collectAsState()
+private fun MessagesScreenContent(viewModel: MessageScreenViewModel = koinInject()) {
+    val smsLogs by viewModel.smsLogs.collectAsState()
 
     Column(
         modifier = Modifier
@@ -60,12 +61,25 @@ private fun MessagesScreenContent() {
                 )
             }
         } else {
-            Text(
-                text = "SMS Messages (${smsLogs.size})",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "SMS Messages (${smsLogs.size})",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Button(
+                    onClick = { viewModel.clearAllLogs() }
+                ) {
+                    Text("Clear All")
+                }
+            }
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
@@ -84,6 +98,13 @@ fun SmsLogItem(log: SmsLog) {
     val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()) }
     val formattedDate = dateFormat.format(Date(log.timestamp))
 
+    // Define status colors
+    val statusColor = when (log.status) {
+        SmsStatus.DELIVERED -> Color.Green
+        SmsStatus.ERROR -> Color.Red
+        SmsStatus.IN_PROGRESS -> Color.Blue
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -99,16 +120,34 @@ fun SmsLogItem(log: SmsLog) {
                 fontSize = 16.sp
             )
 
-            Box(
-                modifier = Modifier
-                    .background(Color.Black, shape = MaterialTheme.shapes.small)
-                    .padding(horizontal = 8.dp, vertical = 2.dp)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = log.simType,
-                    color = Color.White,
-                    fontSize = 12.sp
-                )
+                // Status indicator
+                Box(
+                    modifier = Modifier
+                        .background(statusColor, shape = MaterialTheme.shapes.small)
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = log.status.name,
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                }
+
+                // SIM type indicator
+                Box(
+                    modifier = Modifier
+                        .background(Color.Black, shape = MaterialTheme.shapes.small)
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = log.simType,
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                }
             }
         }
 
@@ -116,6 +155,16 @@ fun SmsLogItem(log: SmsLog) {
             text = log.message,
             modifier = Modifier.padding(vertical = 4.dp)
         )
+
+        // Show error details if status is ERROR
+        if (log.status == SmsStatus.ERROR && log.errorDetails != null) {
+            Text(
+                text = log.errorDetails,
+                fontSize = 12.sp,
+                color = Color.Red,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+        }
 
         Text(
             text = formattedDate,

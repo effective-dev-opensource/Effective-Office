@@ -2,6 +2,7 @@ package band.effective.office.smsrouter.presentation.di
 
 import android.content.Context
 import android.telephony.SubscriptionManager
+import band.effective.office.smsrouter.presentation.screens.messages.MessageScreenViewModel
 import band.effective.office.smsrouter.presentation.screens.settings.SettingsViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModelOf
@@ -15,6 +16,5 @@ val presentationModule = module {
 
     // Provide ViewModels
     viewModelOf(::SettingsViewModel)
+    viewModelOf(::MessageScreenViewModel)
 }
-
-

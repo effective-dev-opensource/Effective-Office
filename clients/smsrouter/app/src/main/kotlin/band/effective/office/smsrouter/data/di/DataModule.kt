@@ -3,6 +3,7 @@ package band.effective.office.smsrouter.data.di
 import band.effective.office.base.data.network.HttpClientProvider
 import band.effective.office.smsrouter.data.SmsApiService
 import band.effective.office.smsrouter.data.SmsApiServiceImpl
+import band.effective.office.smsrouter.data.database.AppDatabase
 import band.effective.office.smsrouter.data.mapper.SmsDataDtoMapper
 import band.effective.office.smsrouter.data.provider.SimCardProviderImpl
 import band.effective.office.smsrouter.data.repository.SettingsRepositoryImpl
@@ -21,7 +22,14 @@ val dataModule = module {
     single<SmsApiService> { SmsApiServiceImpl(client = get()) }
     single<SmsForwardingRepository> { SmsForwardingRepositoryImpl(smsApiService = get(), smsDataDtoMapper = get()) }
     single<SettingsRepository> { SettingsRepositoryImpl(androidContext()) }
-    single<SmsLogsRepository> { SmsLogsRepositoryImpl() }
+
+    // Database
+    single { AppDatabase.getInstance(androidContext()) }
+    single { get<AppDatabase>().smsLogDao() }
+
+    // Repository with database support
+    single<SmsLogsRepository> { SmsLogsRepositoryImpl(smsLogDao = get()) }
+
     single<SimCardProvider> {
         SimCardProviderImpl(
             context = androidContext(),
