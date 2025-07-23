@@ -1,6 +1,7 @@
 package band.effective.office.smsrouter.domain.usecase
 
 import android.util.Log
+import band.effective.office.smsrouter.data.SmsApiServiceImpl
 import band.effective.office.smsrouter.domain.Either
 import band.effective.office.smsrouter.domain.ErrorResponse
 import band.effective.office.smsrouter.domain.model.SmsData
@@ -26,13 +27,17 @@ internal class ForwardSmsUseCaseImpl(
         val smsId = "${sms.sender}-${System.currentTimeMillis()}"
 
         // Create initial log with IN_PROGRESS status
+        // Get the current retry count (should be 0 for new messages)
+        val retryCount = SmsApiServiceImpl.getRetryCount(smsId)
+
         val initialLog = SmsLog(
             id = smsId,
             sender = sms.sender,
             message = sms.messageBody,
             simType = sms.operatorName,
             timestamp = System.currentTimeMillis(),
-            status = SmsStatus.IN_PROGRESS
+            status = SmsStatus.IN_PROGRESS,
+            retryCount = retryCount
         )
 
         // Add the log to the repository
@@ -44,29 +49,57 @@ internal class ForwardSmsUseCaseImpl(
         val webhookUrl = settingsRepository.getWebhookUrl(simId).orEmpty()
         val secretKey = settingsRepository.getSecretKey(simId).orEmpty()
 
+        // Create a callback to update the log with retry information in real-time
+        val retryCallback: (String, Int) -> Unit = { id, retryCount ->
+            // Get the current state of logs
+            val currentLogs = smsLogsRepository.state.value
+            // Find the log with the matching ID
+            val currentLog = currentLogs.find { it.id == id }
+
+            // If the log exists, update it with the new retry count
+            // Otherwise, fall back to the initial log
+            val updatedLog = currentLog?.copy(
+                retryCount = retryCount
+            ) ?: initialLog.copy(
+                retryCount = retryCount
+            )
+
+            smsLogsRepository.put(updatedLog)
+        }
+
         val result = smsForwardingRepository.forwardSms(
             url = webhookUrl,
             secretKey = secretKey,
             smsData = sms,
+            smsId = smsId,
+            onRetry = retryCallback
         )
 
         result.unbox(
             errorHandler = { error ->
                 Log.e(TAG, "Failed to send SMS data to backend: ${error.code} - ${error.description}")
 
-                // Update log with ERROR status and error details
+                // Get the current retry count
+                val retryCount = SmsApiServiceImpl.getRetryCount(smsId)
+
+                // Update log with ERROR status, error details, and retry count
                 val updatedLog = initialLog.copy(
                     status = SmsStatus.ERROR,
-                    errorDetails = "Error ${error.code}: ${error.description}"
+                    errorDetails = "Error ${error.code}: ${error.description}",
+                    retryCount = retryCount
                 )
                 smsLogsRepository.put(updatedLog)
             },
             successHandler = {
                 Log.d(TAG, "SMS data sent to backend successfully")
 
-                // Update log with DELIVERED status
+                // On success, retry count should be 0, but we'll get it anyway for consistency
+                val retryCount = SmsApiServiceImpl.getRetryCount(smsId)
+
+                // Update log with DELIVERED status and retry count
                 val updatedLog = initialLog.copy(
-                    status = SmsStatus.DELIVERED
+                    status = SmsStatus.DELIVERED,
+                    retryCount = retryCount
                 )
                 smsLogsRepository.put(updatedLog)
             }

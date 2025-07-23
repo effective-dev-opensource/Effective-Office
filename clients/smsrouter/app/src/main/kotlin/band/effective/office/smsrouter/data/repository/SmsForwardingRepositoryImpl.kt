@@ -15,11 +15,15 @@ internal class SmsForwardingRepositoryImpl(
         url: String,
         secretKey: String,
         smsData: SmsData,
+        smsId: String,
+        onRetry: ((smsId: String, retryCount: Int) -> Unit)?,
     ): Either<ErrorResponse, Unit> {
         return smsApiService.sendSms(
             url = url,
             secretKey = secretKey,
             body = smsDataDtoMapper.map(smsData),
+            smsId = smsId,
+            onRetry = onRetry
         )
     }
 }

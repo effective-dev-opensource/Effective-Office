@@ -10,5 +10,7 @@ interface SmsForwardingRepository {
         url: String,
         secretKey: String,
         smsData: SmsData,
+        smsId: String = "", // Optional SMS ID for tracking retries
+        onRetry: ((smsId: String, retryCount: Int) -> Unit)? = null // Callback for retry attempts
     ): Either<ErrorResponse, Unit>
 }

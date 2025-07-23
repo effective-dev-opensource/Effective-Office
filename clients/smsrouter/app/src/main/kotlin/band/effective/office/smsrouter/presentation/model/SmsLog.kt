@@ -7,5 +7,6 @@ data class SmsLog(
     val simType: String,
     val timestamp: Long,
     val status: SmsStatus = SmsStatus.IN_PROGRESS,
-    val errorDetails: String? = null
+    val errorDetails: String? = null,
+    val retryCount: Int = 0
 )

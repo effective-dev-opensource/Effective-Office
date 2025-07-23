@@ -14,7 +14,8 @@ data class SmsLogEntity(
     val simType: String,
     val timestamp: Long,
     val status: String,
-    val errorDetails: String?
+    val errorDetails: String?,
+    val retryCount: Int = 0
 ) {
     companion object {
         fun fromSmsLog(smsLog: SmsLog): SmsLogEntity {
@@ -25,7 +26,8 @@ data class SmsLogEntity(
                 simType = smsLog.simType,
                 timestamp = smsLog.timestamp,
                 status = smsLog.status.name,
-                errorDetails = smsLog.errorDetails
+                errorDetails = smsLog.errorDetails,
+                retryCount = smsLog.retryCount
             )
         }
 
@@ -37,7 +39,8 @@ data class SmsLogEntity(
                 simType = entity.simType,
                 timestamp = entity.timestamp,
                 status = SmsStatus.valueOf(entity.status),
-                errorDetails = entity.errorDetails
+                errorDetails = entity.errorDetails,
+                retryCount = entity.retryCount
             )
         }
     }
