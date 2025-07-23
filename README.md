@@ -124,6 +124,10 @@ the issues tab in the repository.
 
 ## Authors :writing_hand:
 
+- [Alex Korovyansky](https://t.me/alexkorovyansky) 
+- [Matvey Avgul](https://t.me/matthewavgul) 
+- [Tatyana Terleeva](https://t.me/tatyana_terleeva) 
 - [Stanislav Radchenko](https://github.com/Radch-enko)
 - [Vitaly Smirnov](https://github.com/KrugarValdes)
+- [Victoria Maksimovna](https://t.me/the_koheskine)
 
