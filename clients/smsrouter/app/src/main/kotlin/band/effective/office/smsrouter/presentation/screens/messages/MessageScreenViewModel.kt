@@ -3,7 +3,7 @@ package band.effective.office.smsrouter.presentation.screens.messages
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import band.effective.office.smsrouter.domain.repository.SmsLogsRepository
-import band.effective.office.smsrouter.presentation.SmsLog
+import band.effective.office.smsrouter.presentation.model.SmsLog
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 

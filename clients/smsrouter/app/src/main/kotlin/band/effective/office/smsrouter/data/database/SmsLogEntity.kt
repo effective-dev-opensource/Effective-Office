@@ -2,8 +2,8 @@ package band.effective.office.smsrouter.data.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import band.effective.office.smsrouter.presentation.SmsLog
-import band.effective.office.smsrouter.presentation.SmsStatus
+import band.effective.office.smsrouter.presentation.model.SmsLog
+import band.effective.office.smsrouter.presentation.model.SmsStatus
 
 @Entity(tableName = "sms_logs")
 data class SmsLogEntity(

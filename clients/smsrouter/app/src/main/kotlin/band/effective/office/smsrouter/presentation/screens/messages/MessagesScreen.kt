@@ -26,8 +26,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import band.effective.office.smsrouter.presentation.SmsLog
-import band.effective.office.smsrouter.presentation.SmsStatus
+import band.effective.office.smsrouter.presentation.model.SmsLog
+import band.effective.office.smsrouter.presentation.model.SmsStatus
 import band.effective.office.smsrouter.presentation.ui.theme.SmsRouterTheme
 import java.text.SimpleDateFormat
 import java.util.Date

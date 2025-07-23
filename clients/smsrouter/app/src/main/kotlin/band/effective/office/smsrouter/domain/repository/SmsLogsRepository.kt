@@ -1,6 +1,6 @@
 package band.effective.office.smsrouter.domain.repository
 
-import band.effective.office.smsrouter.presentation.SmsLog
+import band.effective.office.smsrouter.presentation.model.SmsLog
 import kotlinx.coroutines.flow.StateFlow
 
 interface SmsLogsRepository {

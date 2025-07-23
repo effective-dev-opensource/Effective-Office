@@ -3,7 +3,7 @@ package band.effective.office.smsrouter.data.repository
 import band.effective.office.smsrouter.data.database.SmsLogDao
 import band.effective.office.smsrouter.data.database.SmsLogEntity
 import band.effective.office.smsrouter.domain.repository.SmsLogsRepository
-import band.effective.office.smsrouter.presentation.SmsLog
+import band.effective.office.smsrouter.presentation.model.SmsLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
