@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -29,6 +30,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -143,6 +145,7 @@ fun SettingsScreen() {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsScreenContent(
     state: SettingsViewModel.State,
@@ -154,7 +157,33 @@ private fun SettingsScreenContent(
     onSaveClick: () -> Unit,
 ) {
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "SIM Card Settings",
+                        style = MaterialTheme.typography.headlineMedium,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                },
+            )
+        },
+        bottomBar = {
+            BottomAppBar(modifier = Modifier.fillMaxWidth()) {
+                Spacer(modifier = Modifier.weight(1f))
+                Button(
+                    onClick = onSaveClick,
+                    modifier = Modifier
+                        .fillMaxWidth(.8f)
+                        .height(48.dp),
+                    enabled = !state.isSaving,
+                ) {
+                    Text(text = if (state.isSaving) "Saving..." else "Save Settings")
+                }
+                Spacer(modifier = Modifier.weight(1f))
+            }
+        }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -173,7 +202,6 @@ private fun SettingsScreenContent(
                 }
 
                 state.simCards.isEmpty() -> {
-                    // Show empty state
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -186,43 +214,20 @@ private fun SettingsScreenContent(
                 }
 
                 else -> {
-                    // Show SIM card settings
-                    Column(
+                    LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(16.dp)
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
-                        Text(
-                            text = "SIM Card Settings",
-                            style = MaterialTheme.typography.headlineMedium,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-
-                        LazyColumn(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            items(state.simCards) { simCard ->
-                                SimCardSettingsItem(
-                                    simCard = simCard,
-                                    onWebhookUrlChanged = { url -> onWebhookUrlChanged(simCard, url) },
-                                    onSecretKeyChanged = { key -> onSecretKeyChanged(simCard, key) },
-                                    onWebhookTypeChanged = { type -> onWebhookTypeChanged(simCard, type) },
-                                    onChatIdChanged = { chatId -> onChatIdChanged(simCard, chatId) }
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Button(
-                            onClick = onSaveClick,
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = !state.isSaving
-                        ) {
-                            Text(text = if (state.isSaving) "Saving..." else "Save Settings")
+                        items(state.simCards) { simCard ->
+                            SimCardSettingsItem(
+                                simCard = simCard,
+                                onWebhookUrlChanged = { url -> onWebhookUrlChanged(simCard, url) },
+                                onSecretKeyChanged = { key -> onSecretKeyChanged(simCard, key) },
+                                onWebhookTypeChanged = { type -> onWebhookTypeChanged(simCard, type) },
+                                onChatIdChanged = { chatId -> onChatIdChanged(simCard, chatId) }
+                            )
                         }
                     }
                 }

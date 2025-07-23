@@ -1,5 +1,7 @@
 package band.effective.office.smsrouter.presentation.screens.root
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -59,7 +61,13 @@ fun Root() {
             }
         }
     ) { innerPadding ->
-        NavHost(navController, Routes.Messages, Modifier.padding(innerPadding)) {
+        NavHost(
+            navController,
+            Routes.Messages,
+            Modifier.padding(innerPadding),
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+        ) {
             composable<Routes.Messages> { MessagesScreen() }
             composable<Routes.Settings> { SettingsScreen() }
         }

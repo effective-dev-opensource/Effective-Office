@@ -49,7 +49,7 @@ internal class SmsApiServiceImpl(
             retryCountMap[smsId] = currentRetries
         }
 
-        for (attempt in 1..maxAttempts) {
+        for (attempt in 0..maxAttempts) {
             // Check if we've exceeded the timeout
             if (System.currentTimeMillis() - startTime >= timeoutMillis) {
                 break // Exit the retry loop if we've exceeded the timeout

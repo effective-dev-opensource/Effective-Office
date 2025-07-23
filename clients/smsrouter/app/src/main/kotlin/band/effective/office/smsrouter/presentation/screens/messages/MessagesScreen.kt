@@ -55,7 +55,7 @@ private fun MessagesScreenContent(viewModel: MessageScreenViewModel = koinInject
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp)
     ) {
         if (smsLogs.isEmpty()) {
             Box(
