@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import band.effective.office.smsrouter.domain.model.Settings
 import band.effective.office.smsrouter.domain.model.SimCardSettings
+import band.effective.office.smsrouter.domain.model.WebhookType
 import band.effective.office.smsrouter.domain.provider.SimCardProvider
 import band.effective.office.smsrouter.domain.repository.SettingsRepository
 import kotlinx.coroutines.delay
@@ -40,6 +41,8 @@ class SettingsViewModel(
         when (intent) {
             is Intent.UpdateWebhookUrl -> updateWebhookUrl(intent.simId, intent.url)
             is Intent.UpdateSecretKey -> updateSecretKey(intent.simId, intent.key)
+            is Intent.UpdateWebhookType -> updateWebhookType(intent.simId, intent.webhookType)
+            is Intent.UpdateChatId -> updateChatId(intent.simId, intent.chatId)
             is Intent.SaveSettings -> saveSettings()
             is Intent.ReloadSimCards -> loadSimCards()
         }
@@ -63,7 +66,9 @@ class SettingsViewModel(
                     simId = simCard.simId,
                     simName = simCard.simName,
                     webhookUrl = existingSettings?.webhookUrl ?: "",
-                    secretKey = existingSettings?.secretKey ?: ""
+                    secretKey = existingSettings?.secretKey ?: "",
+                    webhookType = existingSettings?.webhookType ?: WebhookType.MATTERMOST,
+                    chatId = existingSettings?.chatId ?: ""
                 )
             }
 
@@ -97,6 +102,32 @@ class SettingsViewModel(
         }
     }
 
+    private fun updateWebhookType(simId: String, webhookType: WebhookType) {
+        _state.update { currentState ->
+            val updatedSimCards = currentState.simCards.map { simCard ->
+                if (simCard.simId == simId) {
+                    simCard.copy(webhookType = webhookType)
+                } else {
+                    simCard
+                }
+            }
+            currentState.copy(simCards = updatedSimCards)
+        }
+    }
+
+    private fun updateChatId(simId: String, chatId: String) {
+        _state.update { currentState ->
+            val updatedSimCards = currentState.simCards.map { simCard ->
+                if (simCard.simId == simId) {
+                    simCard.copy(chatId = chatId)
+                } else {
+                    simCard
+                }
+            }
+            currentState.copy(simCards = updatedSimCards)
+        }
+    }
+
     private fun saveSettings() {
         viewModelScope.launch {
             try {
@@ -108,7 +139,9 @@ class SettingsViewModel(
                         simId = uiModel.simId,
                         simName = uiModel.simName,
                         webhookUrl = uiModel.webhookUrl,
-                        secretKey = uiModel.secretKey
+                        secretKey = uiModel.secretKey,
+                        webhookType = uiModel.webhookType,
+                        chatId = uiModel.chatId
                     )
                 }
 
@@ -140,13 +173,17 @@ class SettingsViewModel(
         val simId: String,
         val simName: String,
         val webhookUrl: String,
-        val secretKey: String
+        val secretKey: String,
+        val webhookType: WebhookType = WebhookType.MATTERMOST,
+        val chatId: String = ""
     )
 
     // Intent sealed class for user actions
     sealed class Intent {
         data class UpdateWebhookUrl(val simId: String, val url: String) : Intent()
         data class UpdateSecretKey(val simId: String, val key: String) : Intent()
+        data class UpdateWebhookType(val simId: String, val webhookType: WebhookType) : Intent()
+        data class UpdateChatId(val simId: String, val chatId: String) : Intent()
         object SaveSettings : Intent()
         object ReloadSimCards : Intent()
     }

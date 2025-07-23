@@ -13,17 +13,30 @@ data class Settings(
 )
 
 /**
+ * Enum representing the type of webhook service.
+ */
+@Serializable
+enum class WebhookType {
+    MATTERMOST,
+    TELEGRAM
+}
+
+/**
  * Data class representing the settings for a SIM card.
  *
  * @property simId Unique identifier for the SIM card
  * @property simName Name of the SIM card
  * @property webhookUrl URL to which SMS messages will be forwarded
  * @property secretKey Secret key for webhook authorization
+ * @property webhookType Type of webhook service (Mattermost or Telegram)
+ * @property chatId Chat ID for Telegram webhook (only used when webhookType is TELEGRAM)
  */
 @Serializable
 data class SimCardSettings(
     val simId: String,
     val simName: String,
     val webhookUrl: String = "",
-    val secretKey: String = ""
+    val secretKey: String = "",
+    val webhookType: WebhookType = WebhookType.MATTERMOST,
+    val chatId: String = ""
 )

@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import band.effective.office.smsrouter.domain.model.Settings
 import band.effective.office.smsrouter.domain.model.SimCardSettings
+import band.effective.office.smsrouter.domain.model.WebhookType
 import band.effective.office.smsrouter.domain.repository.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -34,6 +35,14 @@ internal class SettingsRepositoryImpl(
 
     override suspend fun getSecretKey(simId: String): String? = withContext(Dispatchers.IO) {
         _settingsFlow.value.simCards.find { it.simId == simId }?.secretKey
+    }
+
+    override suspend fun getWebhookType(simId: String): WebhookType = withContext(Dispatchers.IO) {
+        _settingsFlow.value.simCards.find { it.simId == simId }?.webhookType ?: WebhookType.MATTERMOST
+    }
+
+    override suspend fun getChatId(simId: String): String = withContext(Dispatchers.IO) {
+        _settingsFlow.value.simCards.find { it.simId == simId }?.chatId ?: ""
     }
 
     override suspend fun saveSettings(settings: Settings) = withContext(Dispatchers.IO) {

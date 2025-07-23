@@ -19,6 +19,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -29,8 +33,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +44,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import band.effective.office.smsrouter.domain.model.WebhookType
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -114,6 +121,22 @@ fun SettingsScreen() {
                 )
             )
         },
+        onWebhookTypeChanged = { simCard, webhookType ->
+            viewModel.sendIntent(
+                SettingsViewModel.Intent.UpdateWebhookType(
+                    simId = simCard.simId,
+                    webhookType = webhookType
+                )
+            )
+        },
+        onChatIdChanged = { simCard, chatId ->
+            viewModel.sendIntent(
+                SettingsViewModel.Intent.UpdateChatId(
+                    simId = simCard.simId,
+                    chatId = chatId
+                )
+            )
+        },
         onSaveClick = {
             viewModel.sendIntent(SettingsViewModel.Intent.SaveSettings)
         }
@@ -126,6 +149,8 @@ private fun SettingsScreenContent(
     snackbarHostState: SnackbarHostState,
     onWebhookUrlChanged: (SettingsViewModel.SimCardUiModel, String) -> Unit,
     onSecretKeyChanged: (SettingsViewModel.SimCardUiModel, String) -> Unit,
+    onWebhookTypeChanged: (SettingsViewModel.SimCardUiModel, WebhookType) -> Unit,
+    onChatIdChanged: (SettingsViewModel.SimCardUiModel, String) -> Unit,
     onSaveClick: () -> Unit,
 ) {
     Scaffold(
@@ -183,7 +208,9 @@ private fun SettingsScreenContent(
                                 SimCardSettingsItem(
                                     simCard = simCard,
                                     onWebhookUrlChanged = { url -> onWebhookUrlChanged(simCard, url) },
-                                    onSecretKeyChanged = { key -> onSecretKeyChanged(simCard, key) }
+                                    onSecretKeyChanged = { key -> onSecretKeyChanged(simCard, key) },
+                                    onWebhookTypeChanged = { type -> onWebhookTypeChanged(simCard, type) },
+                                    onChatIdChanged = { chatId -> onChatIdChanged(simCard, chatId) }
                                 )
                             }
                         }
@@ -204,12 +231,17 @@ private fun SettingsScreenContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SimCardSettingsItem(
     simCard: SettingsViewModel.SimCardUiModel,
     onWebhookUrlChanged: (String) -> Unit,
-    onSecretKeyChanged: (String) -> Unit
+    onSecretKeyChanged: (String) -> Unit,
+    onWebhookTypeChanged: (WebhookType) -> Unit,
+    onChatIdChanged: (String) -> Unit
 ) {
+    var expanded by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -233,6 +265,47 @@ private fun SimCardSettingsItem(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
+            // Webhook Type Dropdown
+            Text(
+                text = "Webhook Service",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = it },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = simCard.webhookType.name,
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(),
+                    singleLine = true
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    WebhookType.values().forEach { webhookType ->
+                        DropdownMenuItem(
+                            text = { Text(webhookType.name) },
+                            onClick = {
+                                onWebhookTypeChanged(webhookType)
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             // Webhook URL
             OutlinedTextField(
                 value = simCard.webhookUrl,
@@ -245,6 +318,21 @@ private fun SimCardSettingsItem(
             )
 
             Spacer(modifier = Modifier.height(8.dp))
+
+            // Chat ID (only for Telegram)
+            if (simCard.webhookType == WebhookType.TELEGRAM) {
+                OutlinedTextField(
+                    value = simCard.chatId,
+                    onValueChange = onChatIdChanged,
+                    label = { Text("Telegram Chat ID") },
+                    placeholder = { Text("Enter chat ID") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
             // Secret Key
             OutlinedTextField(
