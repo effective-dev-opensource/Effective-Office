@@ -3,9 +3,10 @@ package band.effective.office.tablet.core.domain.useCase
 import band.effective.office.tablet.core.domain.Either
 import band.effective.office.tablet.core.domain.ErrorResponse
 import band.effective.office.tablet.core.domain.model.EventInfo
-import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.repository.BookingRepository
 import band.effective.office.tablet.core.domain.repository.LocalBookingRepository
+import band.effective.office.tablet.core.domain.util.Loggable
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * Use case for creating a new booking in a room.
@@ -17,7 +18,8 @@ class CreateBookingUseCase(
     private val networkBookingRepository: BookingRepository,
     private val localBookingRepository: LocalBookingRepository,
     private val getRoomByNameUseCase: GetRoomByNameUseCase,
-) {
+) : Loggable {
+    override val loggableCoroutineScope: CoroutineScope? = null
     /**
      * Creates a new booking in the specified room.
      * Updates the local repository immediately with a loading state,
@@ -29,10 +31,13 @@ class CreateBookingUseCase(
      * @param roomInfo Information about the room to book
      * @return Either containing the created event information or an error
      */
-    suspend operator fun invoke(roomName: String, eventInfo: EventInfo): Either<ErrorResponse, EventInfo> {
+    suspend operator fun invoke(roomName: String, eventInfo: EventInfo): Either<ErrorResponse, EventInfo> =
+        logSuspendOperationWithError(
+            operationName = "createBooking",
+            params = "room=$roomName, eventId=${eventInfo.id}"
+        ) {
         val roomInfo = getRoomByNameUseCase(roomName)
-            ?: return Either.Error(ErrorResponse(404, "Couldn't find a room with name $roomName"))
-
+            ?: return@logSuspendOperationWithError Either.Error(ErrorResponse(404, "Couldn't find a room with name $roomName"))
         val loadingEvent = eventInfo.copy(isLoading = true)
 
         // Update local repository with loading state
@@ -53,7 +58,6 @@ class CreateBookingUseCase(
                 localBookingRepository.updateBooking(event, roomInfo)
             }
         }
-
-        return response
-    }
+        response
+        } ?: Either.Error(ErrorResponse(500, "Unexpected error"))
 }

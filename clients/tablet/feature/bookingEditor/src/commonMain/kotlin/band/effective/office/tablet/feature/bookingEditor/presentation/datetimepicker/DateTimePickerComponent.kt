@@ -2,6 +2,7 @@ package band.effective.office.tablet.feature.bookingEditor.presentation.datetime
 
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.useCase.CheckBookingUseCase
+import band.effective.office.tablet.core.domain.util.ComponentLoggable
 import band.effective.office.tablet.core.domain.util.asInstant
 import band.effective.office.tablet.core.domain.util.asLocalDateTime
 import band.effective.office.tablet.core.domain.util.currentLocalDateTime
@@ -30,7 +31,10 @@ class DateTimePickerComponent(
     val room: String,
     val duration: Int,
     val initDate: () -> LocalDateTime,
-) : ComponentContext by componentContext, ModalWindow, KoinComponent {
+) : ComponentContext by componentContext, ModalWindow, KoinComponent, ComponentLoggable {
+
+    override val loggableCoroutineScope = componentCoroutineScope()
+
 
     private val checkBookingUseCase: CheckBookingUseCase by inject()
     private val scope = componentCoroutineScope()
@@ -38,21 +42,24 @@ class DateTimePickerComponent(
     private val mutableState = MutableStateFlow(State.default.copy(currentDate = initDate()))
     val state: StateFlow<State> = mutableState.asStateFlow()
 
-    fun sendIntent(intent: Intent) {
-        when (intent) {
-            Intent.CloseModal -> {
-                onSelectDate(state.value.currentDate)
-                onCloseRequest()
+    override fun <I> sendIntent(intent: I) {
+        if (intent !is Intent) return
+        logOperation("sendIntent", params = intent.toString()) {
+            when (intent) {
+                Intent.CloseModal -> {
+                    onSelectDate(state.value.currentDate)
+                    onCloseRequest()
+                }
+                is Intent.OnChangeDate -> changeDate(
+                    intent.date.year,
+                    intent.date.month,
+                    intent.date.dayOfMonth,
+                )
+                is Intent.OnChangeTime -> changeTime(
+                    intent.time.hour,
+                    intent.time.minute
+                )
             }
-            is Intent.OnChangeDate -> changeDate(
-                intent.date.year,
-                intent.date.month,
-                intent.date.dayOfMonth,
-            )
-            is Intent.OnChangeTime -> changeTime(
-                intent.time.hour,
-                intent.time.minute
-            )
         }
     }
 
@@ -61,44 +68,48 @@ class DateTimePickerComponent(
         month: Month,
         dayOfMonth: Int
     ) = scope.launch {
-        val currentDate = state.value.currentDate
-        val newDate = LocalDateTime(
-            year = year,
-            month = month,
-            dayOfMonth = dayOfMonth,
-            hour = currentDate.hour,
-            minute = currentDate.minute,
-            second = 0,
-            nanosecond = 0
-        )
+        logSuspendOperation("changeDate", params = "date=$year-$month-$dayOfMonth") {
+            val currentDate = state.value.currentDate
+            val newDate = LocalDateTime(
+                year = year,
+                month = month,
+                dayOfMonth = dayOfMonth,
+                hour = currentDate.hour,
+                minute = currentDate.minute,
+                second = 0,
+                nanosecond = 0
+            )
 
-        mutableState.update { it.copy(currentDate = newDate) }
-        checkEnableDateButton(newDate, newDate.plus(duration.minutes))
+            mutableState.update { it.copy(currentDate = newDate) }
+            checkEnableDateButton(newDate, newDate.plus(duration.minutes))
+        }
     }
 
     private fun changeTime(
         hour: Int,
         minute: Int
     ) = scope.launch {
-        val currentDate = state.value.currentDate
-        val newDate = LocalDateTime(
-            year = currentDate.year,
-            month = currentDate.month,
-            dayOfMonth = currentDate.dayOfMonth,
-            hour = hour,
-            minute = minute,
-            second = 0,
-            nanosecond = 0
-        )
+        logSuspendOperation("changeTime", params = "time=$hour:$minute") {
+            val currentDate = state.value.currentDate
+            val newDate = LocalDateTime(
+                year = currentDate.year,
+                month = currentDate.month,
+                dayOfMonth = currentDate.dayOfMonth,
+                hour = hour,
+                minute = minute,
+                second = 0,
+                nanosecond = 0
+            )
 
-        mutableState.update { it.copy(currentDate = newDate) }
-        checkEnableDateButton(newDate, newDate.plus(duration.minutes))
+            mutableState.update { it.copy(currentDate = newDate) }
+            checkEnableDateButton(newDate, newDate.plus(duration.minutes))
+        }
     }
 
     private suspend fun checkEnableDateButton(
         startDate: LocalDateTime,
         finishDate: LocalDateTime
-    ) {
+    ) = logSuspendOperation("checkEnableDateButton", params = "startDate=$startDate, finishDate=$finishDate") {
         val busyEvents: List<EventInfo> = checkBookingUseCase.busyEvents(
             event = event.copy(startTime = startDate, finishTime = finishDate),
             room = room

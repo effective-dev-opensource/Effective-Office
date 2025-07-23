@@ -11,6 +11,7 @@ import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.TimerUseCase
 import band.effective.office.tablet.core.domain.useCase.UpdateUseCase
 import band.effective.office.tablet.core.domain.util.BootstrapperTimer
+import band.effective.office.tablet.core.domain.util.ComponentLoggable
 import band.effective.office.tablet.core.domain.util.currentLocalDateTime
 import band.effective.office.tablet.core.domain.util.minus
 import band.effective.office.tablet.core.domain.util.plus
@@ -51,7 +52,10 @@ class MainComponent(
     val onFastBooking: (minDuration: Int, selectedRoom: RoomInfo, rooms: List<RoomInfo>) -> Unit,
     val onOpenFreeRoomModal: (currentEvent: EventInfo, roomName: String) -> Unit,
     private val openBookingDialog: (event: EventInfo, room: String) -> Unit,
-) : ComponentContext by componentContext, KoinComponent {
+) : ComponentContext by componentContext, KoinComponent, ComponentLoggable {
+
+    override val loggableCoroutineScope = componentCoroutineScope()
+
 
     private val coroutineScope = componentCoroutineScope()
 
@@ -165,13 +169,16 @@ class MainComponent(
     /**
      * Handles intents from the UI.
      */
-    fun sendIntent(intent: Intent) {
-        when (intent) {
-            is Intent.OnFastBooking -> handleFastBookingIntent(intent)
-            Intent.OnOpenFreeRoomModal -> handleFreeRoomIntent()
-            is Intent.OnSelectRoom -> selectRoom(intent.index)
-            is Intent.OnUpdateSelectDate -> updateSelectedDate(intent)
-            Intent.RebootRequest -> reboot(refresh = true)
+    override fun <I> sendIntent(intent: I) {
+        if (intent !is Intent) return
+        logOperation("sendIntent", params = intent.toString()) {
+            when (intent) {
+                is Intent.OnFastBooking -> handleFastBookingIntent(intent)
+                Intent.OnOpenFreeRoomModal -> handleFreeRoomIntent()
+                is Intent.OnSelectRoom -> selectRoom(intent.index)
+                is Intent.OnUpdateSelectDate -> updateSelectedDate(intent)
+                Intent.RebootRequest -> reboot(refresh = true)
+            }
         }
     }
 

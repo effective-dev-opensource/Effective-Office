@@ -2,27 +2,40 @@ package band.effective.office.tablet.core.domain.useCase
 
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
+import band.effective.office.tablet.core.domain.util.Loggable
 import band.effective.office.tablet.core.domain.util.cropSeconds
+import kotlinx.coroutines.CoroutineScope
 
 /**Use case for checking booking room opportunity*/
 class CheckBookingUseCase(
     private val roomInfoUseCase: RoomInfoUseCase
-) {
+) : Loggable {
+    override val loggableCoroutineScope: CoroutineScope? = null
     /** get event blocking room for booking
      * @param event info about event
      * @param room room name
      * @return Event busy with room booking, if room free, return null*/
     suspend operator fun invoke(event: EventInfo, room: String) =
-        busyEvents(event, room)
+        logSuspendOperation(
+            operationName = "checkBooking",
+            params = "room=$room, eventId=${event.id}",
+            resultMessage = { conflicts -> "conflicts=${conflicts.size}" }
+        ) {
+            busyEvents(event, room)
+        }
 
     /** get events blocking room for booking
      * @param event info about event
      * @param room room name
      * @return List events busy with room booking, if room's free then empty list will be returned*/
-    suspend fun busyEvents(event: EventInfo, room: String): List<EventInfo> {
-        val eventList = eventList(room)
-        return eventList.getBusy(event)
-    }
+    suspend fun busyEvents(event: EventInfo, room: String): List<EventInfo> =
+        logSuspendOperation(
+            operationName = "fetchBusyEvents",
+            params = "room=$room, eventId=${event.id}"
+        ) {
+            val eventList = eventList(room)
+            eventList.getBusy(event)
+        }
 
     private suspend fun eventList(room: String): List<EventInfo> {
         val roomInfo = roomInfoUseCase.getRoom(room)
