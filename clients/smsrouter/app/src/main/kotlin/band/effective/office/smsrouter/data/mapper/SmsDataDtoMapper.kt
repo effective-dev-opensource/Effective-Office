@@ -6,9 +6,6 @@ import band.effective.office.smsrouter.domain.model.SmsData
 internal class SmsDataDtoMapper {
 
     fun map(domain: SmsData): SmsDataRequest = SmsDataRequest(
-        sender = domain.sender,
-        operatorName = domain.operatorName,
-        messageBody = domain.messageBody,
-        recipientPhoneNumber = domain.recipientPhoneNumber,
+        text = domain.messageBody,
     )
 }
