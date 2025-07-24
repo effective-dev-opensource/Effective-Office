@@ -1,18 +1,18 @@
 # Effective Office
 
-## Goal :dart:
+## Goal
 
 The main goal of the project is the automation of various processes in the office and providing
 interesting statistics for employees.
 
-## Technical goal: :wrench:
+## Technical goal
 
 The main technical task of the project is to create a multi-module application on Kotlin,
 trying to focus on the most modern and relevant solutions in this language. Throughout the project,
 we tried to use other languages and
 technologies as little as possible.
 
-## 📺 Features: (Meeting Room Tablet App)
+## Meeting Room Tablet App
 
 
 <img src="media/tablet/demo-tablet.gif" style="height: 50%;" />
@@ -111,7 +111,7 @@ For detailed documentation:
 - Document public APIs and complex logic
 - Run the pre-commit hook to ensure no secrets are committed
 
-## Contributing :raised_hands:
+## Contributing 
 
 Our project is open-source, so we welcome quality contributions! To make your contribution to the
 project efficient and easy to check out, you can familiarize yourself with the project's [git flow
@@ -119,10 +119,21 @@ and commit rules](docs/GIT_FLOW.md). If you want to solve an existing issue in t
 the issues tab in the repository.
 
 ## Roadmap
-- 📺 A TV application is in development, featuring a corporate news and photo feed, event announcements with registration
-  from an external service, Duolingo and sports leaderboards, and a tracker for the internal currency.
+**TV App**
 
-## Authors :writing_hand:
+A TV application featuring a corporate news and photo feed, event announcements with external registration, Duolingo and sports leaderboards, and an internal currency tracker. Currently in development.
+
+
+**SMS Router**
+
+A service for automatic routing of incoming SMS messages to the appropriate channels and systems. Supports dual SIM and eSIM, operates in the background, and routes messages based on the recipient number — improving the security and reliability of the infrastructure. Currently in development.
+
+
+**Foosball Tracker**
+
+An application for tracking foosball match results. It allows users to log games, maintain leaderboards, and view statistics — all to encourage friendly competition in the office. Currently in development.
+
+## Authors
 
 - [Stanislav Radchenko](https://github.com/Radch-enko)
 - [Vitaly Smirnov](https://github.com/KrugarValdes)
