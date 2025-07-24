@@ -131,3 +131,6 @@ the issues tab in the repository.
 - [Vitaly Smirnov](https://github.com/KrugarValdes)
 - [Victoria Maksimovna](https://t.me/the_koheskine)
 
+## License
+___
+The code is available as open source under the terms of the [MIT LICENSE](LICENSE).
