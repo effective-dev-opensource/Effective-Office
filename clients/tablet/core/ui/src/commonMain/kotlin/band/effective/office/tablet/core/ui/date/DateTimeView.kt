@@ -40,6 +40,7 @@ import kotlin.time.ExperimentalTime
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import band.effective.office.tablet.core.domain.util.toLocalisedString
 
 @OptIn(ExperimentalTime::class)
 @Composable
@@ -122,7 +123,9 @@ private fun RowScope.SelectedDate(
         contentPadding = PaddingValues(0.dp)
     ) {
         AnimatedContent(
-            targetState = displayedFormat.format(selectDate),
+            targetState = if (currentDate != null && selectDate.date > currentDate.date)
+                selectDate.toLocalisedString("d MMMM HH:mm")
+            else selectDate.toLocalisedString("HH:mm d MMMM"),
             transitionSpec = {
                 slideIntoContainer(slideDirection) + fadeIn() with
                         slideOutOfContainer(slideDirection.opposite()) + fadeOut()

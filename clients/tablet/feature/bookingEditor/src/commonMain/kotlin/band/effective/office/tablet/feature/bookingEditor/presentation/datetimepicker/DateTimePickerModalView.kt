@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import band.effective.office.tablet.core.domain.util.toFormattedString
+import band.effective.office.tablet.core.domain.util.toLocalisedString
 import band.effective.office.tablet.core.ui.common.CrossButtonView
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.header8
@@ -114,7 +115,7 @@ fun DateTimePickerModalView(
                     ) {
                         Text(
                             text = when (enableDateButton) {
-                                true -> "${currentDate.dayOfMonth} ${currentDate.month.name} ${currentDate.toFormattedString("HH:mm")}"
+                                true -> currentDate.toLocalisedString("d MMMM HH:mm")
                                 false -> stringResource(band.effective.office.tablet.core.ui.Res.string.time_booked)
                             },
                             style = header8,

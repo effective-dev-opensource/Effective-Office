@@ -10,6 +10,7 @@ kotlin {
             implementation(libs.decompose.compose.jetbrains)
             implementation(libs.essenty.lifecycle)
             implementation(libs.essenty.state.keeper)
+            implementation(project(":clients:tablet:core:domain"))
         }
     }
 }
