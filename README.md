@@ -126,5 +126,4 @@ An application for tracking foosball match results. It allows users to log games
 - [Victoria Maksimovna](https://t.me/the_koheskine)
 
 ## License
-___
 The code is available as open source under the terms of the [MIT LICENSE](LICENSE).
