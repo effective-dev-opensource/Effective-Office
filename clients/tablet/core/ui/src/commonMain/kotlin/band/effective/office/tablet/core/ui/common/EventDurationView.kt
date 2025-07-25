@@ -52,6 +52,7 @@ fun EventDurationView(
             Button(
                 modifier = Modifier.fillMaxHeight().weight(1f).clip(RoundedCornerShape(15.dp)),
                 onClick = { decrement() },
+                enabled = currentDuration > 15,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = LocalCustomColorsPalette.current.elevationBackground
                 )
