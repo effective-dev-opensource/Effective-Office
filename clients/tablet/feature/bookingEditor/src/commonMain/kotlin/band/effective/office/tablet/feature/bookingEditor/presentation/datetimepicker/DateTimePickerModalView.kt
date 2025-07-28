@@ -24,12 +24,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import band.effective.office.tablet.core.domain.util.toFormattedString
-import band.effective.office.tablet.core.domain.util.toLocalisedString
 import band.effective.office.tablet.core.ui.common.CrossButtonView
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.header8
 import band.effective.office.tablet.core.ui.time_booked
+import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
 import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.components.DatePickerView
 import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.components.TimePickerView
 import kotlinx.datetime.LocalDate
@@ -115,7 +114,7 @@ fun DateTimePickerModalView(
                     ) {
                         Text(
                             text = when (enableDateButton) {
-                                true -> currentDate.toLocalisedString("d MMMM HH:mm")
+                                true -> DateDisplayMapper.formatForPicker(currentDate)
                                 false -> stringResource(band.effective.office.tablet.core.ui.Res.string.time_booked)
                             },
                             style = header8,

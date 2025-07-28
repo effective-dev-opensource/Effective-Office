@@ -30,5 +30,3 @@ fun LocalTime.toFormattedString(pattern: String): String {
     }
     return formatter.format(this)
 }
-
-expect fun LocalDateTime.toLocalisedString(pattern: String): String

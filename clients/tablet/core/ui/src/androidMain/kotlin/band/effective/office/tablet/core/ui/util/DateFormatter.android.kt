@@ -1,4 +1,4 @@
-package band.effective.office.tablet.core.domain.util
+package band.effective.office.tablet.core.ui.utils
 
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toJavaLocalDateTime
