@@ -28,24 +28,23 @@ class SmsReceiver : BroadcastReceiver(), KoinComponent {
 
         val bundle = intent.extras ?: return
         val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
-        val subscriptionId = bundle.getInt("subscription", SubscriptionManager.INVALID_SUBSCRIPTION_ID)
+        if (messages.isEmpty()) return // This should not be the case under standard conditions.
 
+        val subscriptionId = bundle.getInt("subscription", SubscriptionManager.INVALID_SUBSCRIPTION_ID)
         val simCard: SimCard? = simCardProvider.getSimCardBySubscriptionId(subscriptionId)
 
-        val smsList = messages.map {
-            SmsData(
-                sender = it.displayOriginatingAddress,
-                operatorName = simCard?.simName.orEmpty(),
-                messageBody = it.displayMessageBody,
-                recipientPhoneNumber = simCard?.phoneNumber.orEmpty(),
-                simId = simCard?.simId.orEmpty(),
-            )
-        }
+        val fullMessageBody =
+            messages.joinToString(separator = "") { it.displayMessageBody } // GSM 7-bit 160 max symbols, UCS-2 max 70 symbols
+        val sender = messages.first().displayOriginatingAddress
 
-        for (sms in smsList) {
-            scope.launch {
-                forwardSmsUseCase(sms)
-            }
-        }
+        val sms = SmsData(
+            sender = sender,
+            operatorName = simCard?.simName.orEmpty(),
+            messageBody = fullMessageBody,
+            recipientPhoneNumber = simCard?.phoneNumber.orEmpty(),
+            simId = simCard?.simId.orEmpty(),
+        )
+
+        scope.launch { forwardSmsUseCase(sms) }
     }
 }
