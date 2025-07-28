@@ -17,7 +17,7 @@ technologies as little as possible.
 
 <img src="media/tablet/demo-tablet.gif" style="height: 50%;" />
 
-### 🔧 Features Overview
+### Features Overview
 
 | Feature                     | Description                                                  |
 |----------------------------|--------------------------------------------------------------|
@@ -54,6 +54,7 @@ technologies as little as possible.
    ```bash
    cp backend/app/src/main/resources/env.example backend/app/src/main/resources/.env
    ```
+   Edit the `.env` file with your configuration.
 
 4. Set up required credentials:
    - Add `google-credentials.json` for Google Calendar API
@@ -74,6 +75,12 @@ technologies as little as possible.
    # Run the backend
    ./gradlew :backend:app:bootRun --args='--spring.profiles.active=local'
    ```
+
+#### Run Clients
+1. Open the project in Android Studio or IntelliJ IDEA
+2. Sync the Gradle project to download dependencies
+3. Choose the appropriate run configuration in IDE
+4. Run (Shift+F10 or Control+R)
 
 For detailed installation instructions, including setting up credentials and running client applications, see our [Getting Started Guide](https://github.com/effective-dev-opensource/Effective-Office/wiki/Getting-Started-with-Effective-Office) in the wiki.
 
