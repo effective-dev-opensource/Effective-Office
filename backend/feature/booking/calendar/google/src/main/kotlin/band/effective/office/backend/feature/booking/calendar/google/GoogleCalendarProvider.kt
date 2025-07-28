@@ -33,6 +33,10 @@ class GoogleCalendarProvider(
 
     private val logger = LoggerFactory.getLogger(GoogleCalendarProvider::class.java)
 
+    companion object {
+        private const val RESPONSE_STATUS_DECLINED = "declined"
+    }
+
     @Value("\${calendar.default-calendar}")
     private lateinit var defaultCalendar: String
 
@@ -223,7 +227,18 @@ class GoogleCalendarProvider(
         }
 
         return try {
-            eventsRequest.execute().items ?: emptyList()
+            val events = eventsRequest.execute().items ?: emptyList()
+
+            // Filter out events where a resource attendee has declined the meeting
+            events.filter { event ->
+                // Check if any resource attendee has declined
+                val resourceDeclined = event.attendees?.any { attendee ->
+                    attendee.resource == true && attendee.responseStatus == RESPONSE_STATUS_DECLINED
+                } ?: false
+
+                // Keep events where no resource attendee has declined
+                !resourceDeclined
+            }
         } catch (e: GoogleJsonResponseException) {
             logger.error("Failed to list events from Google Calendar: {}", e.details)
             if (e.statusCode == 404) {
