@@ -84,7 +84,7 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
 
         applicationId = "band.effective.office.tablet"
-        versionCode = 1
+        versionCode = 2
         versionName = "0.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

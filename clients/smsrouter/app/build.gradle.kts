@@ -14,10 +14,37 @@ android {
         applicationId = "band.effective.office.smsrouter"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "0.0.1"
+        versionCode = 2
+        versionName = "0.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        signingConfigs {
+            getByName("debug") {
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+                storeFile = file("${rootDir}/keystore/debug.keystore")
+                storePassword = "android"
+            }
+            create("release") {
+                keyAlias = System.getenv()["OFFICE_ELEVATOR_RELEASE_ALIAS"]
+                keyPassword = System.getenv()["OFFICE_ELEVATOR_RELEASE_KEY_PASSWORD"]
+                storeFile = file("${rootDir}/keystore/main.keystore")
+                storePassword = System.getenv()["OFFICE_ELEVATOR_RELEASE_STORE_PASSWORD"]
+            }
+        }
+
+        buildTypes {
+            getByName("debug") {
+                signingConfig = signingConfigs.getByName("debug")
+                isDebuggable = true
+            }
+            getByName("release") {
+                signingConfig = signingConfigs.getByName("debug")
+                isDebuggable = false
+                isMinifyEnabled = false
+            }
+        }
     }
 
     buildTypes {
