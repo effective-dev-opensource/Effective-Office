@@ -30,6 +30,8 @@ import band.effective.office.tablet.core.ui.theme.h6
 import band.effective.office.tablet.core.ui.theme.h8
 import org.jetbrains.compose.resources.stringResource
 
+private const val MIN_EVENT_DURATION_MINUTES = 15
+
 @Composable
 fun EventDurationView(
     modifier: Modifier = Modifier,
@@ -52,7 +54,7 @@ fun EventDurationView(
             Button(
                 modifier = Modifier.fillMaxHeight().weight(1f).clip(RoundedCornerShape(15.dp)),
                 onClick = { decrement() },
-                enabled = currentDuration > 15,
+                enabled = currentDuration > MIN_EVENT_DURATION_MINUTES,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = LocalCustomColorsPalette.current.elevationBackground
                 )
