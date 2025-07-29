@@ -207,6 +207,42 @@ class GoogleCalendarProvider(
         }
     }
 
+    /**
+     * Deletes an event from Google Calendar.
+     *
+     * @param calendarId The ID of the calendar containing the event
+     * @param eventId The ID of the event to delete
+     * @return true if the event was successfully deleted, false otherwise
+     */
+    private fun deleteEvent(calendarId: String, eventId: String): Boolean {
+        return try {
+            calendar.events().delete(calendarId, eventId).execute()
+            logger.info("Successfully deleted event $eventId from calendar $calendarId because all participants declined")
+            true
+        } catch (e: GoogleJsonResponseException) {
+            logger.error("Failed to delete event $eventId from calendar $calendarId: {}", e.details)
+            false
+        } catch (e: Exception) {
+            logger.error("Unexpected error when deleting event $eventId from calendar $calendarId", e)
+            false
+        }
+    }
+
+    /**
+     * Retrieves a list of events from a Google Calendar within a specified time range.
+     *
+     * This method performs the following operations:
+     * 1. Fetches events from the specified calendar within the given time range
+     * 2. Filters out events where all human participants have declined (and optionally deletes them)
+     * 3. Filters out events where any resource (room/workspace) has declined
+     *
+     * @param calendarId The ID of the Google Calendar to query
+     * @param from The start time for the query (inclusive)
+     * @param to The end time for the query (exclusive), or null for no end time limit
+     * @param q Optional search term to filter events by
+     * @param returnInstances Whether to expand recurring events into individual instances
+     * @return A filtered list of Google Calendar events
+     */
     private fun listEvents(
         calendarId: String,
         from: Instant,
@@ -214,42 +250,111 @@ class GoogleCalendarProvider(
         q: String? = null,
         returnInstances: Boolean = true
     ): List<Event> {
-        val eventsRequest = calendar.events().list(calendarId)
+        // Build the events request with required parameters
+        val eventsRequest = buildEventsRequest(calendarId, from, to, q, returnInstances)
+
+        return try {
+            // Execute the request and get the events
+            val fetchedEvents = eventsRequest.execute().items ?: emptyList()
+
+            // Process and filter the events
+            processEvents(fetchedEvents)
+        } catch (e: GoogleJsonResponseException) {
+            handleGoogleJsonException(e, calendarId)
+            emptyList()
+        } catch (e: Exception) {
+            logger.error("Unexpected error when listing events from Google Calendar for calendar ID: $calendarId", e)
+            emptyList()
+        }
+    }
+
+    /**
+     * Builds a Google Calendar events request with the specified parameters.
+     */
+    private fun buildEventsRequest(
+        calendarId: String,
+        from: Instant,
+        to: Instant?,
+        q: String?,
+        returnInstances: Boolean
+    ): Calendar.Events.List {
+        val request = calendar.events().list(calendarId)
             .setTimeMin(DateTime(from.toEpochMilli()))
             .setSingleEvents(returnInstances)
 
-        if (to != null) {
-            eventsRequest.timeMax = DateTime(to.toEpochMilli())
+        // Add optional parameters if provided
+        to?.let { request.timeMax = DateTime(it.toEpochMilli()) }
+        q?.let { request.q = it }
+
+        return request
+    }
+
+    /**
+     * Processes and filters the fetched events according to business rules.
+     */
+    private fun processEvents(events: List<Event>): List<Event> {
+        // Remove events where all human participants have declined
+        val eventsAfterParticipantCheck = events.filter { event -> 
+            !shouldRemoveEventWithAllDeclinedParticipants(event)
         }
 
-        if (q != null) {
-            eventsRequest.q = q
+        // Remove events where any resource has declined
+        return eventsAfterParticipantCheck.filter { event ->
+            !hasAnyResourceDeclined(event)
+        }
+    }
+
+    /**
+     * Checks if an event should be removed because all human participants have declined.
+     * If all participants have declined, attempts to delete the event.
+     * 
+     * @return true if the event should be removed from results, false otherwise
+     */
+    private fun shouldRemoveEventWithAllDeclinedParticipants(event: Event): Boolean {
+        val isDefaultOrganizer = event.organizer?.email == defaultCalendar
+
+        // Only check events organized by our default calendar
+        if (event.attendees == null || event.attendees.isEmpty() || !isDefaultOrganizer) {
+            return false
         }
 
-        return try {
-            val events = eventsRequest.execute().items ?: emptyList()
+        // Get all human participants (non-resource attendees)
+        val humanParticipants = event.attendees.filter { it.resource == false || it.resource == null }
 
-            // Filter out events where a resource attendee has declined the meeting
-            events.filter { event ->
-                // Check if any resource attendee has declined
-                val resourceDeclined = event.attendees?.any { attendee ->
-                    attendee.resource == true && attendee.responseStatus == RESPONSE_STATUS_DECLINED
-                } ?: false
+        // Check if all human participants have declined
+        val allHumansDeclined = humanParticipants.isNotEmpty() && 
+                                humanParticipants.all { it.responseStatus == RESPONSE_STATUS_DECLINED }
 
-                // Keep events where no resource attendee has declined
-                !resourceDeclined
-            }
-        } catch (e: GoogleJsonResponseException) {
-            logger.error("Failed to list events from Google Calendar: {}", e.details)
-            if (e.statusCode == 404) {
-                logger.warn("Calendar with ID {} not found", calendarId)
-            } else if (e.statusCode == 403) {
-                logger.warn("Permission denied for calendar with ID {}", calendarId)
-            }
-            emptyList()
-        } catch (e: Exception) {
-            logger.error("Unexpected error when listing events from Google Calendar", e)
-            emptyList()
+        // If all humans declined, try to delete the event
+        if (allHumansDeclined) {
+            logger.warn("Deleting event with ID {} because all participants declined", event.id)
+            val deletionSucceeded = deleteEvent(defaultCalendar, event.id)
+            return deletionSucceeded
+        }
+
+        return false
+    }
+
+    /**
+     * Checks if any resource (room/workspace) attendee has declined the event.
+     * 
+     * @return true if any resource has declined, false otherwise
+     */
+    private fun hasAnyResourceDeclined(event: Event): Boolean {
+        return event.attendees?.any { attendee ->
+            attendee.resource == true && attendee.responseStatus == RESPONSE_STATUS_DECLINED
+        } ?: false
+    }
+
+    /**
+     * Handles Google JSON API exceptions with appropriate logging.
+     */
+    private fun handleGoogleJsonException(e: GoogleJsonResponseException, calendarId: String) {
+        logger.error("Failed to list events from Google Calendar: {}", e.details)
+        when (e.statusCode) {
+            404 -> logger.warn("Calendar with ID {} not found", calendarId)
+            403 -> logger.warn("Permission denied for calendar with ID {}", calendarId)
+            else -> logger.error("Google API error with status code {} for calendar ID {}", e.statusCode, calendarId)
         }
     }
 
