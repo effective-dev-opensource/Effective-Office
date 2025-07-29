@@ -3,6 +3,7 @@ package band.effective.office.tablet.root
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.model.Slot
+import band.effective.office.tablet.core.domain.orchestrator.EventOrchestrator
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.ResourceDisposerUseCase
 import band.effective.office.tablet.core.ui.common.ModalWindow
@@ -27,6 +28,7 @@ import org.koin.core.component.inject
 
 class RootComponent(
     componentContext: ComponentContext,
+    private val eventOrchestrator: EventOrchestrator,
 ) : ComponentContext by componentContext, KoinComponent {
 
     private val navigation = StackNavigation<Config>()
@@ -68,6 +70,7 @@ class RootComponent(
                     onFastBooking = ::handleFastBookingIntent,
                     onOpenFreeRoomModal = ::handleFreeRoomIntent,
                     openBookingDialog = ::openBookingDialog,
+                    eventOrchestrator = eventOrchestrator,
                 )
             )
         }

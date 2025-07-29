@@ -5,6 +5,7 @@ import band.effective.office.tablet.core.domain.ErrorWithData
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.model.Slot
+import band.effective.office.tablet.core.domain.orchestrator.EventOrchestrator
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.DeleteBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
@@ -51,6 +52,7 @@ class MainComponent(
     val onFastBooking: (minDuration: Int, selectedRoom: RoomInfo, rooms: List<RoomInfo>) -> Unit,
     val onOpenFreeRoomModal: (currentEvent: EventInfo, roomName: String) -> Unit,
     private val openBookingDialog: (event: EventInfo, room: String) -> Unit,
+    private val eventOrchestrator: EventOrchestrator,
 ) : ComponentContext by componentContext, KoinComponent {
 
     private val coroutineScope = componentCoroutineScope()
@@ -100,13 +102,24 @@ class MainComponent(
      * Sets up event listeners for updates and timers.
      */
     private fun setupEventListeners() {
-        // Listen for room updates
+        // Listen for coordinated refresh events from the orchestrator
+        coroutineScope.launch {
+            eventOrchestrator.refreshEvents.collect { event ->
+                // Handle refresh based on event properties
+                reboot(
+                    refresh = true,
+                    resetSelectRoom = event.resetToDefaultRoom,
+                    resetToCurrentDate = event.resetToCurrentDate
+                )
+            }
+        }
+
+        // Listen for room updates but delegate to orchestrator
         coroutineScope.launch(Dispatchers.IO) {
             updateUseCase.updateFlow().collect {
-                delay(1.seconds)
-                withContext(Dispatchers.Main) {
-                    loadRooms(state.value.indexSelectRoom)
-                }
+                eventOrchestrator.requestRefresh(
+                    trigger = EventOrchestrator.RefreshTrigger.MEETING_START
+                )
             }
         }
 
@@ -117,22 +130,19 @@ class MainComponent(
             }
         }
 
-        // Listen for room info changes
-        coroutineScope.launch(Dispatchers.Main) {
+        // Listen for room info changes through Firebase events
+        coroutineScope.launch {
             roomInfoUseCase.subscribe().collect { roomsInfo ->
                 if (roomsInfo.isNotEmpty()) {
-                    reboot(resetSelectRoom = false)
+                    eventOrchestrator.requestRefresh(
+                        EventOrchestrator.RefreshTrigger.FIREBASE_EVENT
+                    )
                 }
             }
         }
 
-        // reset select date
-        currentTimeTimer.start(1.minutes) {
-            withContext(Dispatchers.Main) {
-                mutableState.update { it.copy(selectedDate = currentLocalDateTime) }
-                slotComponent.sendIntent(SlotIntent.UpdateDate(currentLocalDateTime))
-            }
-        }
+        // We don't need to manually reset the date anymore
+        // The EventOrchestrator handles this with the INACTIVITY_TIMEOUT trigger
     }
 
     /**
@@ -365,17 +375,25 @@ class MainComponent(
     }
 
     /**
-     * Reboots the component, optionally refreshing data and resetting the selected room.
+     * Reboots the component, optionally refreshing data, resetting the selected room, and resetting to current date.
      */
     private fun reboot(
         refresh: Boolean = false,
-        resetSelectRoom: Boolean = true
+        resetSelectRoom: Boolean = true,
+        resetToCurrentDate: Boolean = false
     ) = coroutineScope.launch {
         val currentState = state.value
         val roomIndex = if (resetSelectRoom) {
             getRoomIndexUseCase(currentState.roomList)
         } else {
             currentState.indexSelectRoom
+        }
+
+        // Handle date reset if needed
+        val newDate = if (resetToCurrentDate) {
+            currentLocalDateTime
+        } else {
+            currentState.selectedDate
         }
 
         if (refresh && !currentState.isData) {
@@ -386,7 +404,12 @@ class MainComponent(
         loadRooms(roomIndex)
 
         currentState.roomList.getOrNull(roomIndex)?.let { roomInfo ->
-            updateComponents(roomInfo, currentState.selectedDate)
+            updateComponents(roomInfo, newDate)
+        }
+
+        // Update state with new date if needed
+        if (resetToCurrentDate) {
+            mutableState.update { it.copy(selectedDate = newDate) }
         }
     }
 
