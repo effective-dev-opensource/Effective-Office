@@ -1,0 +1,17 @@
+# An .aiignore file follows the same syntax as a .gitignore file.
+# .gitignore documentation: https://git-scm.com/docs/gitignore
+# Junie will ask for explicit approval before view or edit the file or file within a directory listed in .aiignore.
+# Only files contents is protected, Junie is still allowed to view file names even if they are listed in .aiignore.
+# Be aware that the files you included in .aiignore can still be accessed by Junie in two cases:
+# - If Brave Mode is turned on.
+# - If a command has been added to the Allowlist — Junie will not ask for confirmation, even if it accesses - files and folders listed in .aiignore.
+backend/app/src/main/resources/.env
+backend/app/src/main/resources/firebase-credentials.json
+backend/app/src/main/resources/google-credentials.json
+deploy/dev/.env
+deploy/prod/.env
+deploy/dev/*.jar
+deploy/prod/*.jar
+keystore
+local.properties
+clients/tablet/composeApp/google-services.json
