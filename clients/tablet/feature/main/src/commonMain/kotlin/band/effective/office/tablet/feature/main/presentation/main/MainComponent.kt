@@ -16,6 +16,7 @@ import band.effective.office.tablet.core.domain.util.currentLocalDateTime
 import band.effective.office.tablet.core.domain.util.minus
 import band.effective.office.tablet.core.domain.util.plus
 import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
+import band.effective.office.tablet.feature.main.domain.CurrentTimeHolder
 import band.effective.office.tablet.feature.main.domain.GetRoomIndexUseCase
 import band.effective.office.tablet.feature.main.domain.GetTimeToNextEventUseCase
 import band.effective.office.tablet.feature.slot.presentation.SlotComponent
@@ -23,12 +24,10 @@ import band.effective.office.tablet.feature.slot.presentation.SlotIntent
 import com.arkivanov.decompose.ComponentContext
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -123,13 +122,6 @@ class MainComponent(
             }
         }
 
-        // Update time to next event periodically
-        timerUseCase.timer(coroutineScope, 1.seconds) { _ ->
-            withContext(Dispatchers.Main) {
-                updateTimeToNextEvent()
-            }
-        }
-
         // Listen for room info changes through Firebase events
         coroutineScope.launch {
             roomInfoUseCase.subscribe().collect { roomsInfo ->
@@ -141,8 +133,17 @@ class MainComponent(
             }
         }
 
-        // We don't need to manually reset the date anymore
-        // The EventOrchestrator handles this with the INACTIVITY_TIMEOUT trigger
+        coroutineScope.launch {
+            CurrentTimeHolder.currentTime.collect { date ->
+                mutableState.update {
+                    it.copy(
+                        currentDate = date,
+                        selectedDate = date,
+                    )
+                }
+                updateTimeToNextEvent()
+            }
+        }
     }
 
     /**

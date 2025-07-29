@@ -12,6 +12,7 @@ import androidx.annotation.RequiresApi
 import band.effective.office.tablet.core.domain.orchestrator.EventOrchestrator
 import band.effective.office.tablet.interaction.TouchEventDispatcher
 import band.effective.office.tablet.root.RootComponent
+import band.effective.office.tablet.time.TimeReceiver
 import com.arkivanov.decompose.defaultComponentContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,11 +57,18 @@ class AppActivity : ComponentActivity() {
         TouchEventDispatcher(eventOrchestrator)
     }
 
+    // Create the TimeReceiver and initialize it
+    private val timeReceiver by lazy {
+        TimeReceiver(this)
+    }
+
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         runKioskMode()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        timeReceiver.register()
 
         // Install the touch event dispatcher
         touchEventDispatcher.install(window)
@@ -72,6 +80,12 @@ class AppActivity : ComponentActivity() {
         )
 
         setContent { App(root) }
+    }
+
+    override fun onDestroy() {
+        // Unregister the time receiver
+        timeReceiver.unregister()
+        super.onDestroy()
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
