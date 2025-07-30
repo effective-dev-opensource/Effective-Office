@@ -21,3 +21,5 @@ actual fun LocalDateTime.toLocalisedString(pattern: String): String {
     val date = calendar.dateFromComponents(dateComponents) ?: NSDate()
     return dateFormatter.stringFromDate(date)
 }
+
+actual fun getCurrentLanguageCode(): String = NSLocale.currentLocale.languageCode

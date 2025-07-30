@@ -9,3 +9,5 @@ actual fun LocalDateTime.toLocalisedString(pattern: String): String {
     val formatter = DateTimeFormatter.ofPattern(pattern, Locale.getDefault())
     return this.toJavaLocalDateTime().format(formatter)
 }
+
+actual fun getCurrentLanguageCode(): String = Locale.getDefault().language
