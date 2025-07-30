@@ -11,7 +11,7 @@
     <string name="plus_date_button_string">+ 30 min</string>
     <string name="short_minuets">min</string>
     <string name="short_hours">h</string>
-    <string name="selectbox_organizer_title">Select organizer</string>
+    <string name="selectbox_organizer_title">Choose organizer</string>
     <string name="selectbox_organizer_error">Invalid organizer, try again</string>
     <string name="timepicker_view_title">Book from</string>
     <string name="apply_date_time_for_booking">Confirm</string>
@@ -27,8 +27,8 @@
     <string name="on_main">Back to main</string>
     <string name="success_text">You booked %1$s</string>
     <string name="cancel">Cancel</string>
-    <string name="loading_slot_for_time">Loading slot for time: %1$s - %2$s</string>
-    <string name="empty_slot">Free for %1$s min</string>
+    <string name="loading_slot_for_time">Loading slot for time: %1$s — %2$s</string>
+    <string name="empty_slot">Available for %1$s min</string>
     <string name="event_slot">Booked by %1$s</string>
     <string name="multislot">%1$s bookings</string>
     <string name="loading_slot">Slot is loading</string>

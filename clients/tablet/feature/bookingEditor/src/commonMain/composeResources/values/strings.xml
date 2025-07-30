@@ -3,7 +3,7 @@
     <string name="create_view_title">Book %1$s</string>
     <string name="booking_view_title">Edit booking</string>
     <string name="booking_time_button">Book from %1$s to %2$s</string>
-    <string name="update_button">Update</string>
+    <string name="update_button">Confirm changes</string>
     <string name="delete_button">Delete booking</string>
     <string name="error">An error occurred</string>
     <string name="is_time_in_past_error">Error, incorrect date selected</string>
