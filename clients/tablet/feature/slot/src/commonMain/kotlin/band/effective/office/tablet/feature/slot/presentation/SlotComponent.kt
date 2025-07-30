@@ -13,8 +13,6 @@ import band.effective.office.tablet.core.domain.util.currentInstant
 import band.effective.office.tablet.feature.slot.domain.usecase.GetSlotsByRoomUseCase
 import band.effective.office.tablet.feature.slot.presentation.mapper.SlotUiMapper
 import com.arkivanov.decompose.ComponentContext
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -25,6 +23,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 
 private val SLOT_UPDATE_INTERVAL_MINUTES = 15.minutes
 private val UPDATE_BEFORE_SLOT_START_MS = 60_000L.milliseconds
@@ -56,6 +56,24 @@ class SlotComponent(
                 val uiSlots = getSlotsByRoomUseCase(roomInfo).map(slotUiMapper::map)
                 updateSlots(uiSlots)
             }
+        }
+    }
+
+    private fun resetAllMultiSlotStates() {
+        val slots = state.value.slots.toMutableList()
+        var hasChanges = false
+
+        // Find all MultiSlot instances that are open and close them
+        slots.forEachIndexed { index, slot ->
+            if (slot is SlotUi.MultiSlot && slot.isOpen) {
+                slots[index] = slot.copy(isOpen = false)
+                hasChanges = true
+            }
+        }
+
+        // Only update state if there were changes
+        if (hasChanges) {
+            mutableState.update { it.copy(slots = slots) }
         }
     }
 
@@ -103,10 +121,6 @@ class SlotComponent(
                     // Handle MultiSlot case - check if any subslots were being deleted
                     val updatedSubSlots = newSlot.subSlots.map { subSlot ->
                         val matchingSubDeleteSlot = deletingSlots.find { it.slot.isSameSlot(subSlot.slot) }
-                        Napier.d(
-                            tag = "DebugDeleting",
-                            message = "matchingSubDeleteSlot: $matchingSubDeleteSlot, subSlot: $subSlot, newSlot.subSlots: $newSlot.subSlots"
-                        )
                         if (matchingSubDeleteSlot != null) {
                             SlotUi.DeleteSlot(
                                 slot = subSlot.slot,
@@ -143,6 +157,7 @@ class SlotComponent(
             is SlotIntent.Delete -> deleteSlot(intent)
             is SlotIntent.OnCancelDelete -> cancelDeletingSlot(intent)
             is SlotIntent.UpdateRequest -> updateRequest(intent)
+            SlotIntent.InactivityTimeout -> resetAllMultiSlotStates()
         }
     }
 

@@ -9,5 +9,6 @@ sealed interface SlotIntent {
     data class UpdateRequest(val room: String, val newDate: LocalDateTime) : SlotIntent
     data class Delete(val slot: Slot, val onDelete: () -> Unit) : SlotIntent
     data class OnCancelDelete(val slot: SlotUi.DeleteSlot) : SlotIntent
+    data object InactivityTimeout: SlotIntent
 }
 

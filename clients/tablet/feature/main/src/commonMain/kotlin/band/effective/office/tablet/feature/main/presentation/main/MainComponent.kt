@@ -2,6 +2,7 @@ package band.effective.office.tablet.feature.main.presentation.main
 
 import band.effective.office.tablet.core.domain.Either
 import band.effective.office.tablet.core.domain.ErrorWithData
+import band.effective.office.tablet.core.domain.manager.DateResetManager
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.model.Slot
@@ -21,10 +22,6 @@ import band.effective.office.tablet.feature.main.domain.GetTimeToNextEventUseCas
 import band.effective.office.tablet.feature.slot.presentation.SlotComponent
 import band.effective.office.tablet.feature.slot.presentation.SlotIntent
 import com.arkivanov.decompose.ComponentContext
-import kotlin.math.abs
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -40,6 +37,10 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import kotlin.math.abs
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
 
 /**
  * Main component responsible for managing room information, bookings, and navigation.
@@ -94,6 +95,23 @@ class MainComponent(
 
         // Set up event listeners
         setupEventListeners()
+
+        // Initialize date reset manager
+        initializeDateResetManager()
+    }
+
+    /**
+     * Initializes the DateResetManager to handle date reset on inactivity.
+     * This registers a callback that will reset the selected date and current room
+     * when inactivity is detected.
+     */
+    private fun initializeDateResetManager() {
+        DateResetManager.registerDateResetCallback { date ->
+            mutableState.update { it.copy(selectedDate = date) }
+            reboot(refresh = true, resetSelectRoom = true)
+            updateTimeToNextEvent()
+            slotComponent.sendIntent(SlotIntent.InactivityTimeout)
+        }
     }
 
     /**
@@ -120,15 +138,7 @@ class MainComponent(
         }
 
         coroutineScope.launch {
-            CurrentTimeHolder.currentTime.collect { date ->
-                mutableState.update {
-                    it.copy(
-                        currentDate = date,
-                        selectedDate = date,
-                    )
-                }
-                updateTimeToNextEvent()
-            }
+            CurrentTimeHolder.currentTime.collect { updateTimeToNextEvent() }
         }
     }
 

@@ -24,8 +24,8 @@ import band.effective.office.tablet.feature.slot.presentation.SlotComponent
 import band.effective.office.tablet.feature.slot.presentation.SlotIntent
 import band.effective.office.tablet.feature.slot.presentation.SlotUi
 import band.effective.office.tablet.feature.slot.presentation.components.SlotView
-import kotlin.time.ExperimentalTime
 import kotlinx.datetime.LocalDateTime
+import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
 @Composable

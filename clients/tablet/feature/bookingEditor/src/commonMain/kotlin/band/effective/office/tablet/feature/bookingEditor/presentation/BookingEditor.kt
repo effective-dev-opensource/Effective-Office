@@ -197,7 +197,8 @@ private fun BookingEditor(
                 increment = incrementData,
                 decrement = decrementData,
                 onOpenDateTimePickerModal = onOpenDateTimePickerModal,
-                showTitle = true
+                showTitle = true,
+                currentDate = selectData,
             )
             Spacer(modifier = Modifier.height(15.dp))
             EventDurationView(
