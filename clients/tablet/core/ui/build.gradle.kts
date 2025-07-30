@@ -10,6 +10,7 @@ kotlin {
             implementation(libs.decompose.compose.jetbrains)
             implementation(libs.essenty.lifecycle)
             implementation(libs.essenty.state.keeper)
+            api(libs.kotlinx.datetime)
         }
     }
 }

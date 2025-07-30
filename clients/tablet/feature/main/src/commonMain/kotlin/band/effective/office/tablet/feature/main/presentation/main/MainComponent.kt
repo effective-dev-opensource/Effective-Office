@@ -337,20 +337,31 @@ class MainComponent(
      */
     private fun updateStateWithRoomsResult(roomsResult: RoomsResult) {
         mutableState.update {
-            it.copy(
-                isLoad = false,
-                isData = roomsResult.isSuccess,
-                isError = !roomsResult.isSuccess,
-                roomList = roomsResult.roomList,
-                indexSelectRoom = roomsResult.indexSelectRoom,
-                timeToNextEvent = getTimeToNextEventUseCase(
-                    state.value.roomList,
-                    state.value.indexSelectRoom
-                ),
-            )
+            if (roomsResult.roomList.isEmpty()) {
+                it.copy(
+                    isLoad = false,
+                    isData = false,
+                    isError = true,
+                    roomList = listOf(RoomInfo.defaultValue),
+                    indexSelectRoom = 0,
+                    timeToNextEvent = 0
+                )
+            } else {
+                val selectedRoom = roomsResult.roomList[roomsResult.indexSelectRoom.coerceIn(0, roomsResult.roomList.size - 1)]
+                updateComponents(selectedRoom, it.selectedDate)
+                it.copy(
+                    isLoad = false,
+                    isData = roomsResult.isSuccess,
+                    isError = !roomsResult.isSuccess,
+                    roomList = roomsResult.roomList,
+                    indexSelectRoom = roomsResult.indexSelectRoom,
+                    timeToNextEvent = getTimeToNextEventUseCase(
+                        rooms = roomsResult.roomList,
+                        selectedRoomIndex = roomsResult.indexSelectRoom
+                    )
+                )
+            }
         }
-        val selectedRoom = roomsResult.roomList[roomsResult.indexSelectRoom]
-        updateComponents(selectedRoom, state.value.selectedDate)
     }
 
     /**

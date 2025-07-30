@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="create_view_title">Занять %1$s</string>
+    <string name="booking_view_title">Изменить бронь</string>
+    <string name="booking_time_button">Занять c %1$s до %2$s</string>
+    <string name="update_button">Изменить</string>
+    <string name="delete_button">Удалить бронь</string>
+    <string name="error">Произошла ошибка</string>
+    <string name="is_time_in_past_error">Ошибка, выбрана неправильная дата</string>
+    <string name="error_creating_event">Ошибка при создании события</string>
+    <string name="error_deleting_event">Ошибка при удалении события</string>
+</resources>

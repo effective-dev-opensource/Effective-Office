@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="exit">Выход</string>
+    <string name="rooms">Переговорки</string>
+    <string name="choose_room">Выбрать ${nameRoom}</string>
+</resources>

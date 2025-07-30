@@ -40,6 +40,7 @@ import kotlin.time.ExperimentalTime
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
 
 @OptIn(ExperimentalTime::class)
 @Composable
@@ -122,7 +123,10 @@ private fun RowScope.SelectedDate(
         contentPadding = PaddingValues(0.dp)
     ) {
         AnimatedContent(
-            targetState = displayedFormat.format(selectDate),
+            targetState = DateDisplayMapper.map(
+                selectDate = selectDate,
+                currentDate = currentDate
+            ),
             transitionSpec = {
                 slideIntoContainer(slideDirection) + fadeIn() with
                         slideOutOfContainer(slideDirection.opposite()) + fadeOut()
