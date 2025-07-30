@@ -1,6 +1,5 @@
 package band.effective.office.tablet.core.domain.di
 
-import band.effective.office.tablet.core.domain.orchestrator.EventOrchestrator
 import band.effective.office.tablet.core.domain.useCase.CheckBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.CreateBookingUseCase
@@ -20,9 +19,6 @@ import band.effective.office.tablet.core.domain.useCase.SlotUseCase
 import band.effective.office.tablet.core.domain.useCase.TimerUseCase
 import band.effective.office.tablet.core.domain.useCase.UpdateBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.UpdateUseCase
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import org.koin.dsl.module
 
 val domainModule = module {
@@ -78,10 +74,4 @@ val domainModule = module {
     single { SlotUseCase() }
     single { TimerUseCase() }
     single { UpdateUseCase(roomInfoUseCase = get(), timerUseCase = get()) }
-
-    // Event orchestration
-    single { 
-        val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-        EventOrchestrator(appScope) 
-    }
 }

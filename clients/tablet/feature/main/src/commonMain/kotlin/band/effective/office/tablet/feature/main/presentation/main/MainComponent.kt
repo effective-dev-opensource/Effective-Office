@@ -5,7 +5,6 @@ import band.effective.office.tablet.core.domain.ErrorWithData
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.model.Slot
-import band.effective.office.tablet.core.domain.orchestrator.EventOrchestrator
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.DeleteBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
@@ -51,7 +50,6 @@ class MainComponent(
     val onFastBooking: (minDuration: Int, selectedRoom: RoomInfo, rooms: List<RoomInfo>) -> Unit,
     val onOpenFreeRoomModal: (currentEvent: EventInfo, roomName: String) -> Unit,
     private val openBookingDialog: (event: EventInfo, room: String) -> Unit,
-    private val eventOrchestrator: EventOrchestrator,
 ) : ComponentContext by componentContext, KoinComponent {
 
     private val coroutineScope = componentCoroutineScope()
@@ -101,34 +99,21 @@ class MainComponent(
      * Sets up event listeners for updates and timers.
      */
     private fun setupEventListeners() {
-        // Listen for coordinated refresh events from the orchestrator
-        coroutineScope.launch {
-            eventOrchestrator.refreshEvents.collect { event ->
-                // Handle refresh based on event properties
-                reboot(
-                    refresh = true,
-                    resetSelectRoom = event.resetToDefaultRoom,
-                    resetToCurrentDate = event.resetToCurrentDate
-                )
-            }
-        }
-
-        // Listen for room updates but delegate to orchestrator
+        // Listen for room updates
         coroutineScope.launch(Dispatchers.IO) {
             updateUseCase.updateFlow().collect {
-                eventOrchestrator.requestRefresh(
-                    trigger = EventOrchestrator.RefreshTrigger.MEETING_START
-                )
+                delay(1.seconds)
+                withContext(Dispatchers.Main) {
+                    loadRooms(state.value.indexSelectRoom)
+                }
             }
         }
 
-        // Listen for room info changes through Firebase events
-        coroutineScope.launch {
+        // Listen for room info changes
+        coroutineScope.launch(Dispatchers.Main) {
             roomInfoUseCase.subscribe().collect { roomsInfo ->
                 if (roomsInfo.isNotEmpty()) {
-                    eventOrchestrator.requestRefresh(
-                        EventOrchestrator.RefreshTrigger.FIREBASE_EVENT
-                    )
+                    reboot(resetSelectRoom = false)
                 }
             }
         }
@@ -376,25 +361,17 @@ class MainComponent(
     }
 
     /**
-     * Reboots the component, optionally refreshing data, resetting the selected room, and resetting to current date.
+     * Reboots the component, optionally refreshing data and resetting the selected room.
      */
     private fun reboot(
         refresh: Boolean = false,
-        resetSelectRoom: Boolean = true,
-        resetToCurrentDate: Boolean = false
+        resetSelectRoom: Boolean = true
     ) = coroutineScope.launch {
         val currentState = state.value
         val roomIndex = if (resetSelectRoom) {
             getRoomIndexUseCase(currentState.roomList)
         } else {
             currentState.indexSelectRoom
-        }
-
-        // Handle date reset if needed
-        val newDate = if (resetToCurrentDate) {
-            currentLocalDateTime
-        } else {
-            currentState.selectedDate
         }
 
         if (refresh && !currentState.isData) {
@@ -405,12 +382,7 @@ class MainComponent(
         loadRooms(roomIndex)
 
         currentState.roomList.getOrNull(roomIndex)?.let { roomInfo ->
-            updateComponents(roomInfo, newDate)
-        }
-
-        // Update state with new date if needed
-        if (resetToCurrentDate) {
-            mutableState.update { it.copy(selectedDate = newDate) }
+            updateComponents(roomInfo, currentState.selectedDate)
         }
     }
 
