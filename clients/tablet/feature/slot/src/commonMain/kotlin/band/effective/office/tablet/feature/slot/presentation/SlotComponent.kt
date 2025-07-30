@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.LocalDateTime
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -66,7 +65,74 @@ class SlotComponent(
             val delayDuration = (firstSlotStartInstant - currentInstant) + UPDATE_BEFORE_SLOT_START_MS
 
             updateTimer.restart(delayDuration)
-            mutableState.update { it.copy(slots = uiSlots) }
+
+            // Get all DeleteSlot instances, including those inside MultiSlot objects
+            val deletingSlots = getAllDeleteSlots(state.value.slots)
+
+            // Get current MultiSlots that are open
+            val openMultiSlots = state.value.slots.filterIsInstance<SlotUi.MultiSlot>()
+                .filter { it.isOpen }
+
+            // If there are no deleting slots and no open MultiSlots, just update with new slots
+            if (deletingSlots.isEmpty() && openMultiSlots.isEmpty()) {
+                mutableState.update { it.copy(slots = uiSlots) }
+
+                return@withContext
+            }
+
+            // Merge new slots with existing "deleting" slots and preserve open MultiSlots
+            val mergedSlots = uiSlots.map { newSlot ->
+                // Find if this slot matches any slot that was being deleted
+                val matchingDeleteSlot = deletingSlots.find { it.slot.isSameSlot(newSlot.slot) }
+
+                if (matchingDeleteSlot != null) {
+                    // Preserve the DeleteSlot state but update with new slot data
+                    SlotUi.DeleteSlot(
+                        slot = newSlot.slot,
+                        onDelete = matchingDeleteSlot.onDelete,
+                        original = newSlot,
+                        index = uiSlots.indexOf(newSlot),
+                        mainSlotIndex = null, // Will be updated for nested slots
+                        startTimeMillis = matchingDeleteSlot.startTimeMillis,
+                        deletionProgress = matchingDeleteSlot.deletionProgress
+                    )
+                } else if (newSlot is SlotUi.MultiSlot) {
+                    // Check if this MultiSlot was open before
+                    val wasOpen = openMultiSlots.any { it.slot.isSameSlot(newSlot.slot) }
+
+                    // Handle MultiSlot case - check if any subslots were being deleted
+                    val updatedSubSlots = newSlot.subSlots.map { subSlot ->
+                        val matchingSubDeleteSlot = deletingSlots.find { it.slot.isSameSlot(subSlot.slot) }
+                        Napier.d(
+                            tag = "DebugDeleting",
+                            message = "matchingSubDeleteSlot: $matchingSubDeleteSlot, subSlot: $subSlot, newSlot.subSlots: $newSlot.subSlots"
+                        )
+                        if (matchingSubDeleteSlot != null) {
+                            SlotUi.DeleteSlot(
+                                slot = subSlot.slot,
+                                onDelete = matchingSubDeleteSlot.onDelete,
+                                original = subSlot,
+                                index = newSlot.subSlots.indexOf(subSlot),
+                                mainSlotIndex = uiSlots.indexOf(newSlot),
+                                startTimeMillis = matchingSubDeleteSlot.startTimeMillis,
+                                deletionProgress = matchingSubDeleteSlot.deletionProgress
+                            )
+                        } else {
+                            subSlot
+                        }
+                    }
+
+                    // Preserve the isOpen state
+                    newSlot.copy(
+                        subSlots = updatedSubSlots,
+                        isOpen = wasOpen
+                    )
+                } else {
+                    newSlot
+                }
+            }
+
+            mutableState.update { it.copy(slots = mergedSlots) }
         }
     }
 
@@ -76,7 +142,6 @@ class SlotComponent(
             is SlotIntent.ClickToToggle -> openMultislot(intent.slot)
             is SlotIntent.Delete -> deleteSlot(intent)
             is SlotIntent.OnCancelDelete -> cancelDeletingSlot(intent)
-            is SlotIntent.UpdateDate -> updateDate(intent.newDate)
             is SlotIntent.UpdateRequest -> updateRequest(intent)
         }
     }
@@ -90,10 +155,17 @@ class SlotComponent(
     }
 
     private fun updateRequest(intent: SlotIntent.UpdateRequest) = coroutineScope.launch {
-        roomInfoUseCase.getRoom(intent.room)?.let { roomInfo ->
-            val slots = getSlotsByRoomUseCase(roomInfo = roomInfo)
+        roomInfoUseCase.getRoom(room = intent.room)?.let { roomInfo ->
+            val slots = getSlotsByRoomUseCase(
+                roomInfo = roomInfo,
+                start = maxOf(
+                    OfficeTime.startWorkTime(intent.newDate.date).asInstant,
+                    currentInstant,
+                ).asLocalDateTime
+            )
             val uiSlots = slots.map(slotUiMapper::map)
-            mutableState.update { it.copy(slots = uiSlots) }
+            // Use updateSlots instead of directly updating state to preserve DeleteSlot and isOpen states
+            updateSlots(uiSlots)
         }
     }
 
@@ -118,18 +190,18 @@ class SlotComponent(
     private fun deleteSlot(intent: SlotIntent.Delete) {
         val slots = state.value.slots
         var mainSlot: SlotUi.MultiSlot? = null
-        val uiSlot = slots.firstOrNull { it.slot == intent.slot }
+        val uiSlot = slots.firstOrNull { it.slot.isSameSlot(intent.slot) }
             ?: slots.mapNotNull { (it as? SlotUi.MultiSlot)?.subSlots }.flatten()
-                .firstOrNull { it.slot == intent.slot }
+                .firstOrNull { it.slot.isSameSlot(intent.slot) }
                 ?.apply {
                     mainSlot = slots.mapNotNull { it as? SlotUi.MultiSlot }
-                        .first { it.subSlots.contains(this) }
+                        .first { multiSlot -> multiSlot.subSlots.any { subSlot -> subSlot.slot.isSameSlot(this.slot) } }
                 }
         when {
             uiSlot == null -> {}
             mainSlot != null -> {
-                val indexInMultiSlot = mainSlot!!.subSlots.indexOf(uiSlot)
-                val indexMultiSlot = slots.indexOf(mainSlot)
+                val indexInMultiSlot = mainSlot!!.subSlots.indexOfFirst { it.slot.isSameSlot(uiSlot.slot) }
+                val indexMultiSlot = slots.indexOfFirst { it === mainSlot }
                 val newMainSlot = mainSlot!!.copy(
                     subSlots = mainSlot!!.subSlots.toMutableList().apply {
                         this[indexInMultiSlot] =
@@ -149,7 +221,7 @@ class SlotComponent(
             }
 
             else -> {
-                val index = slots.indexOf(uiSlot)
+                val index = slots.indexOfFirst { it.slot.isSameSlot(uiSlot.slot) }
                 mutableState.update {
                     it.copy(
                         slots = slots.toMutableList().apply {
@@ -167,6 +239,7 @@ class SlotComponent(
             }
         }
     }
+
     private fun Slot.execute() = when (this) {
         is Slot.EmptySlot -> executeFreeSlot(this)
         is Slot.EventSlot -> executeEventSlot(this)
@@ -175,7 +248,7 @@ class SlotComponent(
 
     private fun openMultislot(multislot: SlotUi.MultiSlot) {
         val slots = state.value.slots.toMutableList()
-        val index = slots.indexOf(multislot)
+        val index = slots.indexOfFirst { it.slot.isSameSlot(multislot.slot) }
         if (index < 0) return
         slots[index] = multislot.copy(isOpen = !multislot.isOpen)
         mutableState.update { it.copy(slots = slots) }
@@ -205,20 +278,6 @@ class SlotComponent(
             isLoading = false,
         )
 
-    private fun updateDate(newDate: LocalDateTime) = coroutineScope.launch {
-        roomInfoUseCase.getRoom(room = roomName())?.let { roomInfo ->
-            val slots = getSlotsByRoomUseCase(
-                roomInfo = roomInfo,
-                start = maxOf(
-                    OfficeTime.startWorkTime(newDate.date).asInstant,
-                    currentInstant,
-                ).asLocalDateTime
-            )
-            val uiSlots = slots.map(slotUiMapper::map)
-            mutableState.update { it.copy(slots = uiSlots) }
-        }
-    }
-
     private fun setupRoomAvailabilityWatcher() {
         updateTimer.init(SLOT_UPDATE_INTERVAL_MINUTES) {
             withContext(Dispatchers.Main) {
@@ -230,5 +289,31 @@ class SlotComponent(
                 updateSlots(uiSlots)
             }
         }
+    }
+
+    // Add this extension function to check if two slots represent the same slot
+    private fun Slot.isSameSlot(other: Slot): Boolean {
+        // For EventSlots, compare by event ID
+        if (this is Slot.EventSlot && other is Slot.EventSlot) {
+            return this.eventInfo.id == other.eventInfo.id
+        }
+
+        // For other slots, compare by time range
+        return this.start == other.start && this.finish == other.finish
+    }
+
+    // Helper function to get all DeleteSlot instances, including those inside MultiSlot objects
+    private fun getAllDeleteSlots(slots: List<SlotUi>): List<SlotUi.DeleteSlot> {
+        val result = mutableListOf<SlotUi.DeleteSlot>()
+
+        // Add top-level DeleteSlot instances
+        result.addAll(slots.filterIsInstance<SlotUi.DeleteSlot>())
+
+        // Add DeleteSlot instances inside MultiSlot objects
+        slots.filterIsInstance<SlotUi.MultiSlot>().forEach { multiSlot ->
+            result.addAll(multiSlot.subSlots.filterIsInstance<SlotUi.DeleteSlot>())
+        }
+
+        return result
     }
 }

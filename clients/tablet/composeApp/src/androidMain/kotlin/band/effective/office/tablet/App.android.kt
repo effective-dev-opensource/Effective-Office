@@ -19,6 +19,8 @@ class AppActivity : ComponentActivity() {
         var isRunKioskMode = false
     }
 
+    val timeReceiver by lazy { TimeReceiver(this) }
+
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         runKioskMode()

@@ -1,6 +1,7 @@
 package band.effective.office.tablet.feature.slot.presentation
 
 import band.effective.office.tablet.core.domain.model.Slot
+import kotlinx.datetime.Clock
 
 sealed interface SlotUi {
     val slot: Slot
@@ -14,7 +15,9 @@ sealed interface SlotUi {
         val onDelete: () -> Unit,
         val original: SlotUi,
         val index: Int,
-        val mainSlotIndex: Int?
+        val mainSlotIndex: Int?,
+        val startTimeMillis: Long = Clock.System.now().toEpochMilliseconds(),
+        val deletionProgress: Float = 100f
     ) : SlotUi
 
     data class NestedSlot(override val slot: Slot) : SlotUi

@@ -33,10 +33,11 @@ fun BorderIndicator(
     modifier: Modifier = Modifier.fillMaxSize(),
     startDurationInSeconds: Int = 10,
     stokeWidth: Dp,
+    initialProgress: Float = 100f,
     onDispose: () -> Unit
 ) {
     var targetValue by remember {
-        mutableStateOf(100f)
+        mutableStateOf(initialProgress)
     }
     // This is the progress path which wis changed using path measure
     val pathWithProgress by remember { mutableStateOf(Path()) }
@@ -85,7 +86,9 @@ fun BorderIndicator(
     }
     LaunchedEffect(Unit) {
         targetValue = 0f
-        delay(startDurationInSeconds * 1000L)
+        // Calculate remaining duration based on initial progress
+        val remainingDuration = (startDurationInSeconds * 1000L * initialProgress / 100f).toLong()
+        delay(remainingDuration)
         onDispose()
     }
 }

@@ -27,6 +27,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -235,7 +236,8 @@ class MainComponent(
         // Only update if the new date is not in the past
         if (newDate.date >= currentLocalDateTime.date) {
             mutableState.update { it.copy(selectedDate = newDate) }
-            slotComponent.sendIntent(SlotIntent.UpdateDate(newDate))
+            val selectedRoom = state.value.roomList[state.value.indexSelectRoom]
+            slotComponent.sendIntent(SlotIntent.UpdateRequest(selectedRoom.name, state.value.selectedDate))
         }
     }
 
@@ -266,16 +268,8 @@ class MainComponent(
 
         val selectedRoom = state.value.roomList.getOrNull(index)
         if (selectedRoom != null) {
-            updateComponents(selectedRoom, state.value.selectedDate)
+            slotComponent.sendIntent(SlotIntent.UpdateRequest(room = selectedRoom.name, state.value.selectedDate))
         }
-    }
-
-    /**
-     * Updates child components with new room and date information.
-     */
-    private fun updateComponents(roomInfo: RoomInfo, date: LocalDateTime) {
-        slotComponent.sendIntent(SlotIntent.UpdateRequest(room = roomInfo.name))
-        slotComponent.sendIntent(SlotIntent.UpdateDate(date))
     }
 
     /**
@@ -344,7 +338,7 @@ class MainComponent(
                 )
             } else {
                 val selectedRoom = roomsResult.roomList[roomsResult.indexSelectRoom.coerceIn(0, roomsResult.roomList.size - 1)]
-                updateComponents(selectedRoom, it.selectedDate)
+                slotComponent.sendIntent(SlotIntent.UpdateRequest(selectedRoom.name, state.value.selectedDate))
                 it.copy(
                     isLoad = false,
                     isData = roomsResult.isSuccess,
@@ -382,7 +376,7 @@ class MainComponent(
         loadRooms(roomIndex)
 
         currentState.roomList.getOrNull(roomIndex)?.let { roomInfo ->
-            updateComponents(roomInfo, currentState.selectedDate)
+            slotComponent.sendIntent(SlotIntent.UpdateRequest(roomInfo.name, currentState.selectedDate))
         }
     }
 

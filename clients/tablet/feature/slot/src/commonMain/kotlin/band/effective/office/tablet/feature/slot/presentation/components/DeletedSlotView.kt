@@ -48,9 +48,13 @@ fun DeletedSlotView(
                 )
             }
         }
-        BorderIndicator(onDispose = {
-            slotUi.onDelete()
-            isCancelability = false
-        }, stokeWidth = 10.dp)
+        BorderIndicator(
+            onDispose = {
+                slotUi.onDelete()
+                isCancelability = false
+            }, 
+            stokeWidth = 10.dp,
+            initialProgress = slotUi.deletionProgress
+        )
     }
 }
