@@ -13,6 +13,8 @@ import band.effective.office.tablet.core.domain.util.currentInstant
 import band.effective.office.tablet.feature.slot.domain.usecase.GetSlotsByRoomUseCase
 import band.effective.office.tablet.feature.slot.presentation.mapper.SlotUiMapper
 import com.arkivanov.decompose.ComponentContext
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,8 +25,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.minutes
 
 private val SLOT_UPDATE_INTERVAL_MINUTES = 15.minutes
 private val UPDATE_BEFORE_SLOT_START_MS = 60_000L.milliseconds
@@ -83,70 +83,7 @@ class SlotComponent(
             val delayDuration = (firstSlotStartInstant - currentInstant) + UPDATE_BEFORE_SLOT_START_MS
 
             updateTimer.restart(delayDuration)
-
-            // Get all DeleteSlot instances, including those inside MultiSlot objects
-            val deletingSlots = getAllDeleteSlots(state.value.slots)
-
-            // Get current MultiSlots that are open
-            val openMultiSlots = state.value.slots.filterIsInstance<SlotUi.MultiSlot>()
-                .filter { it.isOpen }
-
-            // If there are no deleting slots and no open MultiSlots, just update with new slots
-            if (deletingSlots.isEmpty() && openMultiSlots.isEmpty()) {
-                mutableState.update { it.copy(slots = uiSlots) }
-
-                return@withContext
-            }
-
-            // Merge new slots with existing "deleting" slots and preserve open MultiSlots
-            val mergedSlots = uiSlots.map { newSlot ->
-                // Find if this slot matches any slot that was being deleted
-                val matchingDeleteSlot = deletingSlots.find { it.slot.isSameSlot(newSlot.slot) }
-
-                if (matchingDeleteSlot != null) {
-                    // Preserve the DeleteSlot state but update with new slot data
-                    SlotUi.DeleteSlot(
-                        slot = newSlot.slot,
-                        onDelete = matchingDeleteSlot.onDelete,
-                        original = newSlot,
-                        index = uiSlots.indexOf(newSlot),
-                        mainSlotIndex = null, // Will be updated for nested slots
-                        startTimeMillis = matchingDeleteSlot.startTimeMillis,
-                        deletionProgress = matchingDeleteSlot.deletionProgress
-                    )
-                } else if (newSlot is SlotUi.MultiSlot) {
-                    // Check if this MultiSlot was open before
-                    val wasOpen = openMultiSlots.any { it.slot.isSameSlot(newSlot.slot) }
-
-                    // Handle MultiSlot case - check if any subslots were being deleted
-                    val updatedSubSlots = newSlot.subSlots.map { subSlot ->
-                        val matchingSubDeleteSlot = deletingSlots.find { it.slot.isSameSlot(subSlot.slot) }
-                        if (matchingSubDeleteSlot != null) {
-                            SlotUi.DeleteSlot(
-                                slot = subSlot.slot,
-                                onDelete = matchingSubDeleteSlot.onDelete,
-                                original = subSlot,
-                                index = newSlot.subSlots.indexOf(subSlot),
-                                mainSlotIndex = uiSlots.indexOf(newSlot),
-                                startTimeMillis = matchingSubDeleteSlot.startTimeMillis,
-                                deletionProgress = matchingSubDeleteSlot.deletionProgress
-                            )
-                        } else {
-                            subSlot
-                        }
-                    }
-
-                    // Preserve the isOpen state
-                    newSlot.copy(
-                        subSlots = updatedSubSlots,
-                        isOpen = wasOpen
-                    )
-                } else {
-                    newSlot
-                }
-            }
-
-            mutableState.update { it.copy(slots = mergedSlots) }
+            mutableState.update { it.copy(slots = uiSlots) }
         }
     }
 
@@ -154,8 +91,6 @@ class SlotComponent(
         when (intent) {
             is SlotIntent.ClickToEdit -> handleClickToEdit(intent.slot)
             is SlotIntent.ClickToToggle -> openMultislot(intent.slot)
-            is SlotIntent.Delete -> deleteSlot(intent)
-            is SlotIntent.OnCancelDelete -> cancelDeletingSlot(intent)
             is SlotIntent.UpdateRequest -> updateRequest(intent)
             SlotIntent.InactivityTimeout -> resetAllMultiSlotStates()
         }
@@ -184,77 +119,6 @@ class SlotComponent(
         }
     }
 
-    private fun cancelDeletingSlot(intent: SlotIntent.OnCancelDelete) {
-        val slots = state.value.slots
-        val original = intent.slot.original
-        val newSlots = if (intent.slot.mainSlotIndex == null) {
-            slots.toMutableList().apply { this[intent.slot.index] = original }
-        } else {
-            val mainSlot =
-                (slots[intent.slot.mainSlotIndex as Int] as SlotUi.MultiSlot).run {
-                    copy(
-                        subSlots = subSlots.toMutableList()
-                            .apply { this[intent.slot.index] = original }
-                    )
-                }
-            slots.toMutableList().apply { this[intent.slot.mainSlotIndex as Int] = mainSlot }
-        }
-        mutableState.update { it.copy(slots = newSlots) }
-    }
-
-    private fun deleteSlot(intent: SlotIntent.Delete) {
-        val slots = state.value.slots
-        var mainSlot: SlotUi.MultiSlot? = null
-        val uiSlot = slots.firstOrNull { it.slot.isSameSlot(intent.slot) }
-            ?: slots.mapNotNull { (it as? SlotUi.MultiSlot)?.subSlots }.flatten()
-                .firstOrNull { it.slot.isSameSlot(intent.slot) }
-                ?.apply {
-                    mainSlot = slots.mapNotNull { it as? SlotUi.MultiSlot }
-                        .first { multiSlot -> multiSlot.subSlots.any { subSlot -> subSlot.slot.isSameSlot(this.slot) } }
-                }
-        when {
-            uiSlot == null -> {}
-            mainSlot != null -> {
-                val indexInMultiSlot = mainSlot!!.subSlots.indexOfFirst { it.slot.isSameSlot(uiSlot.slot) }
-                val indexMultiSlot = slots.indexOfFirst { it === mainSlot }
-                val newMainSlot = mainSlot!!.copy(
-                    subSlots = mainSlot!!.subSlots.toMutableList().apply {
-                        this[indexInMultiSlot] =
-                            SlotUi.DeleteSlot(
-                                slot = intent.slot,
-                                onDelete = intent.onDelete,
-                                original = uiSlot,
-                                index = indexInMultiSlot,
-                                mainSlotIndex = indexMultiSlot
-                            )
-                    })
-                mutableState.update {
-                    it.copy(slots = slots.toMutableList().apply {
-                        this[indexMultiSlot] = newMainSlot
-                    })
-                }
-            }
-
-            else -> {
-                val index = slots.indexOfFirst { it.slot.isSameSlot(uiSlot.slot) }
-                mutableState.update {
-                    it.copy(
-                        slots = slots.toMutableList().apply {
-                            this[index] =
-                                SlotUi.DeleteSlot(
-                                    slot = intent.slot,
-                                    onDelete = intent.onDelete,
-                                    original = uiSlot,
-                                    index = index,
-                                    mainSlotIndex = null
-                                )
-                        }
-                    )
-                }
-            }
-        }
-    }
-
     private fun Slot.execute() = when (this) {
         is Slot.EmptySlot -> executeFreeSlot(this)
         is Slot.EventSlot -> executeEventSlot(this)
@@ -263,7 +127,7 @@ class SlotComponent(
 
     private fun openMultislot(multislot: SlotUi.MultiSlot) {
         val slots = state.value.slots.toMutableList()
-        val index = slots.indexOfFirst { it.slot.isSameSlot(multislot.slot) }
+        val index = slots.indexOf(multislot)
         if (index < 0) return
         slots[index] = multislot.copy(isOpen = !multislot.isOpen)
         mutableState.update { it.copy(slots = slots) }
@@ -304,31 +168,5 @@ class SlotComponent(
                 updateSlots(uiSlots)
             }
         }
-    }
-
-    // Add this extension function to check if two slots represent the same slot
-    private fun Slot.isSameSlot(other: Slot): Boolean {
-        // For EventSlots, compare by event ID
-        if (this is Slot.EventSlot && other is Slot.EventSlot) {
-            return this.eventInfo.id == other.eventInfo.id
-        }
-
-        // For other slots, compare by time range
-        return this.start == other.start && this.finish == other.finish
-    }
-
-    // Helper function to get all DeleteSlot instances, including those inside MultiSlot objects
-    private fun getAllDeleteSlots(slots: List<SlotUi>): List<SlotUi.DeleteSlot> {
-        val result = mutableListOf<SlotUi.DeleteSlot>()
-
-        // Add top-level DeleteSlot instances
-        result.addAll(slots.filterIsInstance<SlotUi.DeleteSlot>())
-
-        // Add DeleteSlot instances inside MultiSlot objects
-        slots.filterIsInstance<SlotUi.MultiSlot>().forEach { multiSlot ->
-            result.addAll(multiSlot.subSlots.filterIsInstance<SlotUi.DeleteSlot>())
-        }
-
-        return result
     }
 }

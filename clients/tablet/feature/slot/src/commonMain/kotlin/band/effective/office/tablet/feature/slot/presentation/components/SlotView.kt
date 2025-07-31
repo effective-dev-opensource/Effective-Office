@@ -3,7 +3,6 @@ package band.effective.office.tablet.feature.slot.presentation.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
@@ -11,7 +10,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.tablet.core.domain.util.freeTime
@@ -30,44 +28,31 @@ fun SlotView(
     slotUi: SlotUi,
     onClick: SlotUi.() -> Unit,
     onToggle: SlotUi.() -> Unit,
-    onCancel: (SlotUi.DeleteSlot) -> Unit
 ) {
     val borderShape = CircleShape
-    val baseModifier = Modifier
+
+    val itemModifier = Modifier
         .fillMaxWidth()
         .clip(borderShape)
-        .background(MaterialTheme.colorScheme.surface)
-
-    val itemModifier = baseModifier
-        .run {
-            when (slotUi) {
-                is SlotUi.MultiSlot -> this
-                else -> clickable { slotUi.onClick() }
-            }
-        }
         .then(
-            if (slotUi !is SlotUi.DeleteSlot) Modifier.border(
-                width = 5.dp,
-                color = slotUi.borderColor(),
-                shape = borderShape
-            ).padding(vertical = 15.dp, horizontal = 30.dp)
-            else Modifier
+            if (slotUi is SlotUi.MultiSlot)
+                Modifier.clickable { slotUi.onToggle() }
+            else
+                Modifier.clickable { slotUi.onClick() }
         )
+        .background(MaterialTheme.colorScheme.surface)
+        .border(
+            width = 5.dp,
+            color = slotUi.borderColor(),
+            shape = borderShape
+        ).padding(vertical = 15.dp, horizontal = 30.dp)
 
     when (slotUi) {
-        is SlotUi.DeleteSlot -> DeletedSlotView(
-            modifier = itemModifier,
-            slotUi = slotUi,
-            onCancel = onCancel,
-            paddingValues = PaddingValues(vertical = 15.dp, horizontal = 30.dp)
-        )
 
         is SlotUi.MultiSlot -> MultiSlotView(
             modifier = itemModifier,
             slotUi = slotUi,
             onItemClick = onClick,
-            onToggle = onToggle,
-            onCancel = onCancel
         )
 
         is SlotUi.SimpleSlot -> CommonSlotView(
@@ -89,7 +74,6 @@ fun SlotView(
 
 @Composable
 private fun SlotUi.borderColor() = when (this) {
-    is SlotUi.DeleteSlot -> Color.Gray
     is SlotUi.MultiSlot -> LocalCustomColorsPalette.current.busyStatus
     is SlotUi.NestedSlot -> subslotColor
     is SlotUi.SimpleSlot -> when (slot) {

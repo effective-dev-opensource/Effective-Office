@@ -5,7 +5,6 @@ import band.effective.office.tablet.core.domain.ErrorWithData
 import band.effective.office.tablet.core.domain.manager.DateResetManager
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
-import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.DeleteBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
@@ -22,6 +21,10 @@ import band.effective.office.tablet.feature.main.domain.GetTimeToNextEventUseCas
 import band.effective.office.tablet.feature.slot.presentation.SlotComponent
 import band.effective.office.tablet.feature.slot.presentation.SlotIntent
 import com.arkivanov.decompose.ComponentContext
+import kotlin.math.abs
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -37,10 +40,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import kotlin.math.abs
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.ExperimentalTime
 
 /**
  * Main component responsible for managing room information, bookings, and navigation.
@@ -203,34 +202,6 @@ class MainComponent(
 
         if (currentEvent != null) {
             onOpenFreeRoomModal(currentEvent, getCurrentRoomName())
-        }
-    }
-
-    /**
-     * Handles deleting an event.
-     */
-    fun handleDeleteEvent(slot: Slot) {
-        slotComponent.sendIntent(
-            SlotIntent.Delete(
-                slot = slot,
-                onDelete = {
-                    deleteEventFromSlot(slot)
-                }
-            )
-        )
-    }
-
-    /**
-     * Deletes an event from a slot.
-     */
-    private fun deleteEventFromSlot(slot: Slot) {
-        coroutineScope.launch {
-            (slot as? Slot.EventSlot)?.eventInfo?.let { eventInfo ->
-                deleteBookingUseCase(
-                    eventInfo = eventInfo,
-                    roomName = getCurrentRoomName()
-                )
-            }
         }
     }
 
