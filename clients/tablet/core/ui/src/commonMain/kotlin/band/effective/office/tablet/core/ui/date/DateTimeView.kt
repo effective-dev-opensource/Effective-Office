@@ -47,7 +47,7 @@ import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
 fun DateTimeView(
     modifier: Modifier,
     selectDate: LocalDateTime,
-    currentDate: LocalDateTime? = null,
+    currentDate: LocalDateTime,
     increment: () -> Unit,
     decrement: () -> Unit,
     onOpenDateTimePickerModal: () -> Unit,
@@ -90,7 +90,7 @@ private fun RowScope.NextDateButton(increment: () -> Unit) {
 private fun RowScope.SelectedDate(
     onOpenDateTimePickerModal: () -> Unit,
     selectDate: LocalDateTime,
-    currentDate: LocalDateTime?
+    currentDate: LocalDateTime
 ) {
     val timeDayMonthDateFormat = remember { dateTimeFormat }
     val dayMonthDateFormat = remember { dayMonthFormat }
@@ -101,42 +101,67 @@ private fun RowScope.SelectedDate(
         else AnimatedContentTransitionScope.SlideDirection.Right
     }
 
-    val displayedFormat by remember(selectDate) {
-        mutableStateOf(
-            if (currentDate != null && selectDate.date > currentDate.date) dayMonthDateFormat else timeDayMonthDateFormat
-        )
-    }
-
     LaunchedEffect(selectDate) {
         previousDate = selectDate
     }
 
-    Button(
-        modifier = Modifier
-            .fillMaxHeight()
-            .weight(4f)
-            .clip(RoundedCornerShape(15.dp)),
-        onClick = onOpenDateTimePickerModal,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = LocalCustomColorsPalette.current.elevationBackground
-        ),
-        contentPadding = PaddingValues(0.dp)
-    ) {
-        AnimatedContent(
-            targetState = DateDisplayMapper.map(
-                selectDate = selectDate,
-                currentDate = currentDate
+    if (currentDate.date < selectDate.date) {
+        Button(
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(4f)
+                .clip(RoundedCornerShape(15.dp)),
+            onClick = onOpenDateTimePickerModal,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = LocalCustomColorsPalette.current.elevationBackground
             ),
-            transitionSpec = {
-                slideIntoContainer(slideDirection) + fadeIn() with
-                        slideOutOfContainer(slideDirection.opposite()) + fadeOut()
-            },
-            label = "AnimatedDateChange"
-        ) { formattedDate ->
-            Text(
-                text = formattedDate,
-                style = MaterialTheme.typography.h6
-            )
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            AnimatedContent(
+                targetState = DateDisplayMapper.map(
+                    selectDate = selectDate,
+                    currentDate = currentDate
+                ),
+                transitionSpec = {
+                    slideIntoContainer(slideDirection) + fadeIn() with
+                            slideOutOfContainer(slideDirection.opposite()) + fadeOut()
+                },
+                label = "AnimatedDateChange"
+            ) { formattedDate ->
+                Text(
+                    text = formattedDate,
+                    style = MaterialTheme.typography.h6
+                )
+            }
+        }
+    } else {
+        Button(
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(4f)
+                .clip(RoundedCornerShape(15.dp)),
+            onClick = onOpenDateTimePickerModal,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = LocalCustomColorsPalette.current.elevationBackground
+            ),
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            AnimatedContent(
+                targetState = DateDisplayMapper.map(
+                    selectDate = currentDate,
+                    currentDate = currentDate
+                ),
+                transitionSpec = {
+                    slideIntoContainer(slideDirection) + fadeIn() with
+                            slideOutOfContainer(slideDirection.opposite()) + fadeOut()
+                },
+                label = "AnimatedDateChange"
+            ) { formattedDate ->
+                Text(
+                    text = formattedDate,
+                    style = MaterialTheme.typography.h6
+                )
+            }
         }
     }
 }

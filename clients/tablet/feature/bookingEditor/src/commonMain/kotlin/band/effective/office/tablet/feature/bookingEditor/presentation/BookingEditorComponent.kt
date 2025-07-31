@@ -1,12 +1,12 @@
 package band.effective.office.tablet.feature.bookingEditor.presentation
 
-import band.effective.office.tablet.core.domain.OfficeTime
+import band.effective.office.tablet.core.domain.Either
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.Organizer
-import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.tablet.core.domain.unbox
 import band.effective.office.tablet.core.domain.useCase.CheckBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.CreateBookingUseCase
+import band.effective.office.tablet.core.domain.useCase.DeleteBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.OrganizersInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.UpdateBookingUseCase
 import band.effective.office.tablet.core.domain.util.asInstant
@@ -24,6 +24,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -41,11 +42,12 @@ import org.koin.core.component.inject
  * Component responsible for editing booking events.
  * Handles creating new bookings and updating existing ones.
  */
+
+const val DELETE_SUCCESS_DELAY = 2000L
 class BookingEditorComponent(
     componentContext: ComponentContext,
     initialEvent: EventInfo,
     val roomName: String,
-    private val onDeleteEvent: (Slot) -> Unit,
     private val onCloseRequest: () -> Unit,
 ) : ComponentContext by componentContext, KoinComponent, ModalWindow {
 
@@ -68,6 +70,7 @@ class BookingEditorComponent(
     private val checkBookingUseCase: CheckBookingUseCase by inject()
     private val updateBookingUseCase: UpdateBookingUseCase by inject()
     private val createBookingUseCase: CreateBookingUseCase by inject()
+    private val deleteBookingUseCase: DeleteBookingUseCase by inject()
 
     // Mappers
     private val eventInfoMapper: EventInfoMapper by inject()
@@ -158,9 +161,25 @@ class BookingEditorComponent(
      */
     private fun deleteEvent() = coroutineScope.launch {
         mutableState.update { it.copy(isLoadDelete = true) }
-        onDeleteEvent(eventInfoMapper.mapToSlot(state.value.event))
-        mutableState.update { it.copy(isLoadDelete = false) }
-        onCloseRequest()
+        val deleteResult = withContext(Dispatchers.IO) {
+            deleteBookingUseCase(roomName, state.value.event)
+        }
+
+        when (deleteResult) {
+            is Either.Error -> {
+                mutableState.update {
+                    it.copy(
+                        isLoadDelete = false,
+                        isErrorDelete = true,
+                    )
+                }
+            }
+
+            is Either.Success -> {
+                delay(DELETE_SUCCESS_DELAY)
+                onCloseRequest()
+            }
+        }
     }
 
     /**

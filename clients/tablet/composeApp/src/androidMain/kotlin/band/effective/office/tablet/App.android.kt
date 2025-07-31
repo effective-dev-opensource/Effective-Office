@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import band.effective.office.tablet.root.RootComponent
+import band.effective.office.tablet.time.TimeReceiver
 import com.arkivanov.decompose.defaultComponentContext
 
 class AppActivity : ComponentActivity() {
@@ -18,13 +19,23 @@ class AppActivity : ComponentActivity() {
         var isRunKioskMode = false
     }
 
+    val timeReceiver by lazy { TimeReceiver(this) }
+
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         runKioskMode()
         super.onCreate(savedInstanceState)
+
+        timeReceiver.register()
         enableEdgeToEdge()
         val root = RootComponent(componentContext = defaultComponentContext())
         setContent { App(root) }
+    }
+
+    override fun onDestroy() {
+        // Unregister the time receiver
+        timeReceiver.unregister()
+        super.onDestroy()
     }
 
     @RequiresApi(Build.VERSION_CODES.P)

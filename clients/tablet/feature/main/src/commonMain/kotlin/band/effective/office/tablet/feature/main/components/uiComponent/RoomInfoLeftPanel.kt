@@ -90,8 +90,15 @@ fun RoomInfoLeftPanel(
                     SlotView(
                         slotUi = it,
                         onClick = { slotComponent.sendIntent(SlotIntent.ClickToEdit(this)) },
-                        onToggle = { (it as? SlotUi.MultiSlot)?.let { slotComponent.sendIntent(SlotIntent.ClickToToggle(it)) } },
-                        onCancel = { deleteSlot -> slotComponent.sendIntent(SlotIntent.OnCancelDelete(deleteSlot)) }
+                        onToggle = {
+                            (it as? SlotUi.MultiSlot)?.let {
+                                slotComponent.sendIntent(
+                                    SlotIntent.ClickToToggle(
+                                        it
+                                    )
+                                )
+                            }
+                        },
                     )
                 }
                 Spacer(Modifier.height(20.dp))

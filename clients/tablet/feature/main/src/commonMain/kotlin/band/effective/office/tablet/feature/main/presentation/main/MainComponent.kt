@@ -2,9 +2,9 @@ package band.effective.office.tablet.feature.main.presentation.main
 
 import band.effective.office.tablet.core.domain.Either
 import band.effective.office.tablet.core.domain.ErrorWithData
+import band.effective.office.tablet.core.domain.manager.DateResetManager
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
-import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.DeleteBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
@@ -15,6 +15,7 @@ import band.effective.office.tablet.core.domain.util.currentLocalDateTime
 import band.effective.office.tablet.core.domain.util.minus
 import band.effective.office.tablet.core.domain.util.plus
 import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
+import band.effective.office.tablet.feature.main.domain.CurrentTimeHolder
 import band.effective.office.tablet.feature.main.domain.GetRoomIndexUseCase
 import band.effective.office.tablet.feature.main.domain.GetTimeToNextEventUseCase
 import band.effective.office.tablet.feature.slot.presentation.SlotComponent
@@ -22,7 +23,6 @@ import band.effective.office.tablet.feature.slot.presentation.SlotIntent
 import com.arkivanov.decompose.ComponentContext
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
@@ -94,6 +94,23 @@ class MainComponent(
 
         // Set up event listeners
         setupEventListeners()
+
+        // Initialize date reset manager
+        initializeDateResetManager()
+    }
+
+    /**
+     * Initializes the DateResetManager to handle date reset on inactivity.
+     * This registers a callback that will reset the selected date and current room
+     * when inactivity is detected.
+     */
+    private fun initializeDateResetManager() {
+        DateResetManager.registerDateResetCallback { date ->
+            mutableState.update { it.copy(selectedDate = date) }
+            reboot(refresh = true, resetSelectRoom = true)
+            updateTimeToNextEvent()
+            slotComponent.sendIntent(SlotIntent.InactivityTimeout)
+        }
     }
 
     /**
@@ -110,13 +127,6 @@ class MainComponent(
             }
         }
 
-        // Update time to next event periodically
-        timerUseCase.timer(coroutineScope, 1.seconds) { _ ->
-            withContext(Dispatchers.Main) {
-                updateTimeToNextEvent()
-            }
-        }
-
         // Listen for room info changes
         coroutineScope.launch(Dispatchers.Main) {
             roomInfoUseCase.subscribe().collect { roomsInfo ->
@@ -126,12 +136,8 @@ class MainComponent(
             }
         }
 
-        // reset select date
-        currentTimeTimer.start(1.minutes) {
-            withContext(Dispatchers.Main) {
-                mutableState.update { it.copy(selectedDate = currentLocalDateTime) }
-                slotComponent.sendIntent(SlotIntent.UpdateDate(currentLocalDateTime))
-            }
+        coroutineScope.launch {
+            CurrentTimeHolder.currentTime.collect { updateTimeToNextEvent() }
         }
     }
 
@@ -200,34 +206,6 @@ class MainComponent(
     }
 
     /**
-     * Handles deleting an event.
-     */
-    fun handleDeleteEvent(slot: Slot) {
-        slotComponent.sendIntent(
-            SlotIntent.Delete(
-                slot = slot,
-                onDelete = {
-                    deleteEventFromSlot(slot)
-                }
-            )
-        )
-    }
-
-    /**
-     * Deletes an event from a slot.
-     */
-    private fun deleteEventFromSlot(slot: Slot) {
-        coroutineScope.launch {
-            (slot as? Slot.EventSlot)?.eventInfo?.let { eventInfo ->
-                deleteBookingUseCase(
-                    eventInfo = eventInfo,
-                    roomName = getCurrentRoomName()
-                )
-            }
-        }
-    }
-
-    /**
      * Updates the selected date.
      */
     private fun updateSelectedDate(intent: Intent.OnUpdateSelectDate) {
@@ -239,7 +217,8 @@ class MainComponent(
         // Only update if the new date is not in the past
         if (newDate.date >= currentLocalDateTime.date) {
             mutableState.update { it.copy(selectedDate = newDate) }
-            slotComponent.sendIntent(SlotIntent.UpdateDate(newDate))
+            val selectedRoom = state.value.roomList[state.value.indexSelectRoom]
+            slotComponent.sendIntent(SlotIntent.UpdateRequest(selectedRoom.name, state.value.selectedDate))
         }
     }
 
@@ -270,16 +249,8 @@ class MainComponent(
 
         val selectedRoom = state.value.roomList.getOrNull(index)
         if (selectedRoom != null) {
-            updateComponents(selectedRoom, state.value.selectedDate)
+            slotComponent.sendIntent(SlotIntent.UpdateRequest(room = selectedRoom.name, state.value.selectedDate))
         }
-    }
-
-    /**
-     * Updates child components with new room and date information.
-     */
-    private fun updateComponents(roomInfo: RoomInfo, date: LocalDateTime) {
-        slotComponent.sendIntent(SlotIntent.UpdateRequest(room = roomInfo.name))
-        slotComponent.sendIntent(SlotIntent.UpdateDate(date))
     }
 
     /**
@@ -348,7 +319,7 @@ class MainComponent(
                 )
             } else {
                 val selectedRoom = roomsResult.roomList[roomsResult.indexSelectRoom.coerceIn(0, roomsResult.roomList.size - 1)]
-                updateComponents(selectedRoom, it.selectedDate)
+                slotComponent.sendIntent(SlotIntent.UpdateRequest(selectedRoom.name, state.value.selectedDate))
                 it.copy(
                     isLoad = false,
                     isData = roomsResult.isSuccess,
@@ -386,7 +357,7 @@ class MainComponent(
         loadRooms(roomIndex)
 
         currentState.roomList.getOrNull(roomIndex)?.let { roomInfo ->
-            updateComponents(roomInfo, currentState.selectedDate)
+            slotComponent.sendIntent(SlotIntent.UpdateRequest(roomInfo.name, currentState.selectedDate))
         }
     }
 

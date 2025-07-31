@@ -61,8 +61,8 @@ class SlotUseCase(
         if (isEmpty()) return listOf(eventInfo.toSlot())
         val list = this.toMutableList()
         list.removeEmptySlot(eventInfo)
-        val predSlot = list.firstOrNull { it.finish > eventInfo.startTime } ?: list.first()
-        val predSlotIndex = list.indexOf(predSlot)
+        val predSlot = list.firstOrNull { it.finish > eventInfo.startTime }
+        val predSlotIndex = list.indexOf(predSlot).let { if (it == -1) 0 else it }
         list.add(predSlotIndex, eventInfo.toSlot())
         return list
     }

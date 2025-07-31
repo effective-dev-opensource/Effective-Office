@@ -2,7 +2,6 @@ package band.effective.office.tablet.root
 
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
-import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.ResourceDisposerUseCase
 import band.effective.office.tablet.core.ui.common.ModalWindow
@@ -153,14 +152,8 @@ class RootComponent(
             componentContext = componentContext,
             initialEvent = config.event,
             roomName = config.room,
-            onDeleteEvent = ::handleDeleteEvent,
             onCloseRequest = modalNavigation::dismiss,
         )
-    }
-
-    private fun handleDeleteEvent(slot: Slot) {
-        val mainComponent = (childStack.value.active.instance as? Child.MainChild)?.component
-        mainComponent?.handleDeleteEvent(slot)
     }
 
     private fun createFastBookingComponent(
