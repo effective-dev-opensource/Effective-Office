@@ -148,7 +148,7 @@ private fun RowScope.SelectedDate(
         ) {
             AnimatedContent(
                 targetState = DateDisplayMapper.map(
-                    selectDate = selectDate,
+                    selectDate = currentDate,
                     currentDate = currentDate
                 ),
                 transitionSpec = {
