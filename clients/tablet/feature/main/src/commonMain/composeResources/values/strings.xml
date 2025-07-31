@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="room_occupancy_date">Booked until %1$s</string>
-    <string name="room_occupancy_time">· Until %1$s</string>
+    <string name="room_occupancy_time">· %1$s left</string>
     <string name="free_room_occupancy_date">Free until %1$s</string>
     <string name="free_room_occupancy_time">· Until start %1$s</string>
     <string name="stop_meeting_button">Release</string>
@@ -33,10 +33,10 @@
     <string name="reset_button">Restart app</string>
     <string name="exit">Exit</string>
     <string name="choose_room">Choose %1$s</string>
-    <string name="free_now">Free now</string>
+    <string name="free_now">Available now</string>
     <string name="data_not_upd">Booking data may be outdated</string>
     <string name="fastbooking_button">%1$s min</string>
-    <string name="fastbooking_title">Book any meeting room for:</string>
+    <string name="fastbooking_title">Book any available room</string>
     <string name="free_select_room">Release the meeting room?</string>
     <string name="try_again">Try again</string>
     <string name="free_select_room_button">Release</string>

@@ -95,9 +95,9 @@ private fun Int.getDurationString(): String {
     val hours = this / 60
     val minutes = this % 60
     return when {
-        hours == 0 -> "$minutes${stringResource(Res.string.short_minuets)}"
-        minutes == 0 -> "$hours${stringResource(Res.string.short_hours)}"
-        else -> "$hours${stringResource( Res.string.short_hours)} " +
-                "$minutes${stringResource(Res.string.short_minuets)}"
+        hours == 0 -> "$minutes ${stringResource(Res.string.short_minuets)}"
+        minutes == 0 -> "$hours ${stringResource(Res.string.short_hours)}"
+        else -> "$hours ${stringResource( Res.string.short_hours)} " +
+                "$minutes ${stringResource(Res.string.short_minuets)}"
     }
 }

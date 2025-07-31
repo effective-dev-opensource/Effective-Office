@@ -36,7 +36,7 @@
     <string name="free_now">Сейчас свободна</string>
     <string name="data_not_upd">Данные брони могут быть неактуальны</string>
     <string name="fastbooking_button">%1$s мин</string>
-    <string name="fastbooking_title">Занять любую переговорку на:</string>
+    <string name="fastbooking_title">Занять любую переговорку</string>
     <string name="free_select_room">Освободить переговорку?</string>
     <string name="try_again">Попробовать ещё раз</string>
     <string name="free_select_room_button">Освободить</string>
