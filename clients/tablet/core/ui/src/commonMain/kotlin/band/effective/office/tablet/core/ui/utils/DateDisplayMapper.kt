@@ -59,4 +59,8 @@ object DateDisplayMapper {
         val patterns = getPatternsForLocale()
         return time.toLocalisedString(patterns.time)
     }
+
+    fun is24HourFormat(): Boolean {
+        return getCurrentLanguageCode() != "en"
+    }
 }
