@@ -1,6 +1,7 @@
 package band.effective.office.tablet.feature.bookingEditor.presentation
 
 import band.effective.office.tablet.core.domain.Either
+import band.effective.office.tablet.core.domain.OfficeTime
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.Organizer
 import band.effective.office.tablet.core.domain.unbox
@@ -42,7 +43,7 @@ import org.koin.core.component.inject
  * Component responsible for editing booking events.
  * Handles creating new bookings and updating existing ones.
  */
-
+const val DURATION_INCREMENT_MINUTES = 30
 const val DELETE_SUCCESS_DELAY = 2000L
 class BookingEditorComponent(
     componentContext: ComponentContext,
@@ -250,18 +251,26 @@ class BookingEditorComponent(
             )
             val isTimeInPast = newDate <= getCurrentTime()
 
+            val newFinishTime = newDate.asInstant.plus(duration.minutes).asLocalDateTime
+            val finishWorkTime = OfficeTime.finishWorkTime(newDate.date)
+            val isFinishTimeExceeded = newFinishTime > finishWorkTime
+
+            val nextIncrementFinishTime = newDate.asInstant.plus((duration + DURATION_INCREMENT_MINUTES).minutes).asLocalDateTime
+            val canIncrementDuration = nextIncrementFinishTime <= finishWorkTime
+
             updateStateWithNewEventDetails(
                 newDate = newDate,
                 newDuration = duration,
                 newOrganizer = selectOrganizer,
                 busyEvents = busyEvents,
-                isTimeInPast = isTimeInPast
+                isTimeInPast = isTimeInPast,
+                canIncrementDuration = canIncrementDuration
             )
 
             if (selectOrganizer != Organizer.default) {
                 updateButtonState(
                     inputError = isInputError,
-                    busyEvent = busyEvents.isNotEmpty()
+                    busyEvent = busyEvents.isNotEmpty() || isFinishTimeExceeded
                 )
             }
         }
@@ -282,6 +291,14 @@ class BookingEditorComponent(
                 it.fullName == newOrganizer.fullName
             } ?: event.organizer
             val isTimeInPast = newDate <= getCurrentTime()
+
+            val finishWorkTime = OfficeTime.finishWorkTime(newDate.date)
+            val newFinishTime = newDate.asInstant.plus(newDuration.minutes).asLocalDateTime
+            val isFinishTimeExceeded = newFinishTime > finishWorkTime
+
+            val nextIncrementFinishTime = newDate.asInstant.plus((newDuration + DURATION_INCREMENT_MINUTES).minutes).asLocalDateTime
+            val canIncrementDuration = nextIncrementFinishTime <= finishWorkTime
+
             val busyEvents = checkForBusyEvents(
                 date = newDate,
                 duration = newDuration,
@@ -293,12 +310,13 @@ class BookingEditorComponent(
                 newDuration = newDuration,
                 newOrganizer = resolvedOrganizer,
                 busyEvents = busyEvents,
-                isTimeInPast = isTimeInPast
+                isTimeInPast = isTimeInPast,
+                canIncrementDuration = canIncrementDuration
             )
 
             updateButtonState(
                 inputError = !organizers.contains(resolvedOrganizer),
-                busyEvent = busyEvents.isNotEmpty()
+                busyEvent = busyEvents.isNotEmpty() || isFinishTimeExceeded
             )
         }
     }
@@ -353,7 +371,8 @@ class BookingEditorComponent(
         newDuration: Int,
         newOrganizer: Organizer,
         busyEvents: List<EventInfo>,
-        isTimeInPast: Boolean
+        isTimeInPast: Boolean,
+        canIncrementDuration: Boolean
     ) {
         val updatedEvent = createEventInfo(
             id = state.value.event.id,
@@ -369,7 +388,8 @@ class BookingEditorComponent(
                 selectOrganizer = newOrganizer,
                 event = updatedEvent,
                 isBusyEvent = busyEvents.isNotEmpty(),
-                isTimeInPastError = isTimeInPast
+                isTimeInPastError = isTimeInPast,
+                canIncrementDuration = canIncrementDuration
             )
         }
     }

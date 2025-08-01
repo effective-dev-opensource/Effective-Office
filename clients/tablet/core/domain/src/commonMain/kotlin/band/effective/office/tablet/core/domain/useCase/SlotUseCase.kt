@@ -22,7 +22,7 @@ class SlotUseCase(
         currentEvent: EventInfo?,
     ): List<Slot> {
         return events
-            .filter { it.startTime >= start && it.startTime <= finish }
+            .filter { it.startTime >= start && it.startTime < finish && it.finishTime <= finish }
             .fold(
                 getEmptyMinSlots(start, finish, minSlotDur)
             ) { acc, eventInfo -> acc.addEvent(eventInfo) }
@@ -61,9 +61,12 @@ class SlotUseCase(
         if (isEmpty()) return listOf(eventInfo.toSlot())
         val list = this.toMutableList()
         list.removeEmptySlot(eventInfo)
-        val predSlot = list.firstOrNull { it.finish > eventInfo.startTime }
-        val predSlotIndex = list.indexOf(predSlot).let { if (it == -1) 0 else it }
-        list.add(predSlotIndex, eventInfo.toSlot())
+        val predSlotIndex = list.indexOfFirst { it.start >= eventInfo.startTime }
+        if (predSlotIndex != -1) {
+            list.add(predSlotIndex, eventInfo.toSlot())
+        } else {
+            list.add(eventInfo.toSlot())
+        }
         return list
     }
 

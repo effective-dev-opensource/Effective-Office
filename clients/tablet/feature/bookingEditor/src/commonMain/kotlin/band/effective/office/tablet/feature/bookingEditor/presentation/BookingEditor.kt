@@ -120,7 +120,8 @@ fun BookingEditor(
                         finish = state.event.finishTime.format(timeFormatter),
                         room = component.roomName,
                         isTimeInPastError = state.isTimeInPastError,
-                        isEditable = state.event.isEditable
+                        isEditable = state.event.isEditable,
+                        canIncrementDuration = state.canIncrementDuration
                     )
                 }
             }
@@ -163,7 +164,8 @@ private fun BookingEditor(
     finish: String,
     room: String,
     isTimeInPastError: Boolean,
-    isEditable: Boolean = true
+    isEditable: Boolean = true,
+    canIncrementDuration: Boolean
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val timeInPastErrorMessage = stringResource(Res.string.is_time_in_past_error)
@@ -205,7 +207,8 @@ private fun BookingEditor(
                 modifier = Modifier.fillMaxWidth().height(100.dp),
                 currentDuration = selectDuration,
                 increment = incrementDuration,
-                decrement = decrementDuration
+                decrement = decrementDuration,
+                canIncrementDuration = canIncrementDuration
             )
             Spacer(modifier = Modifier.height(15.dp))
             EventOrganizerView(

@@ -37,7 +37,8 @@ fun EventDurationView(
     modifier: Modifier = Modifier,
     currentDuration: Int,
     increment: () -> Unit,
-    decrement: () -> Unit
+    decrement: () -> Unit,
+    canIncrementDuration: Boolean = true
 ) {
     Column(modifier = modifier) {
         Text(
@@ -76,6 +77,7 @@ fun EventDurationView(
                 onClick = {
                     increment()
                 },
+                enabled = canIncrementDuration,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = LocalCustomColorsPalette.current.elevationBackground
                 )
