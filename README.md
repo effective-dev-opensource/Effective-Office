@@ -130,7 +130,7 @@ An application for tracking foosball match results. It allows users to log games
 - [Tatyana Terleeva](https://t.me/tatyana_terleeva) 
 - [Stanislav Radchenko](https://github.com/Radch-enko)
 - [Vitaly Smirnov](https://github.com/KrugarValdes)
-- [Victoria Maksimovna](https://t.me/the_koheskine)
+- [Viktoriya Kokh](https://t.me/the_koheskine)
 
 ## License
 The code is available as open source under the terms of the [MIT LICENSE](LICENSE).
