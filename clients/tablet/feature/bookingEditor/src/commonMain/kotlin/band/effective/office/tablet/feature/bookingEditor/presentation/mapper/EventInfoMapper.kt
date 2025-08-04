@@ -1,5 +1,6 @@
 package band.effective.office.tablet.feature.bookingEditor.presentation.mapper
 
+import band.effective.office.tablet.core.domain.OfficeTime
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.tablet.core.domain.util.asInstant
@@ -12,12 +13,15 @@ class EventInfoMapper {
 
     fun mapToUpdateBookingState(eventInfo: EventInfo): State {
         val duration = eventInfo.finishTime.asInstant.minus(eventInfo.startTime.asInstant).inWholeMinutes.toInt()
+        val finishWorkTime = OfficeTime.finishWorkTime(eventInfo.startTime.date)
+        val canIncrementDuration = eventInfo.finishTime < finishWorkTime
         return State.defaultValue.copy(
             date = eventInfo.startTime,
             duration = duration,
             selectOrganizer = eventInfo.organizer,
             inputText = eventInfo.organizer.fullName,
-            event = eventInfo
+            event = eventInfo,
+            canIncrementDuration = canIncrementDuration
         )
     }
 }

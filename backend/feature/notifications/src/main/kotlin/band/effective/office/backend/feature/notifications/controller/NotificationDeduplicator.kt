@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 @Component
 class NotificationDeduplicator {
 
-    private val ttlSeconds = 10L
+    private val ttlSeconds = 5L
 
     @OptIn(ExperimentalTime::class)
     private val seenEvents = ConcurrentHashMap<String, Instant>()

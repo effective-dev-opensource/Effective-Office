@@ -2,7 +2,6 @@ package band.effective.office.tablet.feature.slot.presentation.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -21,19 +20,16 @@ fun MultiSlotView(
     modifier: Modifier = Modifier,
     slotUi: SlotUi.MultiSlot,
     onItemClick: SlotUi.() -> Unit,
-    onToggle: SlotUi.() -> Unit,
-    onCancel: (SlotUi.DeleteSlot) -> Unit
 ) {
     Column(Modifier.animateContentSize()) {
         CommonSlotView(
-            modifier = modifier.clickable { onToggle(slotUi) },
+            modifier = modifier,
             slotUi = slotUi
         ) {
             Image(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .rotate(if (slotUi.isOpen) 180f else 0f)
-                    .clickable { onToggle(slotUi) },
+                    .rotate(if (slotUi.isOpen) 180f else 0f),
                 painter = painterResource(Res.drawable.arrow_to_down),
                 contentDescription = null
             )
@@ -45,8 +41,7 @@ fun MultiSlotView(
                 SlotView(
                     slotUi = it,
                     onClick = onItemClick,
-                    onToggle = onToggle,
-                    onCancel = onCancel
+                    onToggle = { /*Nothing*/ },
                 )
             }
         }

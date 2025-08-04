@@ -9,9 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import band.effective.office.tablet.core.domain.util.toFormattedString
 import band.effective.office.tablet.core.ui.theme.h5
 import band.effective.office.tablet.core.ui.theme.h7
+import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
 import band.effective.office.tablet.feature.slot.presentation.SlotUi
 
 @Composable
@@ -28,7 +28,7 @@ fun CommonSlotView(
     ) {
         Column {
             Text(
-                text = "${slot.start.toFormattedString("HH:mm")} - ${slot.finish.toFormattedString("HH:mm")}",
+                text = "${DateDisplayMapper.formatTime(slot.start)} — ${DateDisplayMapper.formatTime(slot.finish)}",
                 style = MaterialTheme.typography.h5,
                 color = MaterialTheme.colorScheme.onPrimary
             )

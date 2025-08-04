@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -85,19 +86,20 @@ fun RoomProperty(
     electricSocketCount: Int
 ) {
     Row {
+        if (isHaveTv) {
+            RoomPropertyComponent(
+                image = Res.drawable.tv,
+                text = "",
+                color = roomInfoColor
+            )
+            Spacer(modifier = Modifier.width(spaceBetweenProperty))
+        }
         RoomPropertyComponent(
             image = Res.drawable.quantity,
             text = "$capacity",
-            color = roomInfoColor
+            color = roomInfoColor,
+            textModifier = Modifier.widthIn(min = 20.dp)
         )
-        if (isHaveTv) {
-            Spacer(modifier = Modifier.width(spaceBetweenProperty))
-            RoomPropertyComponent(
-                image = Res.drawable.tv,
-                text = stringResource(band.effective.office.tablet.feature.main.Res.string.tv_property),
-                color = roomInfoColor
-            )
-        }
         if (electricSocketCount > 0) {
             Spacer(modifier = Modifier.width(spaceBetweenProperty))
             RoomPropertyComponent(
@@ -110,7 +112,12 @@ fun RoomProperty(
 }
 
 @Composable
-fun RoomPropertyComponent(image: DrawableResource, text: String, color: Color) {
+fun RoomPropertyComponent(
+    image: DrawableResource,
+    text: String,
+    color: Color,
+    textModifier: Modifier = Modifier
+) {
     Row(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
@@ -121,7 +128,9 @@ fun RoomPropertyComponent(image: DrawableResource, text: String, color: Color) {
             contentDescription = null,
             colorFilter = ColorFilter.tint(color)
         )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, style = MaterialTheme.typography.h8)
+        if (text.isNotEmpty()) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = text, style = MaterialTheme.typography.h8, modifier = textModifier)
+        }
     }
 }

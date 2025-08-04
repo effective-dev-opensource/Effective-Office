@@ -30,12 +30,15 @@ import band.effective.office.tablet.core.ui.theme.h6
 import band.effective.office.tablet.core.ui.theme.h8
 import org.jetbrains.compose.resources.stringResource
 
+private const val MIN_EVENT_DURATION_MINUTES = 15
+
 @Composable
 fun EventDurationView(
     modifier: Modifier = Modifier,
     currentDuration: Int,
     increment: () -> Unit,
-    decrement: () -> Unit
+    decrement: () -> Unit,
+    canIncrementDuration: Boolean = true
 ) {
     Column(modifier = modifier) {
         Text(
@@ -52,6 +55,7 @@ fun EventDurationView(
             Button(
                 modifier = Modifier.fillMaxHeight().weight(1f).clip(RoundedCornerShape(15.dp)),
                 onClick = { decrement() },
+                enabled = currentDuration > MIN_EVENT_DURATION_MINUTES,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = LocalCustomColorsPalette.current.elevationBackground
                 )
@@ -73,6 +77,7 @@ fun EventDurationView(
                 onClick = {
                     increment()
                 },
+                enabled = canIncrementDuration,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = LocalCustomColorsPalette.current.elevationBackground
                 )
@@ -92,9 +97,9 @@ private fun Int.getDurationString(): String {
     val hours = this / 60
     val minutes = this % 60
     return when {
-        hours == 0 -> "$minutes${stringResource(Res.string.short_minuets)}"
-        minutes == 0 -> "$hours${stringResource(Res.string.short_hours)}"
-        else -> "$hours${stringResource( Res.string.short_hours)} " +
-                "$minutes${stringResource(Res.string.short_minuets)}"
+        hours == 0 -> "$minutes ${stringResource(Res.string.short_minuets)}"
+        minutes == 0 -> "$hours ${stringResource(Res.string.short_hours)}"
+        else -> "$hours ${stringResource( Res.string.short_hours)} " +
+                "$minutes ${stringResource(Res.string.short_minuets)}"
     }
 }
