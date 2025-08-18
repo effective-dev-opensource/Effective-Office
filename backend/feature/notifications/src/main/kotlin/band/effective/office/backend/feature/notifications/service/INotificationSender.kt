@@ -9,4 +9,5 @@ interface INotificationSender {
      * Sends message about topic modification
      */
     fun sendEmptyMessage(topic: String)
+    fun sendDataMessage(topic: String, data: Map<String, String>)
 }
