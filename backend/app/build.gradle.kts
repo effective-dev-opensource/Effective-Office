@@ -14,7 +14,7 @@ dependencies {
     implementation(project(":backend:feature:authorization"))
     implementation(project(":backend:feature:calendar-subscription"))
     implementation(project(":backend:feature:notifications"))
-    implementation(project(":backend:feature:tv-modules:duolingo"))
+    implementation(project(":backend:feature:duolingo"))
 
     implementation("org.springframework:spring-tx")
     implementation(libs.springdoc.openapi.starter.webmvc.ui)

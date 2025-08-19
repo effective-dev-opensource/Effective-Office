@@ -1,7 +1,7 @@
-package band.effective.office.backend.feature.tv.modules.duolingo.controller
+package band.effective.office.backend.feature.duolingo.controller
 
-import band.effective.office.backend.feature.tv.modules.duolingo.dto.DuolingoResponseDTO
-import band.effective.office.backend.feature.tv.modules.duolingo.service.DuolingoService
+import band.effective.office.backend.feature.duolingo.dto.DuolingoResponseDTO
+import band.effective.office.backend.feature.duolingo.service.DuolingoService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse

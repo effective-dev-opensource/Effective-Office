@@ -1,7 +1,7 @@
-package band.effective.office.backend.feature.tv.modules.duolingo.service
+package band.effective.office.backend.feature.duolingo.service
 
-import band.effective.office.backend.feature.tv.modules.duolingo.dto.DuolingoResponseDTO
-import band.effective.office.backend.feature.tv.modules.duolingo.dto.DuolingoUserDTO
+import band.effective.office.backend.feature.duolingo.dto.DuolingoResponseDTO
+import band.effective.office.backend.feature.duolingo.dto.DuolingoUserDTO
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -19,6 +19,14 @@ class DuolingoService(
 
     private val logger = LoggerFactory.getLogger(DuolingoService::class.java)
 
+    companion object {
+        // API version is used for stability - this is the latest stable version of the Duolingo public API
+        private const val DUOLINGO_API_VERSION = "2017-06-30"
+
+        // User-Agent header mimics a browser to bypass potential API restrictions
+        private const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
+
     /**
      * Retrieves Duolingo user information for the given usernames.
      *
@@ -32,11 +40,11 @@ class DuolingoService(
             try {
                 val responseString = webClient.get()
                     .uri { uriBuilder ->
-                        uriBuilder.path("/2017-06-30/users")
+                        uriBuilder.path("/$DUOLINGO_API_VERSION/users")
                             .queryParam("username", username)
                             .build()
                     }
-                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+                    .header("User-Agent", USER_AGENT)
                     .retrieve()
                     .bodyToMono(String::class.java)
                     .block()

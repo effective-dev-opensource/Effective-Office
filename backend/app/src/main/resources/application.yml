@@ -42,7 +42,7 @@ springdoc:
     band.effective.office.backend.feature.authorization.controller,
     band.effective.office.backend.feature.booking.core.controller,
     band.effective.office.backend.feature.workspace.core.controller,
-    band.effective.office.backend.feature.tv.modules.duolingo.controller,
+    band.effective.office.backend.feature.duolingo.controller,
     band.effective.office.backend.feature.notifications.controller
 
 management:

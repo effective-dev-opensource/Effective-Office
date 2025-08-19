@@ -1,4 +1,4 @@
-package band.effective.office.backend.feature.tv.modules.duolingo.dto
+package band.effective.office.backend.feature.duolingo.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema

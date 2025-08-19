@@ -1,4 +1,4 @@
-package band.effective.office.backend.feature.tv.modules.duolingo.config
+package band.effective.office.backend.feature.duolingo.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

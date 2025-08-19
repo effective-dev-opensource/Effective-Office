@@ -39,7 +39,7 @@ include(
     "backend:feature:workspace",
     "backend:feature:calendar-subscription",
     "backend:feature:notifications",
-    "backend:feature:tv-modules:duolingo",
+    "backend:feature:duolingo",
 
     "clients:tablet:composeApp",
     "clients:tablet:core:ui",
