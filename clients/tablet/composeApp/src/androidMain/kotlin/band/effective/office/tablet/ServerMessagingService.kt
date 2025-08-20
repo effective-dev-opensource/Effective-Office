@@ -29,8 +29,15 @@ class ServerMessagingService() :
         }
     }
 
+    /**
+     * Processes incoming kiosk toggle commands.
+     *
+     * @param message FCM message containing the command.
+     *
+     * If `deviceId` is specified, only the device with matching ANDROID_ID
+     * executes the command. If no `deviceId` is provided, all devices execute it.
+     */
     private fun handleKioskCommand(message: RemoteMessage) {
-        val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         val targetDeviceId = message.data["deviceId"]
         val enabled = message.data["enabled"]?.toBooleanStrictOrNull()
 
@@ -38,11 +45,19 @@ class ServerMessagingService() :
             return
         }
 
-        if (targetDeviceId == null || targetDeviceId == deviceId) {
+        val shouldExecute = if (targetDeviceId == null) {
+            true
+        } else {
+            val currentDeviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
+            val isForThisDevice = targetDeviceId == currentDeviceId
+            Log.d("KIOSK_COMMAND", "Target: $targetDeviceId, Current: $currentDeviceId, Execute: $isForThisDevice")
+            isForThisDevice
+        }
+
+        if (shouldExecute) {
             val command = if (enabled) KioskCommand.Enable else KioskCommand.Disable
             kioskCommandBus.sendCommand(command, serviceScope)
-        } else {
-            Log.d("KIOSK_COMMAND", "Command ignored - not for this device")
+            Log.i("KIOSK_COMMAND", "Executing kiosk command: $command")
         }
     }
 }
