@@ -1,10 +1,12 @@
 package band.effective.office.tablet.feature.main.presentation.main
 
+import androidx.compose.runtime.Stable
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.util.currentLocalDateTime
 import kotlinx.datetime.LocalDateTime
 
-data class State(
+@Stable
+ data class State(
     val isLoad: Boolean,
     val isData: Boolean,
     val isError: Boolean,

@@ -1,8 +1,10 @@
 package band.effective.office.tablet.feature.settings
 
+import androidx.compose.runtime.Stable
 import band.effective.office.tablet.core.domain.model.RoomsEnum
 
-data class State(
+@Stable
+ data class State(
     val rooms: List<String>,
     val currentName: String,
     val loading: Boolean,

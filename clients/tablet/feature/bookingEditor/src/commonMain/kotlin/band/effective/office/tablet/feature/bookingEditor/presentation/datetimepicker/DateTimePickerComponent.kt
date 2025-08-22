@@ -1,5 +1,6 @@
 package band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker
 
+import androidx.compose.runtime.Immutable
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.useCase.CheckBookingUseCase
 import band.effective.office.tablet.core.domain.util.asInstant
@@ -108,6 +109,7 @@ class DateTimePickerComponent(
         mutableState.update { it.copy(isEnabledButton = isEnabled) }
     }
 
+    @Immutable
     data class State(
         val currentDate: LocalDateTime,
         val isEnabledButton: Boolean

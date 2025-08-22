@@ -1,7 +1,9 @@
 package band.effective.office.tablet.feature.slot.presentation
 
+import androidx.compose.runtime.Stable
 import band.effective.office.tablet.core.domain.model.Slot
 
+@Stable
 sealed interface SlotUi {
     val slot: Slot
 

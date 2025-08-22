@@ -1,10 +1,12 @@
 package band.effective.office.tablet.feature.main.presentation.main.navigation
 
+import androidx.compose.runtime.Stable
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import kotlinx.serialization.Serializable
 
 @Serializable
+@Stable
 sealed interface ModalWindowsConfig {
 
     @Serializable

@@ -7,6 +7,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -73,7 +74,8 @@ val CustomLightColors = CustomColorsPalette(
 /**
  * Custom color palette data class for additional colors not covered by Material Theme
  */
-data class CustomColorsPalette(
+@Immutable
+ data class CustomColorsPalette(
     val elevationBackground: Color = Color.Unspecified,
     val mountainBackground: Color = Color.Unspecified,
     val busyStatus: Color = Color.Unspecified,
