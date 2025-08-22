@@ -18,11 +18,10 @@ import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.booked_until
 import band.effective.office.tablet.core.ui.cancel_book
-import band.effective.office.tablet.core.ui.date.timeFormatter
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h5
+import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.format
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -58,7 +57,7 @@ fun SuccessFastSelectRoomView(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = stringResource(Res.string.booked_until, finishTime.format(timeFormatter)),
+                text = stringResource(Res.string.booked_until, DateDisplayMapper.formatTime(finishTime)),
                 style = MaterialTheme.typography.h5,
                 color = LocalCustomColorsPalette.current.primaryTextAndIcon
             )
