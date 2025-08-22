@@ -33,12 +33,56 @@ class KioskController(
     }
 
     /**
-     * Enables kiosk mode for a specific device or all devices.
+     * Enables kiosk mode for a specific device.
      */
-    @PostMapping("/enable")
+    @PostMapping("/device/enable")
     @Operation(
-        summary = "Enable kiosk mode",
-        description = "Enables kiosk mode for a specific device or all devices if deviceId is not provided",
+        summary = "Enable kiosk mode for specific device",
+        description = "Enables kiosk mode for a specific device by deviceId",
+        security = [SecurityRequirement(name = "bearerAuth")]
+    )
+    @ApiResponse(responseCode = "200", description = "Command sent successfully")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Device not found",
+        content = [Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorDto::class)
+        )]
+    )
+    fun enableKioskForDevice(@Valid @RequestBody request: KioskToggleRequest): ResponseEntity<Any> {
+        return toggleKioskForDevice(request.deviceId, true)
+    }
+
+    /**
+     * Disables kiosk mode for a specific device.
+     */
+    @PostMapping("/device/disable")
+    @Operation(
+        summary = "Disable kiosk mode for specific device",
+        description = "Disables kiosk mode for a specific device by deviceId",
+        security = [SecurityRequirement(name = "bearerAuth")]
+    )
+    @ApiResponse(responseCode = "200", description = "Command sent successfully")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Device not found",
+        content = [Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorDto::class)
+        )]
+    )
+    fun disableKioskForDevice(@Valid @RequestBody request: KioskToggleRequest): ResponseEntity<Any> {
+        return toggleKioskForDevice(request.deviceId, false)
+    }
+
+    /**
+     * Enables kiosk mode for all registered devices.
+     */
+    @PostMapping("/all/enable")
+    @Operation(
+        summary = "Enable kiosk mode for all devices",
+        description = "Enables kiosk mode for all registered devices in the database",
         security = [SecurityRequirement(name = "bearerAuth")]
     )
     @ApiResponse(
@@ -50,24 +94,24 @@ class KioskController(
         )]
     )
     @ApiResponse(
-        responseCode = "404",
-        description = "Device not found",
+        responseCode = "400",
+        description = "No devices found in database",
         content = [Content(
             mediaType = "application/json",
             schema = Schema(implementation = ErrorDto::class)
         )]
     )
-    fun enableKiosk(@Valid @RequestBody request: KioskToggleRequest): ResponseEntity<Any> {
-        return toggleKiosk(request, true)
+    fun enableKioskForAllDevices(): ResponseEntity<Any> {
+        return toggleKioskForAllDevices(true)
     }
 
     /**
-     * Disables kiosk mode for a specific device or all devices.
+     * Disables kiosk mode for all registered devices.
      */
-    @PostMapping("/disable")
+    @PostMapping("/all/disable")
     @Operation(
-        summary = "Disable kiosk mode",
-        description = "Disables kiosk mode for a specific device or all devices if deviceId is not provided",
+        summary = "Disable kiosk mode for all devices",
+        description = "Disables kiosk mode for all registered devices in the database",
         security = [SecurityRequirement(name = "bearerAuth")]
     )
     @ApiResponse(
@@ -79,48 +123,63 @@ class KioskController(
         )]
     )
     @ApiResponse(
-        responseCode = "404",
-        description = "Device not found",
+        responseCode = "400",
+        description = "No devices found in database",
         content = [Content(
             mediaType = "application/json",
             schema = Schema(implementation = ErrorDto::class)
         )]
     )
-    fun disableKiosk(@Valid @RequestBody request: KioskToggleRequest): ResponseEntity<Any> {
-        return toggleKiosk(request, false)
+    fun disableKioskForAllDevices(): ResponseEntity<Any> {
+        return toggleKioskForAllDevices(false)
     }
 
     /**
-     * Toggles kiosk mode for a specific device or all devices.
-     *
-     * @param request The toggle request containing the device ID (optional).
-     * @param enabled Whether to enable or disable kiosk mode.
-     * @return Response with success or error message.
+     * Toggles kiosk mode for a specific device.
      */
-    private fun toggleKiosk(request: KioskToggleRequest, enabled: Boolean): ResponseEntity<Any> {
-        if (request.deviceId != null && !deviceService.deviceExists(request.deviceId)) {
+    private fun toggleKioskForDevice(deviceId: String, isKioskModeActive: Boolean): ResponseEntity<Any> {
+        if (!deviceService.deviceExists(deviceId)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ErrorDto(message = "Device with ID ${request.deviceId} not found", code = 404))
+                .body(ErrorDto(message = "Device with ID $deviceId not found", code = 404))
         }
 
-        val payload = mapOf(
-            "type" to MESSAGE_TYPE,
-            "enabled" to enabled.toString(),
-            *(request.deviceId?.let { arrayOf("deviceId" to it) } ?: emptyArray())
-        )
-
-        return try {
-            notificationSender.sendDataMessage(KIOSK_TOPIC, payload)
-            val messageText = if (request.deviceId != null) {
-                "Kiosk mode ${if (enabled) "enabled" else "disabled"} for device: ${request.deviceId}"
-            } else {
-                "Kiosk mode ${if (enabled) "enabled" else "disabled"} for all devices"
-            }
-            ResponseEntity.ok(KioskMessageDto(messageText))
-        } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ErrorDto(message = "Failed to send kiosk command: ${e.message}", code = 500))
+        val payload = buildMap {
+            put("type", MESSAGE_TYPE)
+            put("isKioskModeActive", isKioskModeActive.toString())
+            put("deviceId", deviceId)
         }
+
+        notificationSender.sendDataMessage(KIOSK_TOPIC, payload)
+
+        val messageText = "Kiosk mode ${if (isKioskModeActive) "enabled" else "disabled"} for device: $deviceId"
+        return ResponseEntity.ok(KioskMessageDto(messageText))
+    }
+
+    /**
+     * Toggles kiosk mode for all registered devices.
+     * Sends one command with all device IDs from the database.
+     */
+    private fun toggleKioskForAllDevices(isKioskModeActive: Boolean): ResponseEntity<Any> {
+        val allDevices = deviceService.getAllDevices()
+
+        if (allDevices.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorDto(message = "No devices found in database", code = 400))
+        }
+
+        val deviceIds = allDevices.map { it.deviceId }
+
+        val payload = buildMap {
+            put("type", MESSAGE_TYPE)
+            put("isKioskModeActive", isKioskModeActive.toString())
+            put("deviceIds", deviceIds.joinToString(","))
+        }
+
+        notificationSender.sendDataMessage(KIOSK_TOPIC, payload)
+
+        val deviceCount = allDevices.size
+        val messageText = "Kiosk mode ${if (isKioskModeActive) "enabled" else "disabled"} for $deviceCount devices"
+        return ResponseEntity.ok(KioskMessageDto(messageText))
     }
 
     /**

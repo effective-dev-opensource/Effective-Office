@@ -3,8 +3,11 @@ package band.effective.office.tablet
 import android.provider.Settings
 import android.util.Log
 import band.effective.office.tablet.core.data.api.Collector
-import band.effective.office.tablet.utils.KioskCommand
+import band.effective.office.tablet.utils.DeviceTargetResolver
 import band.effective.office.tablet.utils.KioskCommandBus
+import band.effective.office.tablet.utils.KioskCommandMapper
+import band.effective.office.tablet.utils.MessageType
+import band.effective.office.tablet.utils.MessageValidator
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope
@@ -21,43 +24,46 @@ class ServerMessagingService() :
     override fun onMessageReceived(message: RemoteMessage) {
         Log.i("FCM_MESSAGE", "From: ${message.from}, Data: ${message.data}")
 
-        if (message.data["type"] == "KIOSK_TOGGLE") {
-            handleKioskCommand(message)
-        } else {
-            val topic = message.from?.substringAfter("topics/")?.replace("-test", "") ?: ""
-            collector.emit(topic)
+        when (MessageType.fromString(message.data["type"])) {
+            MessageType.KIOSK_TOGGLE -> handleKioskCommand(message)
+            MessageType.UNKNOWN -> {
+                val topic = message.from?.substringAfter("topics/")?.replace("-test", "") ?: ""
+                collector.emit(topic)
+            }
         }
     }
 
     /**
      * Processes incoming kiosk toggle commands.
      *
-     * @param message FCM message containing the command.
-     *
-     * If `deviceId` is specified, only the device with matching ANDROID_ID
-     * executes the command. If no `deviceId` is provided, all devices execute it.
+     * Supports both single device (deviceId) and multiple devices (deviceIds) commands.
      */
     private fun handleKioskCommand(message: RemoteMessage) {
-        val targetDeviceId = message.data["deviceId"]
-        val enabled = message.data["enabled"]?.toBooleanStrictOrNull()
 
-        if (enabled == null) {
+        if (!MessageValidator.isValidKioskCommand(message)) {
             return
         }
 
-        val shouldExecute = if (targetDeviceId == null) {
-            true
-        } else {
-            val currentDeviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
-            val isForThisDevice = targetDeviceId == currentDeviceId
-            Log.d("KIOSK_COMMAND", "Target: $targetDeviceId, Current: $currentDeviceId, Execute: $isForThisDevice")
-            isForThisDevice
-        }
+        val isKioskModeActive = getKioskModeStatus(message) ?: return
 
-        if (shouldExecute) {
-            val command = if (enabled) KioskCommand.Enable else KioskCommand.Disable
+        if (shouldExecuteCommand(message)) {
+            val command = KioskCommandMapper.mapToKioskCommand(isKioskModeActive)
             kioskCommandBus.sendCommand(command, serviceScope)
-            Log.i("KIOSK_COMMAND", "Executing kiosk command: $command")
         }
+    }
+
+    private fun getKioskModeStatus(message: RemoteMessage): Boolean? {
+        val kioskModeValue = message.data["isKioskModeActive"]
+        val isKioskModeActive = MessageValidator.validateKioskModeValue(kioskModeValue)
+        return isKioskModeActive
+    }
+
+    private fun shouldExecuteCommand(message: RemoteMessage): Boolean {
+        val currentDeviceId = getCurrentDeviceId()
+        return DeviceTargetResolver.shouldExecuteOnCurrentDevice(message, currentDeviceId)
+    }
+
+    private fun getCurrentDeviceId(): String {
+        return Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
     }
 }
