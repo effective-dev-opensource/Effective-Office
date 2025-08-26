@@ -30,11 +30,11 @@ import band.effective.office.tablet.core.ui.common.CrossButtonView
 import band.effective.office.tablet.core.ui.common.FailureFastSelectRoomView
 import band.effective.office.tablet.core.ui.common.Loader
 import band.effective.office.tablet.core.ui.common.SuccessFastSelectRoomView
-import band.effective.office.tablet.core.ui.date.timeFormatter
 import band.effective.office.tablet.core.ui.error
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h2
 import band.effective.office.tablet.core.ui.theme.h4
+import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import org.jetbrains.compose.resources.stringResource
 
@@ -47,7 +47,6 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun FastBooking(component: FastBookingComponent) {
     val state by component.state.collectAsState()
-    val timeFormat = remember { timeFormatter }
 
     Children(stack = component.childStack, modifier = Modifier.padding(35.dp)) { modal ->
         Dialog(
@@ -62,7 +61,7 @@ fun FastBooking(component: FastBookingComponent) {
             ) {
                 Spacer(modifier = Modifier.height(50.dp))
                 Text(
-                    text = timeFormat.format(state.currentTime),
+                    text = DateDisplayMapper.formatTime(state.currentTime),
                     style = MaterialTheme.typography.h2,
                     color = LocalCustomColorsPalette.current.primaryTextAndIcon
                 )

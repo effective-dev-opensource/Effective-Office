@@ -7,7 +7,6 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -20,11 +19,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.domain.model.EventInfo
-import band.effective.office.tablet.core.domain.util.toFormattedString
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h5
 import band.effective.office.tablet.core.ui.theme.roomInfoColor
 import band.effective.office.tablet.core.ui.theme.undefineStateColor
+import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
 import band.effective.office.tablet.feature.main.Res
 import band.effective.office.tablet.feature.main.room_occupancy_date
 import band.effective.office.tablet.feature.main.room_occupancy_time
@@ -62,7 +61,7 @@ fun BusyRoomInfoComponent(
             isError = isError
         ) {
             Text(
-                text = stringResource(Res.string.room_occupancy_date, event.finishTime.toFormattedString("HH:mm")) +
+                text = stringResource(Res.string.room_occupancy_date, DateDisplayMapper.formatTime(event.finishTime)) +
                         " " + if (timeToFinish > 0) stringResource(Res.string.room_occupancy_time, timeToFinish.getDuration()) else "",
                 style = MaterialTheme.typography.h5,
                 color = roomInfoColor
