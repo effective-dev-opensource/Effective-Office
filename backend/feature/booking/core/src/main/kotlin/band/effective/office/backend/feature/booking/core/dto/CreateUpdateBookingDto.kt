@@ -24,15 +24,15 @@ data class CreateBookingDto(
     val workspaceId: String,
 
     @field:NotNull(message = "Begin booking time is required")
-    @Schema(description = "Start time of the booking in milliseconds since epoch", example = "1672531200000")
+    @Schema(description = "Start time of the booking in milliseconds since epoch", example = "1755823500000")
     val beginBooking: Long,
 
     @field:NotNull(message = "End booking time is required")
-    @Schema(description = "End time of the booking in milliseconds since epoch", example = "1672534800000")
+    @Schema(description = "End time of the booking in milliseconds since epoch", example = "1758499500000")
     val endBooking: Long,
 
     @Valid
-    @Schema(description = "Recurrence pattern for the booking")
+    @Schema(description = "Recurrence pattern for the booking", example = "null")
     val recurrence: RecurrenceDto? = null
 ) {
     /**
@@ -71,14 +71,14 @@ data class UpdateBookingDto(
     @Schema(description = "Emails of users participating in the booking", example = "[\"jane.doe@example.com\"]")
     val participantEmails: List<String> = emptyList(),
 
-    @Schema(description = "Start time of the booking in milliseconds since epoch", example = "1672531200000")
+    @Schema(description = "Start time of the booking in milliseconds since epoch", example = "1755734400000")
     val beginBooking: Long? = null,
 
-    @Schema(description = "End time of the booking in milliseconds since epoch", example = "1672534800000")
+    @Schema(description = "End time of the booking in milliseconds since epoch", example = "1756734400000")
     val endBooking: Long? = null,
 
     @Valid
-    @Schema(description = "Recurrence pattern for the booking")
+    @Schema(description = "Recurrence pattern for the booking", example = "null")
     val recurrence: RecurrenceDto? = null
 ) {
     /**
