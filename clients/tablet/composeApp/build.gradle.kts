@@ -136,11 +136,17 @@ android {
 val apiUrlRelease: String = gradleLocalProperties(rootDir, providers).getProperty("api.url.release")
 val apiUrlDebug: String = gradleLocalProperties(rootDir, providers).getProperty("api.url.debug")
 val apiKey: String = gradleLocalProperties(rootDir, providers).getProperty("apiKey")
+val appVersionName: String = android.defaultConfig.versionName!!
 
 buildkonfig {
     packageName = "band.effective.office.tablet"
     exposeObjectWithName = "BuildKonfig"
     defaultConfigs {
+        buildConfigField(
+            com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
+            "VERSION_NAME",
+            appVersionName,
+        )
         buildConfigField(
             com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
             "API_URL_RELEASE",
