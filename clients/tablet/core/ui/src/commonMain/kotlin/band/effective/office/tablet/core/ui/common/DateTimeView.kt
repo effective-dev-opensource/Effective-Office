@@ -7,12 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import band.effective.office.tablet.core.ui.Res
-import band.effective.office.tablet.core.ui.date.timeFormatter
-import band.effective.office.tablet.core.ui.date_booking
+ import band.effective.office.tablet.core.ui.date_booking
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h5
+import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.format
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -29,8 +28,8 @@ fun DateTimeView(
             text = stringResource(
                 Res.string.date_booking,
                 startTime,
-                startTime.format(timeFormatter),
-                finishTime.format(timeFormatter)
+                DateDisplayMapper.formatTime(startTime),
+                DateDisplayMapper.formatTime(finishTime)
             ),
             style = MaterialTheme.typography.h5,
             color = LocalCustomColorsPalette.current.primaryTextAndIcon
