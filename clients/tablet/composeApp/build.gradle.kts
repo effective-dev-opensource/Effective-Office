@@ -84,8 +84,8 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
 
         applicationId = "band.effective.office.tablet"
-        versionCode = 2
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -136,11 +136,17 @@ android {
 val apiUrlRelease: String = gradleLocalProperties(rootDir, providers).getProperty("api.url.release")
 val apiUrlDebug: String = gradleLocalProperties(rootDir, providers).getProperty("api.url.debug")
 val apiKey: String = gradleLocalProperties(rootDir, providers).getProperty("apiKey")
+val appVersionName: String = android.defaultConfig.versionName!!
 
 buildkonfig {
     packageName = "band.effective.office.tablet"
     exposeObjectWithName = "BuildKonfig"
     defaultConfigs {
+        buildConfigField(
+            com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
+            "VERSION_NAME",
+            appVersionName,
+        )
         buildConfigField(
             com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
             "API_URL_RELEASE",
