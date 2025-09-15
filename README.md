@@ -1,19 +1,15 @@
 # Effective Office
 
-## Goal
+### Project Goal
 
-The main goal of the project is the automation of various processes in the office and providing
-interesting statistics for employees.
+Our goal is to make everyday office work simpler and more enjoyable by automating key processes.  
 
-## Technical goal
+### Technical goal
 
-The main technical task of the project is to create a multi-module application on Kotlin,
-trying to focus on the most modern and relevant solutions in this language. Throughout the project,
-we tried to use other languages and
-technologies as little as possible.
+The main technical task of the project is to create a multi-module Kotlin Multiplatform application, focusing on modern and relevant solutions in this ecosystem. Throughout the project, we tried to minimize the use of other languages and technologies.  
 
-## Meeting Room Tablet App
-
+# Apps
+## Meeting Room
 
 <img src="media/tablet/demo-tablet.gif" style="height: 50%;" />
 
@@ -28,7 +24,7 @@ technologies as little as possible.
 | Early Room Release         | Free up the room before the end of the reservation           |
 | Google Calendar Integration| Syncs all bookings with Google Calendar                      |
 
-## Quick Start
+# Quick Start
 
 ### Prerequisites
 
@@ -76,7 +72,7 @@ technologies as little as possible.
    ./gradlew :backend:app:bootRun --args='--spring.profiles.active=local'
    ```
 
-#### Run Clients
+### Run Clients
 1. Open the project in Android Studio or IntelliJ IDEA
 2. Sync the Gradle project to download dependencies
 3. Choose the appropriate run configuration in IDE
@@ -84,7 +80,7 @@ technologies as little as possible.
 
 For detailed installation instructions, including setting up credentials and running client applications, see our [Getting Started Guide](https://github.com/effective-dev-opensource/Effective-Office/wiki/Getting-Started-with-Effective-Office) in the wiki.
 
-## Project Structure
+### Project Structure
 
 ```
 effective-office/
@@ -100,16 +96,21 @@ effective-office/
 └── build-logic/       # Build configuration
 ```
 
-## Documentation
+# Documentation
 
 For comprehensive documentation, please visit our [Wiki](https://github.com/effective-dev-opensource/Effective-Office/wiki).
 
-## Contributing
+# Contributing
 
 We welcome contributions! Please see our [CONTRIBUTION.md](CONTRIBUTION.md) file for guidelines.
 
-## Roadmap
-**TV App**
+# AI Tools in Development
+We actively use [Junie](https://www.jetbrains.com//junie/), the AI coding agent from JetBrains, in the development and refactoring of Effective Office.  
+Junie helped us speed up backend initialization, migrate features from legacy code, and generate documentation and boilerplate.  
+We continue to use it as part of our workflow, combining automation with careful developer review.  
+
+# Roadmap
+**TV**
 
 A TV application featuring a corporate news and photo feed, event announcements with external registration, Duolingo and sports leaderboards, and an internal currency tracker. Currently in development.
 
@@ -123,7 +124,7 @@ A service for automatic routing of incoming SMS messages to the appropriate chan
 
 An application for tracking foosball match results. It allows users to log games, maintain leaderboards, and view statistics — all to encourage friendly competition in the office. Currently in development.
 
-## Authors
+# Authors
 
 - [Alex Korovyansky](https://t.me/alexkorovyansky) 
 - [Matvey Avgul](https://t.me/matthewavgul) 
@@ -132,5 +133,5 @@ An application for tracking foosball match results. It allows users to log games
 - [Vitaly Smirnov](https://github.com/KrugarValdes)
 - [Viktoriya Kokh](https://t.me/the_koheskine)
 
-## License
+# License
 The code is available as open source under the terms of the [MIT LICENSE](LICENSE).
