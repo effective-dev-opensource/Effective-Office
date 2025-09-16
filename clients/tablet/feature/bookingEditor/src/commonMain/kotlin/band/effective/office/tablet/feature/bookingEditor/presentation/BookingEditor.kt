@@ -21,7 +21,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import band.effective.office.tablet.core.domain.model.Organizer
-import band.effective.office.tablet.core.domain.util.timeFormatter
 import band.effective.office.tablet.core.ui.button.SuccessButton
 import band.effective.office.tablet.core.ui.common.AlertButton
 import band.effective.office.tablet.core.ui.common.CrossButtonView
@@ -41,6 +39,7 @@ import band.effective.office.tablet.core.ui.common.SuccessSelectRoomView
 import band.effective.office.tablet.core.ui.date.DateTimeView
 import band.effective.office.tablet.core.ui.theme.h3
 import band.effective.office.tablet.core.ui.theme.h6
+import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
 import band.effective.office.tablet.feature.bookingEditor.Res
 import band.effective.office.tablet.feature.bookingEditor.booking_time_button
 import band.effective.office.tablet.feature.bookingEditor.booking_view_title
@@ -54,7 +53,6 @@ import band.effective.office.tablet.feature.bookingEditor.presentation.datetimep
 import band.effective.office.tablet.feature.bookingEditor.update_button
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.format
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -116,8 +114,8 @@ fun BookingEditor(
                         enableUpdateButton = state.enableUpdateButton,
                         isNewEvent = !state.isCreatedEvent(),
                         onCreateEvent = { component.sendIntent(Intent.OnBooking) },
-                        start = state.event.startTime.format(timeFormatter),
-                        finish = state.event.finishTime.format(timeFormatter),
+                        start = DateDisplayMapper.formatTime(state.event.startTime),
+                        finish = DateDisplayMapper.formatTime(state.event.finishTime),
                         room = component.roomName,
                         isTimeInPastError = state.isTimeInPastError,
                         isEditable = state.event.isEditable,
