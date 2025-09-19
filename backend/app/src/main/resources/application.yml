@@ -45,6 +45,7 @@ springdoc:
     - band.effective.office.backend.feature.workspace.core.controller
     - band.effective.office.backend.feature.duolingo.controller
     - band.effective.office.backend.feature.notifications.controller
+    - band.effective.office.backend.feature.photos.core.controller
 
 management:
   endpoints:
@@ -75,6 +76,16 @@ logging:
 
 application:
   url: ${APPLICATION_URL:http://localhost:8080}
+
+# Photos provider configuration
+photos:
+  provider: synology # Options: synology, dummy
+
+# Synology NAS configuration (required when using synology provider)
+SYNOLOGY_IP: ${SYNOLOGY_IP:}
+SYNOLOGY_LOGIN: ${SYNOLOGY_LOGIN:}
+SYNOLOGY_PASSWORD: ${SYNOLOGY_PASSWORD:}
+SYNOLOGY_ALBUM_NAME: ${SYNOLOGY_ALBUM_NAME:}
 
 # Calendar provider configuration
 calendar:

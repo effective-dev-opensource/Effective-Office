@@ -40,6 +40,9 @@ include(
     "backend:feature:calendar-subscription",
     "backend:feature:notifications",
     "backend:feature:duolingo",
+    "backend:feature:photos:core",
+    "backend:feature:photos:provider:synology",
+    "backend:feature:photos:provider:dummy",
 
     "clients:tablet:composeApp",
     "clients:tablet:core:ui",
