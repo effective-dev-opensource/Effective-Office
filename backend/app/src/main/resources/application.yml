@@ -45,6 +45,7 @@ springdoc:
     - band.effective.office.backend.feature.workspace.core.controller
     - band.effective.office.backend.feature.duolingo.controller
     - band.effective.office.backend.feature.notifications.controller
+    - band.effective.office.backend.feature.leader.id.controller
     - band.effective.office.backend.feature.photos.core.controller
 
 management:
@@ -76,6 +77,13 @@ logging:
 
 application:
   url: ${APPLICATION_URL:http://localhost:8080}
+
+# LeaderId configuration
+leaderid:
+  events-period-days: ${LEADERID_EVENTS_PERIOD_DAYS:14}
+  default-city-id: ${LEADERID_DEFAULT_CITY_ID:893}
+  default-place-id: ${LEADERID_DEFAULT_PLACE_ID:3942}
+  default-pagination-size: ${LEADERID_DEFAULT_PAGINATION_SIZE:100}
 
 # Photos provider configuration
 photos:

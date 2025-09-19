@@ -40,6 +40,7 @@ include(
     "backend:feature:calendar-subscription",
     "backend:feature:notifications",
     "backend:feature:duolingo",
+    "backend:feature:leader-id",
     "backend:feature:photos:core",
     "backend:feature:photos:provider:synology",
     "backend:feature:photos:provider:dummy",

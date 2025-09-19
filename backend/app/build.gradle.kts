@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":backend:feature:calendar-subscription"))
     implementation(project(":backend:feature:notifications"))
     implementation(project(":backend:feature:duolingo"))
+    implementation(project(":backend:feature:leader-id"))
     implementation(project(":backend:feature:photos:core"))
     implementation(project(":backend:feature:photos:provider:synology"))
     implementation(project(":backend:feature:photos:provider:dummy"))
