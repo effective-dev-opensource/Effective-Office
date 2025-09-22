@@ -107,7 +107,9 @@ We welcome contributions! Please see our [CONTRIBUTION.md](CONTRIBUTION.md) file
 # AI Tools in Development
 We actively use [Junie](https://www.jetbrains.com//junie/), the AI coding agent from JetBrains, in the development and refactoring of Effective Office.  
 Junie helped us speed up backend initialization, migrate features from legacy code, and generate documentation and boilerplate.  
-We continue to use it as part of our workflow, combining automation with careful developer review.  
+We continue to use it as part of our workflow, combining automation with careful developer review.
+
+Read more about our experience using Junie in [the Medium article](https://medium.com/@stanislav.radchenko/how-we-used-junie-by-jetbrains-to-speed-up-development-of-an-internal-project-xyz).
 
 # Roadmap
 **TV**
