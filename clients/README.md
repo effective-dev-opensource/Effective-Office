@@ -108,3 +108,39 @@ tablet/
 ## Responsive Design
 The applications are designed to work on:
 - Tablets
+
+## Kiosk Mode Management
+
+The tablet application includes comprehensive kiosk mode functionality for remote device management:
+
+### Features
+
+- **Remote Control**: Enable/disable kiosk mode via Firebase push notifications
+- **Device Targeting**: Support for single device or bulk device operations
+- **Android Device Owner**: Full kiosk mode control using Android Device Owner privileges
+
+### Setup Requirements
+
+To enable kiosk mode functionality, the tablet must be configured as a Device Owner:
+
+#### Basic Setup Steps
+
+1. **Enable Developer Options** on the Android device
+2. **Enable USB Debugging**
+3. **Connect device via ADB** and run:
+   ```bash
+   adb shell dpm set-device-owner band.effective.office.tablet/.AdminReceiver
+   ```
+4. **Verify Device Owner status**:
+   ```bash
+   adb shell dpm list-owners
+   ```
+#### Troubleshooting Device Owner Setup
+
+If the basic setup fails:
+
+1. **Check device compatibility**: Ensure your device supports Device Owner mode
+2. **Try factory reset**: Reset the device and try setup immediately after first boot
+3. **Remove accounts**: Ensure no Google or other accounts are configured
+4. **Check manufacturer documentation**: Some devices have specific setup procedures
+5. **Consider enterprise solutions**: For production deployments, consider using Android Enterprise or manufacturer-specific kiosk solutions
