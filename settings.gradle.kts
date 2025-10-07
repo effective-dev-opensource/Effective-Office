@@ -15,6 +15,7 @@ dependencyResolutionManagement {
         mavenCentral()
         maven(url = "https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven(url = "https://androidx.dev/storage/compose-compiler/repository")
+        maven(url = "https://jitpack.io")
     }
 
 }
@@ -44,6 +45,9 @@ include(
     "backend:feature:photos:core",
     "backend:feature:photos:provider:synology",
     "backend:feature:photos:provider:dummy",
+    "backend:feature:teammates:core",
+    "backend:feature:teammates:provider:notion",
+    "backend:feature:teammates:provider:dummy",
 
     "clients:tablet:composeApp",
     "clients:tablet:core:ui",

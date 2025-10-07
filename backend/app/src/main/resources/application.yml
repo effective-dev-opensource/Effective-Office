@@ -38,7 +38,7 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     operations-sorter: method
-  packages-to-scan: 
+  packages-to-scan:
     - band.effective.office.backend.app.controller
     - band.effective.office.backend.feature.authorization.controller
     - band.effective.office.backend.feature.booking.core.controller
@@ -47,6 +47,7 @@ springdoc:
     - band.effective.office.backend.feature.notifications.controller
     - band.effective.office.backend.feature.leader.id.controller
     - band.effective.office.backend.feature.photos.core.controller
+    - band.effective.office.backend.feature.teammates.core.controller
 
 management:
   endpoints:
@@ -88,6 +89,15 @@ leaderid:
 # Photos provider configuration
 photos:
   provider: synology # Options: synology, dummy
+
+# Teammates provider configuration
+teammates:
+  provider: notion # Options: notion, dummy
+
+# Notion configuration (required when using notion provider)
+NOTION_TOKEN: ${NOTION_TOKEN:}
+NOTION_TEAMMATES_DB_ID: ${NOTION_TEAMMATES_DB_ID:}
+NOTION_SUPERNOVA_DB_ID: ${NOTION_SUPERNOVA_DB_ID:}
 
 # Synology NAS configuration (required when using synology provider)
 SYNOLOGY_IP: ${SYNOLOGY_IP:}

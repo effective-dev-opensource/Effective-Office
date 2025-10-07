@@ -19,6 +19,9 @@ dependencies {
     implementation(project(":backend:feature:photos:core"))
     implementation(project(":backend:feature:photos:provider:synology"))
     implementation(project(":backend:feature:photos:provider:dummy"))
+    implementation(project(":backend:feature:teammates:core"))
+    implementation(project(":backend:feature:teammates:provider:notion"))
+    implementation(project(":backend:feature:teammates:provider:dummy"))
 
     implementation("org.springframework:spring-tx")
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
