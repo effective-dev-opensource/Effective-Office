@@ -4,6 +4,7 @@ import band.effective.office.backend.feature.leader.id.dto.LeaderIdEventsRespons
 import band.effective.office.backend.feature.leader.id.service.LeaderIdService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController
  * Acts as a proxy to external event sources (LeaderId, etc.).
  */
 @RestController
-@RequestMapping("/events")
+@RequestMapping("/v1/events")
 @Tag(name = "Events", description = "API for retrieving event information")
 class LeaderIdController(
     private val leaderIdService: LeaderIdService
@@ -38,7 +39,8 @@ class LeaderIdController(
     @GetMapping
     @Operation(
         summary = "Get events for TV",
-        description = "Returns events with default parameters for TV display"
+        description = "Returns events with default parameters for TV display",
+        security = [SecurityRequirement(name = "bearerAuth")]
     )
     @ApiResponse(responseCode = "200", description = "Successfully retrieved events data")
     fun getEventsForTv(): ResponseEntity<LeaderIdEventsResponseDTO> {
