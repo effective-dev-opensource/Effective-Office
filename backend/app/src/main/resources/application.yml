@@ -47,6 +47,7 @@ springdoc:
     - band.effective.office.backend.feature.notifications.controller
     - band.effective.office.backend.feature.leader.id.controller
     - band.effective.office.backend.feature.photos.core.controller
+    - band.effective.office.backend.feature.sport.core.controller
     - band.effective.office.backend.feature.teammates.core.controller
 
 management:
@@ -104,6 +105,15 @@ SYNOLOGY_IP: ${SYNOLOGY_IP:}
 SYNOLOGY_LOGIN: ${SYNOLOGY_LOGIN:}
 SYNOLOGY_PASSWORD: ${SYNOLOGY_PASSWORD:}
 SYNOLOGY_ALBUM_NAME: ${SYNOLOGY_ALBUM_NAME:}
+
+# Sport provider configuration
+sport:
+  provider: clockify # Options: dummy, clockify
+
+# Clockify configuration (required when using clockify provider)
+CLOCKIFY_API_KEY: ${CLOCKIFY_API_KEY:}
+CLOCKIFY_WORKSPACE_ID: ${CLOCKIFY_WORKSPACE_ID:}
+CLOCKIFY_PROJECT_ID: ${CLOCKIFY_PROJECT_ID:}
 
 # Calendar provider configuration
 calendar:
