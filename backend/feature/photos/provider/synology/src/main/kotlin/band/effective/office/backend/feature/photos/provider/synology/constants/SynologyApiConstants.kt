@@ -14,6 +14,7 @@ object SynologyApiConstants {
     const val AUTH_SESSION = "FileStation"
     const val AUTH_FORMAT = "sid"
     const val AUTH_METHOD = "login"
+    const val AUTH_INFO_METHOD = "info"
     const val LIST_METHOD = "list"
     
     // API Versions

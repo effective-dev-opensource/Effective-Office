@@ -11,7 +11,8 @@ import org.springframework.stereotype.Service
 @Service
 class SynologyAlbumService(
     private val synologyApi: SynologyApi,
-    private val credentials: SynologyCredentials
+    private val credentials: SynologyCredentials,
+    private val sessionService: SynologySessionService
 ) {
     fun fetchAlbums(sid: String): SynologyAlbumsResponseDTO = runCatching {
         synologyApi.albums(
@@ -25,7 +26,14 @@ class SynologyAlbumService(
     }.getOrElse { throw PhotosRetrievalFailedException("Synology albums request failed: ${it.message}") }
 
     fun filterAlbums(response: SynologyAlbumsResponseDTO): List<AlbumDTO> {
-        if (!response.success) throw PhotosRetrievalFailedException("Failed to retrieve albums from Synology (success=false)")
+        if (!response.success) {
+            // Invalidate session for automatic refresh on next request
+            sessionService.invalidateSession()
+            
+            throw PhotosRetrievalFailedException(
+                "Failed to retrieve albums from Synology (success=false)"
+            )
+        }
 
         val base = credentials.albumName.trim()
         return if (base.isNotEmpty()) {

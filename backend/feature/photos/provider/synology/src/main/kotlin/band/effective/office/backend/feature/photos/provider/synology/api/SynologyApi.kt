@@ -18,6 +18,15 @@ interface SynologyApi {
         @RequestParam("format") format: String
     ): SynologyAuthResponseDTO
 
+    @GetExchange("/webapi/auth.cgi")
+    fun checkSession(
+        @RequestParam("api") api: String,
+        @RequestParam("version") version: Int,
+        @RequestParam("method") method: String,
+        @RequestParam("session") session: String,
+        @RequestParam("_sid") sid: String
+    ): SynologyAuthResponseDTO
+
     @GetExchange("/webapi/entry.cgi")
     fun albums(
         @RequestParam("api") api: String,

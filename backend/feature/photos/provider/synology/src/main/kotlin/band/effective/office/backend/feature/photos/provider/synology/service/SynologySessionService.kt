@@ -12,13 +12,41 @@ class SynologySessionService(
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val sessionCache = ConcurrentHashMap<String, String>()
 
+    /**
+     * Returns a valid Session ID, automatically refreshing it when necessary.
+     * Validates cached session via SYNO.API.Auth method "info" and creates a new one if expired.
+     */
     fun getValidSessionId(): String {
         val cached = sessionCache[SynologyApiConstants.SESSION_CACHE_KEY]
-        if (cached != null) return cached
+        
+        // If cached session exists, validate it
+        if (cached != null) {
+            logger.debug("Found cached session ID: ${cached.take(8)}..., validating...")
+            
+            if (authService.isSessionValid(cached)) {
+                logger.debug("Cached session is valid, reusing")
+                return cached
+            } else {
+                logger.info("Cached session is invalid or expired, creating new session")
+                sessionCache.remove(SynologyApiConstants.SESSION_CACHE_KEY)
+            }
+        }
 
+        // Create new session
+        logger.info("Creating new Synology session")
         val auth = authService.authenticate()
         sessionCache[SynologyApiConstants.SESSION_CACHE_KEY] = auth.sid
-        logger.debug("Created new session ID")
+        logger.info("New session created successfully: ${auth.sid.take(8)}...")
+        
         return auth.sid
+    }
+
+    /**
+     * Forcefully invalidates and removes the cached session.
+     * Used when API errors occur to force reauthentication.
+     */
+    fun invalidateSession() {
+        logger.warn("Invalidating cached Synology session")
+        sessionCache.remove(SynologyApiConstants.SESSION_CACHE_KEY)
     }
 }
