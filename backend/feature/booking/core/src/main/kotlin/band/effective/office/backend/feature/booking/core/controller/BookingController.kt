@@ -99,9 +99,9 @@ class BookingController(
         @RequestParam(required = false) userId: String?,
         @Parameter(description = "Filter by workspace ID")
         @RequestParam(required = false) workspaceId: String?,
-        @Parameter(description = "Start of the time range in milliseconds since epoch", example = "1672531200000")
+        @Parameter(description = "Start of the time range in milliseconds since epoch", example = "1755734400000")
         @RequestParam(required = false) from: Long? = null,
-        @Parameter(description = "End of the time range in milliseconds since epoch", example = "1675209599000")
+        @Parameter(description = "End of the time range in milliseconds since epoch", example = "1761091199000")
         @RequestParam(required = false) to: Long? = null,
         @Parameter(description = "Whether to return recurring bookings as non-recurrent instances", example = "true")
         @RequestParam(required = false, defaultValue = "true") returnInstances: Boolean

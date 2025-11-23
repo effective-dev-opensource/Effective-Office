@@ -76,10 +76,10 @@ class WorkspaceController(
         @Parameter(description = "Workspace tag", required = true, example = "meeting")
         @RequestParam(name = "workspace_tag") tag: String,
 
-        @Parameter(description = "Start of the time range for workspaces with bookings", example = "1751565600000")
+        @Parameter(description = "Start of the time range for workspaces with bookings", example = "1755734400000")
         @RequestParam(name = "with_bookings_from", required = false) withBookingsFrom: Long?,
 
-        @Parameter(description = "End of the time range for workspaces with bookings", example = "1752824530612")
+        @Parameter(description = "End of the time range for workspaces with bookings", example = "1761091199000")
         @RequestParam(name = "with_bookings_until", required = false) withBookingsUntil: Long?
     ): ResponseEntity<List<WorkspaceDTO>> {
         val workspaces = workspaceService.findAllByTag(tag)
