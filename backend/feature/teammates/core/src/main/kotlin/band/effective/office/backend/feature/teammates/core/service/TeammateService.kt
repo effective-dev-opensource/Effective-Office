@@ -18,10 +18,12 @@ class TeammateService(
     private val logger = LoggerFactory.getLogger(TeammateService::class.java)
 
     /**
-     * Retrieves teammates with optional active filter applied.
+     * Retrieves teammates with optional filters applied.
+     * @param active Filter only active teammates
+     * @param employment Filter by employment types (null = no filter, list = OR logic)
      */
-    fun getTeammates(active: Boolean): List<Teammate> =
-        runCatching { teammateProvider.getTeammates(active) }
+    fun getTeammates(active: Boolean, employment: List<String>? = null): List<Teammate> =
+        runCatching { teammateProvider.getTeammates(active, employment) }
             .onFailure { logger.error("Failed to retrieve teammates: ${it.message}", it) }
             .getOrElse { throw TeammatesRetrievalFailedException("Failed to retrieve teammates: ${it.message}") }
 

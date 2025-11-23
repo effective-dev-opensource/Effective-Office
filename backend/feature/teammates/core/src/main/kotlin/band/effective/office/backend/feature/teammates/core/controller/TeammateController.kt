@@ -24,12 +24,12 @@ class TeammateController(
 ) {
 
     /**
-     * Retrieves teammates, optionally filtering by active status.
+     * Retrieves teammates, optionally filtering by active status and employment types.
      */
     @GetMapping
     @Operation(
         summary = "Get teammates",
-        description = "Retrieves teammates from the configured provider. Use 'active=true' to filter only active teammates."
+        description = "Retrieves teammates from the configured provider. Use 'active=true' to filter only active teammates. Use 'employment[]=Band&employment[]=Intern' to filter by multiple employment types."
     )
     @ApiResponses(
         value = [
@@ -38,9 +38,11 @@ class TeammateController(
     )
     fun getTeammates(
         @Parameter(description = "Filter only active teammates")
-        @RequestParam(name = "active", required = false, defaultValue = "false") active: Boolean
+        @RequestParam(name = "active", required = false, defaultValue = "false") active: Boolean,
+        @Parameter(description = "Filter by employment types (e.g., Band, Intern)")
+        @RequestParam(name = "employment", required = false) employment: List<String>?
     ): ResponseEntity<List<TeammateDTO>> {
-        val teammates = teammateService.getTeammates(active)
+        val teammates = teammateService.getTeammates(active, employment)
         val teammateDTOs = TeammateDtoMapper.toTeammateDTOList(teammates)
         return ResponseEntity.ok(teammateDTOs)
     }

@@ -24,9 +24,13 @@ class DummyTeammateProvider : TeammateProvider {
         initializeDummyTeammates()
     }
 
-    override fun getTeammates(active: Boolean): List<Teammate> {
+    override fun getTeammates(active: Boolean, employment: List<String>?): List<Teammate> {
         val all = teammates.values.toList()
-        return if (active) all.filter { it.isActive() } else all
+        return all.filter { teammate ->
+            val isActive = !active || teammate.isActive()
+            val isCorrectEmployment = employment.isNullOrEmpty() || teammate.employment in employment
+            isActive && isCorrectEmployment
+        }
     }
 
     override fun getTeammateScores(): List<TeammateScore> {

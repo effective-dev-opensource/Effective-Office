@@ -9,9 +9,11 @@ import band.effective.office.backend.feature.teammates.core.domain.model.Teammat
  */
 interface TeammateProvider {
     /**
-     * Retrieves teammates with optional active filter.
+     * Retrieves teammates with optional filters.
+     * @param active Filter only active teammates
+     * @param employment Filter by employment types (null = no filter, list = OR logic)
      */
-    fun getTeammates(active: Boolean): List<Teammate>
+    fun getTeammates(active: Boolean, employment: List<String>? = null): List<Teammate>
     
     /**
      * Retrieves teammate scores from the same Notion database.

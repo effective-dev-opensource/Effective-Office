@@ -23,11 +23,11 @@ class NotionTeammateProvider(
 
     private val logger = LoggerFactory.getLogger(NotionTeammateProvider::class.java)
 
-    override fun getTeammates(active: Boolean): List<Teammate> {
+    override fun getTeammates(active: Boolean, employment: List<String>?): List<Teammate> {
         try {
-            val pages = notionClient.fetchTeammatePages(active)
+            val pages = notionClient.fetchTeammatePages(active, employment)
             val teammates = pages.map { NotionTeammateMapper.run { it.toTeammate() } }
-            logger.info("Retrieved ${teammates.size} teammates (active filter: $active) from Notion")
+            logger.info("Retrieved ${teammates.size} teammates (active: $active, employment: ${employment?.joinToString() ?: "all"}) from Notion")
             return teammates
         } catch (e: Exception) {
             logger.error("Failed to retrieve teammates from Notion: ${e.message}", e)
