@@ -61,4 +61,13 @@ include(
     "clients:tablet:feature:bookingEditor",
     "clients:tablet:feature:fastBooking",
     "clients:tablet:feature:slot",
+
+    "clients:tv:composeApp",
+    "clients:tv:core:domain",
+    "clients:tv:core:data",
+    // "clients:tv:feature:menu",
+    // "clients:tv:feature:celebrations",
+    // "clients:tv:feature:gallery",
+    // "clients:tv:feature:events",
+    // "clients:tv:feature:ratings",
 )
