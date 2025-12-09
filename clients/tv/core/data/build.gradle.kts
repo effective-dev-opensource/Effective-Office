@@ -12,6 +12,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(project(":clients:shared:core"))
                 implementation(project(":clients:tv:core:domain"))
                 implementation(libs.bundles.koin)
             }

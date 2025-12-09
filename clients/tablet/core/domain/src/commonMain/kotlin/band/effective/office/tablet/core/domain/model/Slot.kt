@@ -1,6 +1,6 @@
 package band.effective.office.tablet.core.domain.model
 
-import band.effective.office.tablet.core.domain.util.asInstant
+import band.effective.office.shared.core.utils.asInstant
 import kotlinx.datetime.LocalDateTime
 
 sealed class Slot {

@@ -1,6 +1,6 @@
 package band.effective.office.tablet.core.domain.model
 
-import band.effective.office.tablet.core.domain.util.currentLocalDateTime
+import band.effective.office.shared.core.utils.currentLocalDateTime
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 

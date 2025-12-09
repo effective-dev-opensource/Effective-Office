@@ -2,8 +2,8 @@ package band.effective.office.tablet.core.data.api
 
 import band.effective.office.tablet.core.data.dto.workspace.WorkspaceDTO
 import band.effective.office.tablet.core.data.dto.workspace.WorkspaceZoneDTO
-import band.effective.office.tablet.core.domain.Either
-import band.effective.office.tablet.core.domain.ErrorResponse
+import band.effective.office.shared.core.domain.Either
+import band.effective.office.shared.core.domain.ErrorResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 

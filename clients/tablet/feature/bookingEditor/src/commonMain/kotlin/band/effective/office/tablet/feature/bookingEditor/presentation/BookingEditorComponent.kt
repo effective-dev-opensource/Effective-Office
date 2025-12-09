@@ -1,17 +1,17 @@
 package band.effective.office.tablet.feature.bookingEditor.presentation
 
-import band.effective.office.tablet.core.domain.Either
+import band.effective.office.shared.core.domain.Either
 import band.effective.office.tablet.core.domain.OfficeTime
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.Organizer
-import band.effective.office.tablet.core.domain.unbox
+import band.effective.office.shared.core.domain.unbox
 import band.effective.office.tablet.core.domain.useCase.CheckBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.CreateBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.DeleteBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.OrganizersInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.UpdateBookingUseCase
-import band.effective.office.tablet.core.domain.util.asInstant
-import band.effective.office.tablet.core.domain.util.asLocalDateTime
+import band.effective.office.shared.core.utils.asInstant
+import band.effective.office.shared.core.utils.asLocalDateTime
 import band.effective.office.tablet.core.ui.common.ModalWindow
 import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
 import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.DateTimePickerComponent

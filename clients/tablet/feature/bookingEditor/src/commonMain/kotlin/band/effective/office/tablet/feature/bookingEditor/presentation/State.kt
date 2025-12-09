@@ -2,7 +2,7 @@ package band.effective.office.tablet.feature.bookingEditor.presentation
 
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.Organizer
-import band.effective.office.tablet.core.domain.util.currentLocalDateTime
+import band.effective.office.shared.core.utils.currentLocalDateTime
 import kotlinx.datetime.LocalDateTime
 
 data class State(

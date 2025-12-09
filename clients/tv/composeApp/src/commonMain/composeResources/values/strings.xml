@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_title">Effective Office TV</string>
-    <string name="welcome_title">Don't know what to watch?</string>
-    <string name="welcome_description">Endless stream of stories, photos and event announcements</string>
-    <string name="start_autoplay">Start autoplay</string>
-    <string name="settings">Settings</string>
-</resources>

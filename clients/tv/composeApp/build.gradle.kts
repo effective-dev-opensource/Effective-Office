@@ -31,8 +31,10 @@ kotlin {
                 implementation(libs.essenty.state.keeper)
                 implementation(libs.napier)
 
+                implementation(project(":clients:shared:core"))
                 implementation(project(":clients:tv:core:domain"))
                 implementation(project(":clients:tv:core:data"))
+                implementation(project(":clients:tv:core:ui"))
             }
         }
 

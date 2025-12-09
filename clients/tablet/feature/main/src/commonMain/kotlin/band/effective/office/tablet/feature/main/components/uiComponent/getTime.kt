@@ -1,7 +1,7 @@
 package band.effective.office.tablet.feature.main.components.uiComponent
 
 import androidx.compose.runtime.Composable
-import band.effective.office.tablet.core.domain.util.getCorrectDeclension
+import band.effective.office.shared.core.utils.getCorrectDeclension
 import band.effective.office.tablet.feature.main.Res
 import band.effective.office.tablet.feature.main.hour_genitive
 import band.effective.office.tablet.feature.main.hour_nominative

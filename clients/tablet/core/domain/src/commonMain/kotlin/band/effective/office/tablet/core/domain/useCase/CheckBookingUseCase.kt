@@ -2,7 +2,7 @@ package band.effective.office.tablet.core.domain.useCase
 
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
-import band.effective.office.tablet.core.domain.util.cropSeconds
+import band.effective.office.shared.core.utils.cropSeconds
 
 /**Use case for checking booking room opportunity*/
 class CheckBookingUseCase(

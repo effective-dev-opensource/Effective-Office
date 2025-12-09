@@ -1,6 +1,6 @@
 package band.effective.office.tablet.core.domain.useCase
 
-import band.effective.office.tablet.core.domain.Either
+import band.effective.office.shared.core.domain.Either
 import band.effective.office.tablet.core.domain.ErrorWithData
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.repository.LocalRoomRepository

@@ -13,6 +13,7 @@ class KoinInitializer {
         startKoin {
             modules(
                 appModule(environment),
+                sharedCoreModule,
                 dataModule,
             )
         }
@@ -25,8 +26,6 @@ class KoinInitializer {
 
 fun appModule(environment: Environment) = module {
     single { environment }
-    single(qualifier = named("ApiUrl")) { environment.apiUrl }
-    single<String>(qualifier = named("ApiKey")) { environment.apiKey }
     single<Boolean>(qualifier = named("IsDebug")) { environment.isDebug }
 }
 

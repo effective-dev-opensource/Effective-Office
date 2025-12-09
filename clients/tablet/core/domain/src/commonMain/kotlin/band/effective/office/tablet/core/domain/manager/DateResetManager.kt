@@ -1,6 +1,6 @@
 package band.effective.office.tablet.core.domain.manager
 
-import band.effective.office.tablet.core.domain.util.currentLocalDateTime
+import band.effective.office.shared.core.utils.currentLocalDateTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
