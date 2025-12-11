@@ -28,4 +28,12 @@
     <!-- Autoplay Screen -->
     <string name="no_categories_selected">No categories selected</string>
     <string name="press_back_to_select">Press Back to select categories</string>
+    <string name="autoplay_placeholder_status">Screen %1$d of %2$d</string>
+    <string name="autoplay_placeholder_playing">Playing…</string>
+    <string name="autoplay_placeholder_paused">Paused</string>
+    <string name="autoplay_placeholder_stories_subtitle">Stories\n\n%1$s\n\n%2$s</string>
+    <string name="autoplay_placeholder_photos_subtitle">Team photos\n\n%1$s\n\n%2$s</string>
+    <string name="autoplay_placeholder_events_subtitle">Upcoming events\n\n%1$s\n\n%2$s</string>
+    <string name="autoplay_placeholder_unknown_title">Unknown</string>
+    <string name="autoplay_placeholder_unknown_subtitle">Unknown category\n\n%1$s</string>
 </resources>

@@ -68,7 +68,7 @@ include(
     "clients:tv:core:domain",
     "clients:tv:core:data",
     "clients:tv:core:ui",
-    // "clients:tv:feature:menu",
+    "clients:tv:feature:menu",
     // "clients:tv:feature:celebrations",
     // "clients:tv:feature:gallery",
     // "clients:tv:feature:events",

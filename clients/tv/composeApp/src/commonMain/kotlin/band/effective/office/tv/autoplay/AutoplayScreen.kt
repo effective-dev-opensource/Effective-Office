@@ -24,13 +24,16 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import band.effective.office.tv.core.ui.model.ContentCategory
+import band.effective.office.tv.core.ui.model.placeholderTexts
 import band.effective.office.tv.core.ui.screen.ErrorScreen
 import band.effective.office.tv.core.ui.screen.PlaceholderScreen
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.core.ui.Res
+import band.effective.office.tv.core.ui.autoplay_placeholder_paused
+import band.effective.office.tv.core.ui.autoplay_placeholder_playing
+import band.effective.office.tv.core.ui.autoplay_placeholder_status
 import band.effective.office.tv.core.ui.no_categories_selected
 import band.effective.office.tv.core.ui.press_back_to_select
-import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -130,32 +133,20 @@ private fun FeatureScreenContent(
     totalScreens: Int,
     onFinished: () -> Unit,
 ) {
-    // TODO: Replace with actual feature screens
-    // Each feature screen should:
-    // 1. Load its data (photos, events, stories)
-    // 2. Show items one by one with auto-advance
-    // 3. Call onFinished() when all items are shown
-    
-    val (title, subtitle) = when (category) {
-        ContentCategory.STORIES -> "Stories" to "Stories"
-        ContentCategory.PHOTOS -> "Photos" to "Team photos"
-        ContentCategory.EVENTS -> "Events" to "Upcoming events"
-        null -> "Unknown" to "Unknown category"
-    }
-
-    val statusText = "Screen ${screenIndex + 1} of $totalScreens"
-
-    LaunchedEffect(category, isPlaying) {
-        if (isPlaying) {
-            delay(PLACEHOLDER_SCREEN_DURATION_MS)
-            onFinished()
-        }
-    }
+    // TODO: Replace placeholder with actual feature screens once implemented.
+    val statusText = stringResource(
+        Res.string.autoplay_placeholder_status,
+        screenIndex + 1,
+        totalScreens
+    )
+    val playStateText = stringResource(
+        if (isPlaying) Res.string.autoplay_placeholder_playing
+        else Res.string.autoplay_placeholder_paused
+    )
+    val (title, subtitle) = category.placeholderTexts(statusText, playStateText)
 
     PlaceholderScreen(
         title = title,
-        subtitle = "$subtitle\n\n$statusText\n\n${if (isPlaying) "Playing..." else "Paused"}"
+        subtitle = subtitle
     )
 }
-
-private const val PLACEHOLDER_SCREEN_DURATION_MS = 5_000L // 5 seconds for demo

@@ -35,6 +35,7 @@ kotlin {
                 implementation(project(":clients:tv:core:domain"))
                 implementation(project(":clients:tv:core:data"))
                 implementation(project(":clients:tv:core:ui"))
+                implementation(project(":clients:tv:feature:menu"))
             }
         }
 
