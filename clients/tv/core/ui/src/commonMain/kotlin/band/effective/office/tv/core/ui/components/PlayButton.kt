@@ -2,6 +2,7 @@ package band.effective.office.tv.core.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -63,7 +64,8 @@ fun PlayButton(
             .height(sizes.buttonHeightSmall)
             .width(sizes.startButtonWidth)
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
-            .onFocusChanged { isFocused = it.isFocused },
+            .onFocusChanged { isFocused = it.isFocused }
+            .focusable(),
         shape = shapes.large,
     ) {
         Row(

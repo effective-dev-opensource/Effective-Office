@@ -41,6 +41,8 @@ data class TvSizes(
     // Loading
     val loadCircleSize: Dp = 100.dp,
     val loadIconSize: Dp = 50.dp,
+    val loadDotRadius: Dp = 5.dp,
+    val loadDotCount: Int = 12,
     
     // QR code
     val qrCodeSize: Dp = 150.dp,

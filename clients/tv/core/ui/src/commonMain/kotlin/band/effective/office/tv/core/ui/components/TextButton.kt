@@ -1,6 +1,7 @@
 package band.effective.office.tv.core.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
@@ -55,7 +56,8 @@ fun TextButton(
             .height(sizes.buttonHeightSmall)
             .width(sizes.menuButtonWidth)
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
-            .onFocusChanged { isFocused = it.isFocused },
+            .onFocusChanged { isFocused = it.isFocused }
+            .focusable(),
         shape = shapes.extraLarge,
     ) {
         Text(

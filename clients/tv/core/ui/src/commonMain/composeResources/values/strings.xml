@@ -16,4 +16,16 @@
     <string name="autoplay_menu_button">Start autoplay</string>
     <string name="autoplay_zero_select">Select at least one category</string>
     <string name="back_button">Back</string>
+    
+    <!-- Error Screen -->
+    <string name="error_title">Something went wrong</string>
+    <string name="error_description">An error occurred. Please try again.</string>
+    <string name="retry_button">Retry</string>
+    
+    <!-- Loading -->
+    <string name="loading">Loading…</string>
+    
+    <!-- Autoplay Screen -->
+    <string name="no_categories_selected">No categories selected</string>
+    <string name="press_back_to_select">Press Back to select categories</string>
 </resources>
