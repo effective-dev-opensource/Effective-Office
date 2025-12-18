@@ -36,6 +36,7 @@ internal val storyBackground = Color(0xFFF9F9F9)
 internal val storyIndicator = Color(0xFFB6B6B6)
 internal val storyActiveIndicator = Color(0xFF979797)
 internal val storyEventFont = Color(0xFFE6E3E2)
+internal val storyTextDark = Color(0xFF000000)  // Black text for light backgrounds
 
 /**
  * Feature-specific colors

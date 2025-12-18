@@ -10,12 +10,14 @@
     <string name="electric_socket_property_nominative">Socket</string>
     <string name="electric_socket_property_genitive">Sockets</string>
     <string name="electric_socket_property_plural">Sockets</string>
-    <string name="hour_nominative">hour</string>
-    <string name="hour_genitive">hours</string>
-    <string name="hour_plural">hours</string>
-    <string name="minuit_nominative">minute</string>
-    <string name="minuit_genitive">minutes</string>
-    <string name="minuit_plural">minutes</string>
+    <plurals name="hours">
+        <item quantity="one">hour</item>
+        <item quantity="other">hours</item>
+    </plurals>
+    <plurals name="minutes">
+        <item quantity="one">minute</item>
+        <item quantity="other">minutes</item>
+    </plurals>
     <string name="change_booking_view_title">Book</string>
     <string name="booking_button_text">Book %1$s</string>
     <string name="busy_duration_string">Until end</string>

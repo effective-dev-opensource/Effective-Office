@@ -13,6 +13,9 @@ kotlin {
             implementation(libs.decompose.compose.jetbrains)
             implementation(libs.essenty.lifecycle)
             implementation(libs.essenty.state.keeper)
+            implementation(libs.coil)
+            implementation(libs.coil.network.ktor)
+            implementation(libs.koin.core)
         }
 
         val desktopMain by getting {

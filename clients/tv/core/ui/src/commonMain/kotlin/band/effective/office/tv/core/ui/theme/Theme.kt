@@ -32,6 +32,7 @@ data class TvColorsPalette(
     val storyIndicator: Color = Color.Unspecified,
     val storyActiveIndicator: Color = Color.Unspecified,
     val storyEventFont: Color = Color.Unspecified,
+    val storyTextDark: Color = Color.Unspecified,  // Black text for light story backgrounds
     
     // Feature-specific colors
     val sport: Color = Color.Unspecified,
@@ -69,6 +70,7 @@ val TvColors = TvColorsPalette(
     storyIndicator = storyIndicator,
     storyActiveIndicator = storyActiveIndicator,
     storyEventFont = storyEventFont,
+    storyTextDark = storyTextDark,
     
     // Feature colors
     sport = sportColor,

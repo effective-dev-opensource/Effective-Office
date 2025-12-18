@@ -13,7 +13,7 @@ import band.effective.office.tablet.core.domain.useCase.UpdateBookingUseCase
 import band.effective.office.shared.core.utils.asInstant
 import band.effective.office.shared.core.utils.asLocalDateTime
 import band.effective.office.tablet.core.ui.common.ModalWindow
-import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
+import band.effective.office.shared.core.utils.componentCoroutineScope
 import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.DateTimePickerComponent
 import band.effective.office.tablet.feature.bookingEditor.presentation.mapper.EventInfoMapper
 import band.effective.office.tablet.feature.bookingEditor.presentation.mapper.UpdateEventComponentStateToEventInfoMapper

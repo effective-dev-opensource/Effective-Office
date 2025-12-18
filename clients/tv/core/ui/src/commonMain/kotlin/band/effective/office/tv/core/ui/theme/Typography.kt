@@ -9,6 +9,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import band.effective.office.tv.core.ui.Res
+import band.effective.office.tv.core.ui.druktextwidelcg_medium
 import band.effective.office.tv.core.ui.inter_black
 import band.effective.office.tv.core.ui.inter_bold
 import band.effective.office.tv.core.ui.inter_light
@@ -134,10 +135,10 @@ fun tvTypography(): Typography {
         ),
         // Smallest (badges)
         bodySmall = TextStyle(
-            fontFamily = roboto,
-            fontWeight = FontWeight.Black,
+            fontFamily = FontFamily(Font(Res.font.druktextwidelcg_medium)),
+            fontWeight = FontWeight.Bold,
             fontSize = 10.sp,
-            lineHeight = 14.sp,
+            lineHeight = 14.sp
         ),
         // Button label
         labelLarge = TextStyle(

@@ -1,4 +1,4 @@
-package band.effective.office.tablet.core.ui.utils
+package band.effective.office.shared.core.utils
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.Lifecycle
@@ -8,16 +8,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 
+/**
+ * CoroutineScope tied to ComponentContext lifecycle. Cancels on destroy.
+ */
 fun ComponentContext.componentCoroutineScope(): CoroutineScope {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     if (lifecycle.state != Lifecycle.State.DESTROYED) {
-        lifecycle.doOnDestroy {
-            scope.cancel()
-        }
+        lifecycle.doOnDestroy { scope.cancel() }
     } else {
         scope.cancel()
     }
 
     return scope
 }
+

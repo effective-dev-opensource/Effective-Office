@@ -1,5 +1,9 @@
 package band.effective.office.shared.core.domain
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+
 /**
  * Extension functions for working with Either type
  */
@@ -78,3 +82,58 @@ fun <ErrorType, DataType> Either<ErrorType, DataType>.isSuccess(): Boolean =
  */
 fun <ErrorType, DataType> Either<ErrorType, DataType>.isError(): Boolean =
     this is Either.Error
+
+/**
+ * Handles Either result with callbacks for success and error cases.
+ * Similar to Result.fold, both callbacks return the same type T.
+ * @param onSuccess Callback for success case that transforms DataType to T.
+ * @param onError Callback for error case that transforms ErrorType to T.
+ * @return Result of either onSuccess or onError callback.
+ */
+inline fun <ErrorType, DataType, T> Either<ErrorType, DataType>.fold(
+    onSuccess: (DataType) -> T,
+    onError: (ErrorType) -> T
+): T {
+    return when (this) {
+        is Either.Success -> onSuccess(this.data)
+        is Either.Error -> onError(this.error)
+    }
+}
+
+/**
+ * Converts Either<ErrorResponse, Iterable<T>> to Flow<Either<ErrorResponse, T>>.
+ * @return Flow emitting each element of the iterable wrapped in Either.Success, or the original Either.Error.
+ */
+fun <T> Either<ErrorResponse, Iterable<T>>.asFlow(): Flow<Either<ErrorResponse, T>> =
+    when (this) {
+        is Either.Error -> flowOf<Either<ErrorResponse, T>>(this)
+        is Either.Success -> flow {
+            data.forEach { emit(Either.Success(it)) }
+        }
+    }
+
+/**
+ * Collects an element-wise flow of Either<ErrorResponse, T> into a single Either<ErrorResponse, List<T>>.
+ * 
+ * WARNING: This function will collect all elements from the flow until it completes.
+ * Do NOT use on infinite flows like StateFlow, as it will never complete.
+ * Use only on finite flows (e.g., flows created with flow { ... } that emit and complete).
+ *
+ * @return Either.Success with the full list on success, or the first encountered Either.Error.
+ */
+suspend fun <T> Flow<Either<ErrorResponse, T>>.collectToEitherList(): Either<ErrorResponse, List<T>> {
+    val list = mutableListOf<T>()
+    var firstError: Either.Error<ErrorResponse>? = null
+
+    collect { either ->
+        when (either) {
+            is Either.Error -> {
+                firstError = either
+                return@collect
+            }
+            is Either.Success -> list.add(either.data)
+        }
+    }
+
+    return firstError ?: Either.Success(list)
+}

@@ -31,8 +31,17 @@ data class TvSizes(
     
     // Rating dimensions
     val ratingAvatarSize: Dp = 45.dp,
+    val ratingAvatarLarge: Dp = 64.dp,
     val ratingIconSize: Dp = 32.dp,
     val ratingSmallIconSize: Dp = 15.dp,
+    val ratingPlaceBadgeSize: Dp = 20.dp,
+    
+    // Story dimensions
+    val storyIndicatorHeight: Dp = 8.dp,
+    val storyIndicatorSpacing: Dp = 8.dp,
+    val storyAvatarSize: Dp = 300.dp,
+    val storyTextBlockWidth: Dp = 500.dp,
+    val storyContentPaddingVertical: Dp = 64.dp,
     
     // Event dimensions
     val eventIconSize: Dp = 19.dp,

@@ -1,7 +1,9 @@
 package band.effective.office.tv.di
 
 import band.effective.office.tv.core.data.di.dataModule
+import band.effective.office.tv.core.ui.di.imageLoaderModule
 import band.effective.office.tv.environment.Environment
+import band.effective.office.tv.feature.stories.di.storiesModule
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 
@@ -12,6 +14,8 @@ class KoinInitializer {
             modules(
                 appModule(environment),
                 dataModule,
+                imageLoaderModule,
+                storiesModule,
             )
         }
     }

@@ -3,7 +3,7 @@ package band.effective.office.tablet.feature.main.presentation.freeuproom
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.useCase.DeleteBookingUseCase
 import band.effective.office.tablet.core.ui.common.ModalWindow
-import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
+import band.effective.office.shared.core.utils.componentCoroutineScope
 import com.arkivanov.decompose.ComponentContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

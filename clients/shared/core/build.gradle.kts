@@ -8,6 +8,9 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.bundles.koin)
+            implementation(libs.decompose)
+            implementation(libs.essenty.lifecycle)
+            implementation(libs.kotlin.coroutines.core)
         }
         
         val desktopMain by getting {

@@ -13,7 +13,7 @@ import band.effective.office.shared.core.utils.cropSeconds
 import band.effective.office.shared.core.utils.currentInstant
 import band.effective.office.shared.core.utils.currentLocalDateTime
 import band.effective.office.tablet.core.ui.common.ModalWindow
-import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
+import band.effective.office.shared.core.utils.componentCoroutineScope
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack

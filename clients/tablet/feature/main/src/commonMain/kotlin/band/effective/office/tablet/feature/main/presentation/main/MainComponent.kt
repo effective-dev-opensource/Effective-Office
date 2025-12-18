@@ -14,7 +14,7 @@ import band.effective.office.tablet.core.domain.util.BootstrapperTimer
 import band.effective.office.shared.core.utils.currentLocalDateTime
 import band.effective.office.shared.core.utils.minus
 import band.effective.office.shared.core.utils.plus
-import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
+import band.effective.office.shared.core.utils.componentCoroutineScope
 import band.effective.office.tablet.feature.main.domain.CurrentTimeHolder
 import band.effective.office.tablet.feature.main.domain.GetRoomIndexUseCase
 import band.effective.office.tablet.feature.main.domain.GetTimeToNextEventUseCase
