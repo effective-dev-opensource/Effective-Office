@@ -51,6 +51,11 @@ include(
     "backend:feature:teammates:core",
     "backend:feature:teammates:provider:notion",
     "backend:feature:teammates:provider:dummy",
+    "backend:feature:photo-saver:core",
+    "backend:feature:photo-saver:provider:dummy",
+    "backend:feature:photo-saver:provider:mattermost",
+    "backend:feature:photo-saver:storage:synology",
+    "backend:feature:photo-saver:storage:dummy",
 
     "clients:tablet:composeApp",
     "clients:tablet:core:ui",

@@ -25,6 +25,11 @@ dependencies {
     implementation(project(":backend:feature:teammates:core"))
     implementation(project(":backend:feature:teammates:provider:notion"))
     implementation(project(":backend:feature:teammates:provider:dummy"))
+    implementation(project(":backend:feature:photo-saver:core"))
+    implementation(project(":backend:feature:photo-saver:provider:dummy"))
+    implementation(project(":backend:feature:photo-saver:provider:mattermost"))
+    implementation(project(":backend:feature:photo-saver:storage:synology"))
+    implementation(project(":backend:feature:photo-saver:storage:dummy"))
 
     implementation("org.springframework:spring-tx")
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
