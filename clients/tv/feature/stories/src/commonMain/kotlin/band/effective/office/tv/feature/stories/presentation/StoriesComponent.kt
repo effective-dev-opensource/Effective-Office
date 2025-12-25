@@ -50,6 +50,32 @@ class StoriesComponent(
         loadStories()
     }
 
+    /** Reset to the first story and restart progress bar. */
+    fun restartFromStart() {
+        stopAutoAdvance()
+        mutableState.update { state ->
+            if (state.items.isEmpty()) state else state.copy(currentIndex = 0)
+        }
+        resetProgress()
+        val currentState = mutableState.value
+        if (currentState.isPlaying && currentState.hasItems && !currentState.isLoading) {
+            startAutoAdvance()
+        }
+    }
+
+    /** Jump to the last story and start its timer from zero. */
+    fun moveToLastFromStart() {
+        stopAutoAdvance()
+        mutableState.update { state ->
+            if (state.items.isEmpty()) state else state.copy(currentIndex = state.items.lastIndex)
+        }
+        resetProgress()
+        val currentState = mutableState.value
+        if (currentState.isPlaying && currentState.hasItems && !currentState.isLoading) {
+            startAutoAdvance()
+        }
+    }
+
     fun onIntent(intent: StoriesIntent) {
         when (intent) {
             StoriesIntent.Next -> moveNextOrFinish()
@@ -67,6 +93,11 @@ class StoriesComponent(
             dataProvider.loadStories().collect { result ->
                 when (result) {
                     is Either.Success -> {
+                        val storiesCount = result.data.stories.size
+                        val warningsCount = result.data.warnings.size
+
+                        Napier.d("Loaded $storiesCount stories${if (warningsCount > 0) ", $warningsCount warnings" else ""}")
+
                         mutableState.update { state ->
                             state.copy(
                                 items = result.data.stories,
@@ -78,15 +109,15 @@ class StoriesComponent(
                         }
                         resetProgress()
                         setLoading(false)
+
                         if (mutableState.value.isPlaying && mutableState.value.hasItems) {
                             startAutoAdvance()
                         } else {
                             stopAutoAdvance()
-                            resetProgress()
                         }
                     }
                     is Either.Error -> {
-                        Napier.e { "Failed to load stories: ${result.error}" }
+                        Napier.e("Load failed: ${result.error}")
                         mutableState.update { StoriesState.error(result.error) }
                         setLoading(false)
                         onError(result.error)
@@ -99,6 +130,7 @@ class StoriesComponent(
     private fun setPlaying(isPlaying: Boolean) {
         mutableState.update { it.copy(isPlaying = isPlaying) }
         val currentState = mutableState.value
+        Napier.d("Playback ${if (isPlaying) "resumed" else "paused"}")
         // Only start auto-advance if playing AND we have loaded items
         if (isPlaying && currentState.hasItems && !currentState.isLoading) {
             startAutoAdvance()
@@ -144,8 +176,16 @@ class StoriesComponent(
         }
         val nextIndex = currentState.currentIndex + 1
         if (nextIndex >= currentState.items.size) {
-            onFinished()
+            if (currentState.items.size == 1) {
+                // Single-story loop: stay on the only item and keep playing.
+                resetProgress()
+                if (currentState.isPlaying) startAutoAdvance() else stopAutoAdvance()
+            } else {
+                Napier.d("All stories shown - finishing")
+                onFinished()
+            }
         } else {
+            Napier.d("Moving to next story (${nextIndex + 1}/${currentState.items.size})")
             mutableState.update { it.copy(currentIndex = nextIndex) }
             resetProgress()
             if (currentState.isPlaying) {
@@ -167,5 +207,10 @@ class StoriesComponent(
         if (currentState.isPlaying) {
             startAutoAdvance()
         }
+    }
+
+    fun onHidden() {
+        setPlaying(false)
+        stopAutoAdvance()
     }
 }

@@ -69,9 +69,7 @@ include(
     "clients:tv:core:data",
     "clients:tv:core:ui",
     "clients:tv:feature:menu",
+    "clients:tv:feature:photos",
     "clients:tv:feature:stories",
-    // "clients:tv:feature:celebrations",
-    // "clients:tv:feature:gallery",
     // "clients:tv:feature:events",
-    // "clients:tv:feature:ratings",
 )

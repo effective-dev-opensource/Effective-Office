@@ -1,7 +1,12 @@
 package band.effective.office.tv.autoplay
 
+import band.effective.office.tv.autoplay.core.AutoplayFeature
+import band.effective.office.tv.autoplay.core.FeatureProvider
+import band.effective.office.tv.autoplay.core.NavigationCoordinator
+import band.effective.office.tv.autoplay.core.NavigationHandler
 import band.effective.office.tv.core.ui.model.ContentCategory
 import com.arkivanov.decompose.ComponentContext
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +24,13 @@ class AutoplayComponent(
     private val onBack: () -> Unit,
 ) : ComponentContext by componentContext {
 
+    private val featureProvider = FeatureProvider(
+        componentContext = componentContext,
+        onFinished = ::onScreenFinished,
+        onError = ::onError,
+        setLoading = ::setLoading,
+    )
+    private val navigationCoordinator = NavigationCoordinator()
     private val mutableState = MutableStateFlow(AutoplayState.initial(categories))
     val state: StateFlow<AutoplayState> = mutableState.asStateFlow()
 
@@ -27,8 +39,12 @@ class AutoplayComponent(
      */
     fun onIntent(intent: AutoplayIntent) {
         when (intent) {
-            AutoplayIntent.NextScreen -> nextScreen()
-            AutoplayIntent.PreviousScreen -> previousScreen()
+            AutoplayIntent.NextScreen -> {
+                if (!navigationCoordinator.handleNext()) nextScreen()
+            }
+            AutoplayIntent.PreviousScreen -> {
+                if (!navigationCoordinator.handlePrev()) previousScreen()
+            }
             AutoplayIntent.TogglePause -> togglePause()
             AutoplayIntent.Retry -> retry()
             AutoplayIntent.Back -> onBack()
@@ -40,6 +56,7 @@ class AutoplayComponent(
      * This triggers transition to the next screen.
      */
     fun onScreenFinished() {
+        Napier.d("Current screen finished - moving to next")
         if (state.value.isPlaying) {
             nextScreen()
         }
@@ -50,12 +67,29 @@ class AutoplayComponent(
      * Shows error screen with retry option.
      */
     fun onError(message: String) {
-        mutableState.update {
-            it.copy(
-                error = message,
-                isPlaying = false
-            )
-        }
+        Napier.e("Screen error: $message")
+        mutableState.update { it.copy(error = message, isPlaying = false) }
+    }
+
+    /**
+     * Returns cached feature controller for a category, creating it on first access.
+     */
+    fun featureFor(category: ContentCategory?): AutoplayFeature? = featureProvider.featureFor(category)
+
+    /** Clears cached features (e.g., when exiting autoplay). */
+    fun clearFeaturesCache() = featureProvider.clearCache()
+
+    /**
+     * Allows feature screens to provide a navigation handler.
+     * Handler should return true if it consumed navigation.
+     */
+    fun setNavigationHandler(handler: NavigationHandler?) {
+        navigationCoordinator.setNavigationHandler(handler)
+    }
+
+    /** Clears navigation handler only if it is still the expected one. */
+    fun clearNavigationHandler(handler: NavigationHandler?) {
+        navigationCoordinator.clearNavigationHandler(handler)
     }
 
     /**
@@ -73,9 +107,13 @@ class AutoplayComponent(
      */
     private fun nextScreen() {
         val screens = state.value.screens
-        if (screens.size <= 1) return
+        if (screens.isEmpty()) return
 
         val nextIndex = (state.value.currentIndex + 1) % screens.size
+        val nextCategory = screens[nextIndex]
+
+        Napier.d("Switching to next screen: $nextCategory (index $nextIndex/${screens.size})")
+
         mutableState.update {
             it.copy(
                 currentIndex = nextIndex,
@@ -90,9 +128,13 @@ class AutoplayComponent(
      */
     private fun previousScreen() {
         val screens = state.value.screens
-        if (screens.size <= 1) return
+        if (screens.isEmpty()) return
 
         val prevIndex = (state.value.currentIndex + screens.size - 1) % screens.size
+        val prevCategory = screens[prevIndex]
+
+        Napier.d("Switching to previous screen: $prevCategory (index $prevIndex/${screens.size})")
+
         mutableState.update {
             it.copy(
                 currentIndex = prevIndex,
@@ -106,7 +148,9 @@ class AutoplayComponent(
      * Toggle pause/play state
      */
     private fun togglePause() {
-        mutableState.update { it.copy(isPlaying = !it.isPlaying) }
+        val newPlaying = !state.value.isPlaying
+        Napier.d("Playback ${if (newPlaying) "resumed" else "paused"}")
+        mutableState.update { it.copy(isPlaying = newPlaying) }
     }
 
     /**

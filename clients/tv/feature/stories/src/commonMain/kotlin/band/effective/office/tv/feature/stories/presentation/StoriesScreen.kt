@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import band.effective.office.tv.core.ui.components.LoadingScreen
@@ -48,7 +49,7 @@ fun StoriesScreen(
     val colors = LocalTvColorsPalette.current
     val sizes = LocalTvSizes.current
     val platformContext = LocalPlatformContext.current
-    val imageLoader = androidx.compose.runtime.remember(platformContext) {
+    val imageLoader = remember(platformContext) {
         KoinPlatformTools.defaultContext().get().get<ImageLoader> { parametersOf(platformContext) }
     }
     val currentStory = state.currentItem

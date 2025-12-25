@@ -3,7 +3,8 @@ package band.effective.office.tv.autoplay
 import band.effective.office.tv.core.ui.model.ContentCategory
 
 /**
- * State for autoplay slideshow
+ * UI state for the autoplay carousel.
+ * Contains ordered list of active screens and current position.
  */
 data class AutoplayState(
     val screens: List<ContentCategory>,
@@ -12,12 +13,14 @@ data class AutoplayState(
     val direction: Direction,
     val isLoading: Boolean,
     val error: String?,
+    /** Incremented on every transition to force AnimatedContent animation even when looping */
     val transitionKey: Int = 0,
 ) {
     val currentScreen: ContentCategory?
         get() = screens.getOrNull(currentIndex)
 
     companion object {
+        /** Builds initial state with fixed order: Stories → Photos → Events (if enabled) */
         fun initial(categories: Set<ContentCategory>): AutoplayState {
             val orderedScreens = listOf(
                 ContentCategory.STORIES,

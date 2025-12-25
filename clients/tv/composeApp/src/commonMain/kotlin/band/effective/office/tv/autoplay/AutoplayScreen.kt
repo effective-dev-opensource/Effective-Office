@@ -11,6 +11,7 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -28,14 +29,15 @@ import band.effective.office.tv.core.ui.autoplay_placeholder_paused
 import band.effective.office.tv.core.ui.autoplay_placeholder_playing
 import band.effective.office.tv.core.ui.autoplay_placeholder_status
 import band.effective.office.tv.core.ui.model.ContentCategory
+import band.effective.office.tv.autoplay.core.AutoplayFeature
+import band.effective.office.tv.autoplay.core.NavigationHandler
 import band.effective.office.tv.core.ui.model.placeholderTexts
 import band.effective.office.tv.core.ui.no_categories_selected
 import band.effective.office.tv.core.ui.press_back_to_select
 import band.effective.office.tv.core.ui.screen.ErrorScreen
 import band.effective.office.tv.core.ui.screen.PlaceholderScreen
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
-import band.effective.office.tv.feature.stories.presentation.StoriesComponent
-import band.effective.office.tv.feature.stories.presentation.StoriesScreen
+import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -95,26 +97,21 @@ fun AutoplayScreen(
                 )
             }
             else -> {
-                // Use transitionKey to ensure animation triggers even when cycling back to same index
-                AnimatedContent(
-                    targetState = state.currentIndex to state.transitionKey,
-                    transitionSpec = {
-                        val direction = if (state.direction == Direction.FORWARD) 1 else -1
-                        (slideInHorizontally { fullWidth -> direction * fullWidth } + fadeIn())
-                            .togetherWith(slideOutHorizontally { fullWidth -> -direction * fullWidth } + fadeOut())
-                    },
-                    label = "screen_transition"
-                ) { (index, _) ->
-                    val currentScreen = state.screens.getOrNull(index)
-                    FeatureScreenContent(
-                        autoplayComponent = component,
-                        category = currentScreen,
-                        isPlaying = state.isPlaying,
-                        screenIndex = index,
-                        totalScreens = state.screens.size,
-                        onFinished = { component.onScreenFinished() }
-                    )
-                }
+                val index = state.currentIndex
+                val transitionKey = state.transitionKey
+                val currentScreen = state.screens.getOrNull(index)
+                val feature = component.featureFor(currentScreen)
+                FeatureScreenContent(
+                    category = currentScreen,
+                    feature = feature,
+                    isPlaying = state.isPlaying,
+                    screenIndex = index,
+                    totalScreens = state.screens.size,
+                    direction = state.direction,
+                    transitionKey = transitionKey,
+                    setNavigationHandler = { handler -> component.setNavigationHandler(handler) },
+                    clearNavigationHandler = { handler -> component.clearNavigationHandler(handler) }
+                )
             }
         }
     }
@@ -130,46 +127,48 @@ fun AutoplayScreen(
  */
 @Composable
 private fun FeatureScreenContent(
-    autoplayComponent: AutoplayComponent,
     category: ContentCategory?,
+    feature: AutoplayFeature?,
     isPlaying: Boolean,
     screenIndex: Int,
     totalScreens: Int,
-    onFinished: () -> Unit,
+    direction: Direction,
+    transitionKey: Int,
+    setNavigationHandler: (NavigationHandler?) -> Unit,
+    clearNavigationHandler: (NavigationHandler?) -> Unit,
 ) {
-    when (category) {
-        ContentCategory.STORIES -> {
-            val storiesComponent = remember(category) {
-                StoriesComponent(
-                    componentContext = autoplayComponent,
-                    onFinished = onFinished,
-                    onError = { autoplayComponent.onError(it) },
-                    setLoading = { autoplayComponent.setLoading(it) }
-                )
-            }
-            StoriesScreen(
-                component = storiesComponent,
-                isPlaying = isPlaying
-            )
-        }
+    val navigationHandler = feature?.navigationHandler
 
-        else -> {
-            // Placeholder branch until Photos/Events screens are implemented.
-            val statusText = stringResource(
-                Res.string.autoplay_placeholder_status,
-                screenIndex + 1,
-                totalScreens
-            )
-            val playStateText = stringResource(
-                if (isPlaying) Res.string.autoplay_placeholder_playing
-                else Res.string.autoplay_placeholder_paused
-            )
-            val (title, subtitle) = category.placeholderTexts(statusText, playStateText)
-
-            PlaceholderScreen(
-                title = title,
-                subtitle = subtitle
-            )
+    // Include transitionKey so we re-run lifecycle callbacks when looping same screen.
+    DisposableEffect(category, navigationHandler, transitionKey) {
+        Napier.d("Feature shown: $category, direction: $direction")
+        feature?.onShown(direction)
+        setNavigationHandler(navigationHandler)
+        onDispose {
+            Napier.d("Feature hidden: $category")
+            clearNavigationHandler(navigationHandler)
+            feature?.onHidden()
         }
+    }
+
+    if (feature != null) {
+        feature.Content(isPlaying)
+    } else {
+        // Placeholder branch until Photos/Events screens are implemented.
+        val statusText = stringResource(
+            Res.string.autoplay_placeholder_status,
+            screenIndex + 1,
+            totalScreens
+        )
+        val playStateText = stringResource(
+            if (isPlaying) Res.string.autoplay_placeholder_playing
+            else Res.string.autoplay_placeholder_paused
+        )
+        val (title, subtitle) = category.placeholderTexts(statusText, playStateText)
+
+        PlaceholderScreen(
+            title = title,
+            subtitle = subtitle
+        )
     }
 }

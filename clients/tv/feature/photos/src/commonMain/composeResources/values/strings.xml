@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="photos_loading_title">Photos</string>
+    <string name="photos_empty_title">No photos to show</string>
+    <string name="photos_content_description">Team photo</string>
+</resources>
+

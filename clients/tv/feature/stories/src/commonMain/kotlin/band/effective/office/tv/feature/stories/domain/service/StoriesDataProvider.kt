@@ -43,7 +43,7 @@ class StoriesDataProvider(
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun loadStories(): Flow<Either<String, StoriesPayload>> {
         val teammatesResult = notionRepository.getTeammates().collectToEitherList()
-        
+
         return when (teammatesResult) {
             is Either.Error -> flowOf(Either.Error(teammatesResult.error.description))
             is Either.Success -> {
@@ -61,12 +61,12 @@ class StoriesDataProvider(
         val duolingoResult = duolingoRepository.getUsers(teammates).collectToEitherList()
         val clockifyResult = clockifyRepository.getTimeEntries().collectToEitherList()
         val supernovaResult = supernovaRepository.getTeammateScores().collectToEitherList()
-        
+
         return flowOf(
             buildStoriesPayload(teammates, duolingoResult, clockifyResult, supernovaResult)
         )
     }
-    
+
     private fun buildStoriesPayload(
         teammates: List<Teammate>,
         duolingoResult: Either<ErrorResponse, List<DuolingoUser>>,
