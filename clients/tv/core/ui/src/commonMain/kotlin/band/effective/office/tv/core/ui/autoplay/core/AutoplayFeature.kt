@@ -1,7 +1,7 @@
-package band.effective.office.tv.autoplay.core
+package band.effective.office.tv.core.ui.autoplay.core
 
 import androidx.compose.runtime.Composable
-import band.effective.office.tv.autoplay.Direction
+import band.effective.office.tv.core.ui.autoplay.Direction
 
 /**
  * Autoplay feature controller that knows how to render its content

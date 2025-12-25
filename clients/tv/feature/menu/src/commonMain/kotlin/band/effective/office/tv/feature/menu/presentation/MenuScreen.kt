@@ -79,7 +79,7 @@ fun MenuScreen(
 
     MenuScreenView(
         modifier = modifier,
-        selectedCategories = state.selectedCategories,
+        selectedCategories = state.selectedCategoriesSet,
         canStartAutoplay = state.canStartAutoplay,
         onToggleCategory = { category ->
             component.sendIntent(MenuIntent.ToggleCategory(category))

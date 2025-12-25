@@ -1,4 +1,4 @@
-package band.effective.office.tv.autoplay
+package band.effective.office.tv.core.ui.autoplay
 
 import band.effective.office.tv.core.ui.model.ContentCategory
 
@@ -20,16 +20,13 @@ data class AutoplayState(
         get() = screens.getOrNull(currentIndex)
 
     companion object {
-        /** Builds initial state with fixed order: Stories → Photos → Events (if enabled) */
-        fun initial(categories: Set<ContentCategory>): AutoplayState {
-            val orderedScreens = listOf(
-                ContentCategory.STORIES,
-                ContentCategory.PHOTOS,
-                ContentCategory.EVENTS
-            ).filter { it in categories }
-
+        /**
+         * Builds initial state with categories in the order they were selected.
+         * Order is preserved from menu selection.
+         */
+        fun initial(categories: List<ContentCategory>): AutoplayState {
             return AutoplayState(
-                screens = orderedScreens,
+                screens = categories,
                 currentIndex = 0,
                 isPlaying = true,
                 direction = Direction.FORWARD,

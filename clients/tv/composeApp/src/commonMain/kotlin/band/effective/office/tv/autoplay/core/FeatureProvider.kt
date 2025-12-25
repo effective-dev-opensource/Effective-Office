@@ -1,7 +1,9 @@
 package band.effective.office.tv.autoplay.core
 
-import band.effective.office.tv.autoplay.features.PhotosAutoplayFeature
-import band.effective.office.tv.autoplay.features.StoriesAutoplayFeature
+import band.effective.office.tv.core.ui.autoplay.core.AutoplayFeature
+import band.effective.office.tv.feature.photos.presentation.autoplay.PhotosAutoplayFeature
+import band.effective.office.tv.feature.stories.presentation.autoplay.StoriesAutoplayFeature
+import band.effective.office.tv.feature.events.presentation.autoplay.EventsAutoplayFeature
 import band.effective.office.tv.core.ui.model.ContentCategory
 import com.arkivanov.decompose.ComponentContext
 
@@ -23,7 +25,7 @@ class FeatureProvider(
     fun featureFor(category: ContentCategory?): AutoplayFeature? = when (category) {
         ContentCategory.STORIES -> cache.getOrPut(category) { buildStoriesFeature() }
         ContentCategory.PHOTOS -> cache.getOrPut(category) { buildPhotosFeature() }
-        ContentCategory.EVENTS -> null
+        ContentCategory.EVENTS -> cache.getOrPut(category) { buildEventsFeature() }
         null -> null
     }
 
@@ -39,6 +41,14 @@ class FeatureProvider(
 
     private fun buildPhotosFeature(): AutoplayFeature =
         PhotosAutoplayFeature(
+            componentContext = componentContext,
+            onFinished = onFinished,
+            onError = onError,
+            setLoading = setLoading,
+        )
+
+    private fun buildEventsFeature(): AutoplayFeature =
+        EventsAutoplayFeature(
             componentContext = componentContext,
             onFinished = onFinished,
             onError = onError,

@@ -1,9 +1,11 @@
 package band.effective.office.tv.autoplay
 
-import band.effective.office.tv.autoplay.core.AutoplayFeature
 import band.effective.office.tv.autoplay.core.FeatureProvider
 import band.effective.office.tv.autoplay.core.NavigationCoordinator
-import band.effective.office.tv.autoplay.core.NavigationHandler
+import band.effective.office.tv.core.ui.autoplay.AutoplayState
+import band.effective.office.tv.core.ui.autoplay.Direction
+import band.effective.office.tv.core.ui.autoplay.core.AutoplayFeature
+import band.effective.office.tv.core.ui.autoplay.core.NavigationHandler
 import band.effective.office.tv.core.ui.model.ContentCategory
 import com.arkivanov.decompose.ComponentContext
 import io.github.aakira.napier.Napier
@@ -20,7 +22,7 @@ import kotlinx.coroutines.flow.update
  */
 class AutoplayComponent(
     componentContext: ComponentContext,
-    categories: Set<ContentCategory>,
+    categories: List<ContentCategory>,
     private val onBack: () -> Unit,
 ) : ComponentContext by componentContext {
 

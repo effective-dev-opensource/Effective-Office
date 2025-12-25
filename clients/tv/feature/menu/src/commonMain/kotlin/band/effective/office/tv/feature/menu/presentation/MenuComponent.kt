@@ -13,9 +13,9 @@ import kotlinx.coroutines.flow.update
  */
 class MenuComponent(
     componentContext: ComponentContext,
-    initialCategories: Set<ContentCategory> = ContentCategory.entries.toSet(),
+    initialCategories: List<ContentCategory> = ContentCategory.entries,
     private val onBack: () -> Unit,
-    private val onStartAutoplay: (Set<ContentCategory>) -> Unit,
+    private val onStartAutoplay: (List<ContentCategory>) -> Unit,
 ) : ComponentContext by componentContext {
 
     private val mutableState = MutableStateFlow(
@@ -40,8 +40,10 @@ class MenuComponent(
     private fun toggleCategory(category: ContentCategory) {
         mutableState.update { currentState ->
             val newCategories = if (category in currentState.selectedCategories) {
-                currentState.selectedCategories - category
+                // Remove category, preserving order of others
+                currentState.selectedCategories.filter { it != category }
             } else {
+                // Add category to the end, preserving order
                 currentState.selectedCategories + category
             }
             currentState.copy(selectedCategories = newCategories)

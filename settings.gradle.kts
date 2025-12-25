@@ -71,5 +71,5 @@ include(
     "clients:tv:feature:menu",
     "clients:tv:feature:photos",
     "clients:tv:feature:stories",
-    // "clients:tv:feature:events",
+    "clients:tv:feature:events",
 )

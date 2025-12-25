@@ -1,11 +1,5 @@
 package band.effective.office.tv.autoplay
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
@@ -25,13 +19,10 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import band.effective.office.tv.core.ui.Res
-import band.effective.office.tv.core.ui.autoplay_placeholder_paused
-import band.effective.office.tv.core.ui.autoplay_placeholder_playing
-import band.effective.office.tv.core.ui.autoplay_placeholder_status
+import band.effective.office.tv.core.ui.autoplay.Direction
+import band.effective.office.tv.core.ui.autoplay.core.AutoplayFeature
+import band.effective.office.tv.core.ui.autoplay.core.NavigationHandler
 import band.effective.office.tv.core.ui.model.ContentCategory
-import band.effective.office.tv.autoplay.core.AutoplayFeature
-import band.effective.office.tv.autoplay.core.NavigationHandler
-import band.effective.office.tv.core.ui.model.placeholderTexts
 import band.effective.office.tv.core.ui.no_categories_selected
 import band.effective.office.tv.core.ui.press_back_to_select
 import band.effective.office.tv.core.ui.screen.ErrorScreen
@@ -105,8 +96,6 @@ fun AutoplayScreen(
                     category = currentScreen,
                     feature = feature,
                     isPlaying = state.isPlaying,
-                    screenIndex = index,
-                    totalScreens = state.screens.size,
                     direction = state.direction,
                     transitionKey = transitionKey,
                     setNavigationHandler = { handler -> component.setNavigationHandler(handler) },
@@ -123,52 +112,39 @@ fun AutoplayScreen(
 
 /**
  * Content for each feature screen.
- * This will be replaced with actual feature implementations later.
  */
 @Composable
 private fun FeatureScreenContent(
     category: ContentCategory?,
     feature: AutoplayFeature?,
     isPlaying: Boolean,
-    screenIndex: Int,
-    totalScreens: Int,
     direction: Direction,
     transitionKey: Int,
     setNavigationHandler: (NavigationHandler?) -> Unit,
     clearNavigationHandler: (NavigationHandler?) -> Unit,
 ) {
-    val navigationHandler = feature?.navigationHandler
+    if (feature == null) {
+        Napier.e("Feature is null for category: $category - this should not happen")
+        ErrorScreen(
+            description = "Feature not available for category: $category",
+            onRetry = {}
+        )
+        return
+    }
+
+    val navigationHandler = feature.navigationHandler
 
     // Include transitionKey so we re-run lifecycle callbacks when looping same screen.
     DisposableEffect(category, navigationHandler, transitionKey) {
         Napier.d("Feature shown: $category, direction: $direction")
-        feature?.onShown(direction)
+        feature.onShown(direction)
         setNavigationHandler(navigationHandler)
         onDispose {
             Napier.d("Feature hidden: $category")
             clearNavigationHandler(navigationHandler)
-            feature?.onHidden()
+            feature.onHidden()
         }
     }
 
-    if (feature != null) {
-        feature.Content(isPlaying)
-    } else {
-        // Placeholder branch until Photos/Events screens are implemented.
-        val statusText = stringResource(
-            Res.string.autoplay_placeholder_status,
-            screenIndex + 1,
-            totalScreens
-        )
-        val playStateText = stringResource(
-            if (isPlaying) Res.string.autoplay_placeholder_playing
-            else Res.string.autoplay_placeholder_paused
-        )
-        val (title, subtitle) = category.placeholderTexts(statusText, playStateText)
-
-        PlaceholderScreen(
-            title = title,
-            subtitle = subtitle
-        )
-    }
+    feature.Content(isPlaying)
 }

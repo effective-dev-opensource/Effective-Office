@@ -1,4 +1,4 @@
-package band.effective.office.tv.autoplay.core
+package band.effective.office.tv.core.ui.autoplay.core
 
 /**
  * Delegate for handling in-screen navigation (slides) before switching autoplay screens.

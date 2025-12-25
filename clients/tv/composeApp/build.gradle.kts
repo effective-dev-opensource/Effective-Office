@@ -38,6 +38,7 @@ kotlin {
                 implementation(project(":clients:tv:feature:menu"))
                 implementation(project(":clients:tv:feature:photos"))
                 implementation(project(":clients:tv:feature:stories"))
+                implementation(project(":clients:tv:feature:events"))
             }
         }
 

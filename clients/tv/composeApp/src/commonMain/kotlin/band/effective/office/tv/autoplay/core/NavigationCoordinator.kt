@@ -1,5 +1,7 @@
 package band.effective.office.tv.autoplay.core
 
+import band.effective.office.tv.core.ui.autoplay.core.NavigationHandler
+
 /**
  * Manages optional navigation handler from feature screens.
  *

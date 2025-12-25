@@ -19,7 +19,7 @@ import org.koin.dsl.module
  */
 val storiesModule = module {
     // Data Layer - API
-    single<StoriesApi> { StoriesApiImpl() }
+    single<StoriesApi> { StoriesApiImpl(get()) }
 
     // Data Layer - Repositories
     single<NotionRepository> { NotionRepositoryImpl(get()) }

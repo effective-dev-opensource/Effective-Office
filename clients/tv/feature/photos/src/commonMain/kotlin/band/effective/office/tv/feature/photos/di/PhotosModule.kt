@@ -10,7 +10,7 @@ import org.koin.dsl.module
  * Koin module for Photos feature.
  */
 val photosModule = module {
-    single<PhotosApi> { PhotosApiImpl() }
+    single<PhotosApi> { PhotosApiImpl(get()) }
     single<PhotosRepository> { PhotosRepositoryImpl(get()) }
 }
 

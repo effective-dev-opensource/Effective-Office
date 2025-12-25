@@ -29,6 +29,11 @@ class RootComponent(
 
     private val navigation = StackNavigation<Config>()
 
+    /**
+     * Saved categories order. Stored in memory during app lifetime.
+     */
+    private var savedCategoriesOrder: List<ContentCategory> = defaultCategories
+
     val childStack: Value<ChildStack<*, Child>> = childStack(
         source = navigation,
         initialConfiguration = Config.Welcome,
@@ -42,7 +47,7 @@ class RootComponent(
         componentContext: ComponentContext
     ): Child = when (config) {
         is Config.Welcome -> Child.WelcomeChild(
-            onStartAutoplay = { navigateToAutoplay(defaultCategories) },
+            onStartAutoplay = { navigateToAutoplay(savedCategoriesOrder) },
             onOpenMenu = { navigateToMenu() }
         )
         is Config.Autoplay -> Child.AutoplayChild(
@@ -55,16 +60,26 @@ class RootComponent(
         is Config.Menu -> Child.MenuChild(
             component = MenuComponent(
                 componentContext = componentContext,
-                initialCategories = defaultCategories,
+                initialCategories = savedCategoriesOrder,
                 onBack = { navigateBack() },
-                onStartAutoplay = { categories -> navigateToAutoplay(categories) }
+                onStartAutoplay = { categories -> 
+                    saveCategoriesOrder(categories)
+                    navigateToAutoplay(categories)
+                }
             )
         )
     }
 
     @OptIn(DelicateDecomposeApi::class)
-    private fun navigateToAutoplay(categories: Set<ContentCategory>) {
+    private fun navigateToAutoplay(categories: List<ContentCategory>) {
         navigation.push(Config.Autoplay(categories))
+    }
+
+    /**
+     * Update categories order in memory.
+     */
+    private fun saveCategoriesOrder(categories: List<ContentCategory>) {
+        savedCategoriesOrder = categories
     }
 
     @OptIn(DelicateDecomposeApi::class)
@@ -111,7 +126,7 @@ class RootComponent(
         data object Welcome : Config()
 
         @Serializable
-        data class Autoplay(val categories: Set<ContentCategory>) : Config()
+        data class Autoplay(val categories: List<ContentCategory>) : Config()
 
         @Serializable
         data object Menu : Config()
@@ -119,7 +134,7 @@ class RootComponent(
 
     companion object {
         /** Default categories when starting autoplay from Welcome screen */
-        val defaultCategories = ContentCategory.entries.toSet()
+        val defaultCategories = ContentCategory.entries
     }
 }
 

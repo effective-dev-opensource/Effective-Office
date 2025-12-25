@@ -9,9 +9,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.awaitAll
+import band.effective.office.tv.feature.photos.domain.model.Photo
 
 suspend fun validateAndRemoveFailedPhotos(
-    photos: List<band.effective.office.tv.feature.photos.domain.model.Photo>,
+    photos: List<Photo>,
     imageLoader: ImageLoader,
     platformContext: PlatformContext,
     onRemove: (String) -> Unit

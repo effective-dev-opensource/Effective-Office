@@ -1,14 +1,14 @@
-package band.effective.office.tv.autoplay.features
+package band.effective.office.tv.feature.stories.presentation.autoplay
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import band.effective.office.tv.autoplay.Direction
-import band.effective.office.tv.autoplay.core.AutoplayFeature
-import band.effective.office.tv.autoplay.core.NavigationHandler
 import band.effective.office.tv.feature.stories.presentation.StoriesComponent
 import band.effective.office.tv.feature.stories.presentation.StoriesIntent
 import band.effective.office.tv.feature.stories.presentation.StoriesScreen
 import com.arkivanov.decompose.ComponentContext
+import band.effective.office.tv.core.ui.autoplay.Direction
+import band.effective.office.tv.core.ui.autoplay.core.AutoplayFeature
+import band.effective.office.tv.core.ui.autoplay.core.NavigationHandler
 
 /**
  * Autoplay wrapper for the Stories feature.
@@ -67,4 +67,3 @@ class StoriesAutoplayFeature(
         component.onHidden()
     }
 }
-
