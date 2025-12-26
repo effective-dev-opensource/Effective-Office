@@ -63,4 +63,8 @@ class EventsAutoplayFeature(
     override fun onHidden() {
         component.onHidden()
     }
+
+    override fun retry() {
+        component.onIntent(EventsIntent.Retry)
+    }
 }

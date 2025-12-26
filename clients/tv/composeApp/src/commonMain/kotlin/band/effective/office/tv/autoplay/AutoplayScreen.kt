@@ -108,6 +108,10 @@ fun AutoplayScreen(
     LaunchedEffect(focusRequester) {
         focusRequester.requestFocus()
     }
+
+    LaunchedEffect(state.error) {
+        focusRequester.requestFocus()
+    }
 }
 
 /**
