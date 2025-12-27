@@ -3,6 +3,7 @@ package band.effective.office.tv.core.ui.theme
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -15,14 +16,14 @@ import band.effective.office.tv.core.ui.inter_bold
 import band.effective.office.tv.core.ui.inter_light
 import band.effective.office.tv.core.ui.inter_regular
 import band.effective.office.tv.core.ui.inter_thin
+import band.effective.office.tv.core.ui.museocyrl
 import band.effective.office.tv.core.ui.roboto_black
 import band.effective.office.tv.core.ui.roboto_bold
-import band.effective.office.tv.core.ui.roboto_italic
 import band.effective.office.tv.core.ui.roboto_light
 import band.effective.office.tv.core.ui.roboto_medium
+import band.effective.office.tv.core.ui.roboto_regular
 import band.effective.office.tv.core.ui.roboto_thin
 import org.jetbrains.compose.resources.Font
-
 
 /**
  * Roboto font family.
@@ -32,9 +33,9 @@ fun robotoFontFamily(): FontFamily = FontFamily(
     Font(Res.font.roboto_black, weight = FontWeight.Black),
     Font(Res.font.roboto_bold, weight = FontWeight.Bold),
     Font(Res.font.roboto_medium, weight = FontWeight.Medium),
+    Font(Res.font.roboto_regular, weight = FontWeight.Normal),
     Font(Res.font.roboto_light, weight = FontWeight.Light),
     Font(Res.font.roboto_thin, weight = FontWeight.Thin),
-    Font(Res.font.roboto_italic, weight = FontWeight.Normal, style = FontStyle.Italic),
 )
 
 /**
@@ -56,6 +57,8 @@ fun interFontFamily(): FontFamily = FontFamily(
 fun tvTypography(): Typography {
     val roboto = robotoFontFamily()
     val inter = interFontFamily()
+    val druk = FontFamily(Font(Res.font.druktextwidelcg_medium))
+    val museocyrl = FontFamily(Font(Res.font.museocyrl))
     return Typography(
         // LoadScreen title (largest)
         displayLarge = TextStyle(
@@ -66,8 +69,8 @@ fun tvTypography(): Typography {
         ),
         // Story employee name
         displayMedium = TextStyle(
-            fontFamily = roboto,
-            fontWeight = FontWeight.Black,
+            fontFamily = museocyrl,
+            fontStyle = FontStyle.Italic,
             fontSize = 52.sp,
             lineHeight = 60.sp,
         ),
@@ -80,7 +83,7 @@ fun tvTypography(): Typography {
         ),
         // Story body
         headlineLarge = TextStyle(
-            fontFamily = roboto,
+            fontFamily = druk,
             fontWeight = FontWeight.Black,
             fontSize = 46.sp,
             lineHeight = 54.sp,
@@ -101,10 +104,10 @@ fun tvTypography(): Typography {
         ),
         // h1
         titleLarge = TextStyle(
-            fontFamily = roboto,
-            fontWeight = FontWeight.Black,
-            fontSize = 25.sp,
-            lineHeight = 32.sp,
+            fontFamily = druk,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            lineHeight = 26.sp,
         ),
         // h3 (bold)
         titleMedium = TextStyle(
@@ -135,7 +138,7 @@ fun tvTypography(): Typography {
         ),
         // Smallest (badges)
         bodySmall = TextStyle(
-            fontFamily = FontFamily(Font(Res.font.druktextwidelcg_medium)),
+            fontFamily = druk,
             fontWeight = FontWeight.Bold,
             fontSize = 10.sp,
             lineHeight = 14.sp

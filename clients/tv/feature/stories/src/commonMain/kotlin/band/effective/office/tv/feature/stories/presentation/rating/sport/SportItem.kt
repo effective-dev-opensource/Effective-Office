@@ -18,14 +18,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.core.ui.theme.LocalTvSizes
 import band.effective.office.tv.core.ui.theme.LocalTvTypography
+import band.effective.office.tv.core.ui.theme.robotoFontFamily
 import band.effective.office.tv.feature.stories.Res
 import band.effective.office.tv.feature.stories.sport_hours
 import band.effective.office.tv.feature.stories.domain.model.sport.ClockifyUser
 import band.effective.office.tv.feature.stories.presentation.components.PlaceBadge
 import band.effective.office.tv.feature.stories.sport_logo
+import band.effective.office.tv.feature.stories.presentation.rating.common.firstNameOf
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.painterResource
@@ -75,7 +78,7 @@ fun SportItem(
             }
             Spacer(modifier = Modifier.width(sizes.gapMedium))
             Text(
-                text = user.name,
+                text = firstNameOf(user.name),
                 style = typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = colors.textPrimary,
                 maxLines = 1
@@ -83,7 +86,7 @@ fun SportItem(
         }
         Text(
             text = stringResource(Res.string.sport_hours, hours),
-            style = typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            style = typography.titleLarge,
             color = colors.textPrimary,
             textAlign = TextAlign.End,
             maxLines = 1

@@ -77,7 +77,7 @@ fun EmployeeStoryContent(
             Column(
                 verticalArrangement = Arrangement.spacedBy(sizes.gapMedium),
                 modifier = Modifier
-                    .padding(bottom = sizes.paddingLarge)
+                    .padding(start = sizes.gapXXLarge, bottom = sizes.paddingLarge)
                     .width(sizes.storyTextBlockWidth)
             ) {
                 if (story.isIntern) {
@@ -90,12 +90,12 @@ fun EmployeeStoryContent(
 
                 Text(
                     text = story.name,
-                    style = typography.displaySmall,
+                    style = typography.displayMedium,
                     color = colors.storyTextDark
                 )
                 Text(
                     text = employeeDescription(story),
-                    style = typography.bodyLarge,
+                    style = typography.headlineLarge,
                     color = colors.storyTextDark
                 )
             }
