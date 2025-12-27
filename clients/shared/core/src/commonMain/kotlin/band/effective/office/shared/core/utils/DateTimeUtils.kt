@@ -54,20 +54,17 @@ val timeFormatter = LocalDateTime.Format {
 fun LocalDateTime.time(): String = format(timeFormatter)
 
 /**
- * Format: "DD Month"
- * Example: "25 November"
+ * Extension function to format LocalDateTime as date string with locale-aware month
+ * @return Date string in "DD Month" format with localized month names
  */
-val dateFormatter = LocalDateTime.Format {
-    dayOfMonth(padding = Padding.ZERO)
-    char(' ')
-    monthName(MonthNames.ENGLISH_FULL)
-}
+fun LocalDateTime.date(): String = toLocalisedString("d MMMM")
 
 /**
- * Extension function to format LocalDateTime as date string
- * @return Date string in "DD Month" format
+ * Formats LocalDateTime using a pattern with locale awareness
+ * @param pattern Unicode date/time pattern (e.g., "HH:mm", "dd.MM.yyyy", "d MMMM")
+ * @return Formatted string with localized month/day names
  */
-fun LocalDateTime.date(): String = format(dateFormatter)
+expect fun LocalDateTime.toLocalisedString(pattern: String): String
 
 /**
  * Formats LocalDateTime using a custom Unicode pattern
