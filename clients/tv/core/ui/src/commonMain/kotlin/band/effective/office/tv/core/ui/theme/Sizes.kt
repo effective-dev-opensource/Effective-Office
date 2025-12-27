@@ -39,7 +39,7 @@ data class TvSizes(
     // Story dimensions
     val storyIndicatorHeight: Dp = 8.dp,
     val storyIndicatorSpacing: Dp = 8.dp,
-    val storyAvatarSize: Dp = 300.dp,
+    val storyAvatarSize: Dp = 400.dp,
     val storyTextBlockWidth: Dp = 500.dp,
     val storyContentPaddingVertical: Dp = 64.dp,
     

@@ -49,7 +49,7 @@ fun EventPhoto(
             imageLoader = imageLoader,
             contentDescription = stringResource(Res.string.events_content_description),
             modifier = Modifier.fillMaxHeight(),
-            contentScale = ContentScale.Fit,
+            contentScale = ContentScale.Crop,
             error = painterResource(CoreRes.drawable.icon_event_orange),
             fallback = painterResource(CoreRes.drawable.icon_event_orange),
         )
