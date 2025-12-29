@@ -50,8 +50,13 @@ hotReload = "1.0.0-alpha09"
 ## Androidx
 androidx-activityCompose = "1.10.1"
 androidx-uiTest = "1.8.1"
-androidx-lifecycle = "2.9.0"
-androidx-navigation = "2.9.0-beta02"
+jetbrains-lifecycle = "2.9.0"
+androidx-lifecycle = "2.8.5"
+jetbrains-navigation = "2.9.0-beta02"
+androidx-navigation = "2.9.2"
+coreKtx = "1.16.0"
+lifecycleRuntimeKtx = "2.9.2"
+composeBom = "2025.07.00"
 
 ## Networking
 ktor = "3.1.3"
@@ -66,6 +71,7 @@ koin = "4.1.0"
 ## Storage
 multiplatformSettings = "1.3.0"
 buildkonfig = "0.15.1"
+room = "2.7.2"
 
 ## Datetime
 datetime = "0.6.2"
@@ -85,6 +91,7 @@ notion-ver = "1.11.1"
 [libraries]
 # Common
 ## Kotlin
+
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlin-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }
@@ -105,6 +112,11 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 jakarta = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta"}
 jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet"}
 napier = { module = "io.github.aakira:napier", version.ref = "napier" }
+
+## Room
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 
 # Backend
 ## Spring Boot
@@ -150,10 +162,23 @@ composeMultiplatformPlugin = { group = "org.jetbrains.compose", name = "org.jetb
 ## Androidx
 androidx-uitest-testManifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "androidx-uiTest" }
 androidx-uitest-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "androidx-uiTest" }
-androidx-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
-androidx-lifecycle-runtime = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
+jetbrains-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "jetbrains-lifecycle" }
+jetbrains-lifecycle-runtime = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "jetbrains-lifecycle" }
+androix-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-activityCompose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
-androidx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
+jetbrains-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "jetbrains-navigation" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 
 ## Networking
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -213,9 +238,10 @@ spring-dependency-management = { id = "io.spring.dependency-management", version
 
 # Client
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 compose = { id = "org.jetbrains.compose", version = "1.8.1" }
 android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 hotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "hotReload" }
 buildkonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildkonfig" }
 
@@ -236,5 +262,3 @@ google-api = ["google-api-client", "google-http-client-gson", "google-oauth-clie
 # Client
 koin = ["koin-core", "koin-compose", "koin-compose-viewmodel", "koin-compose-viewmodel-navigation"]
 ktor-client = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-client-serialization", "ktor-serialization-json", "ktor-client-logging"]
-androidx-lifecycle = ["androidx-lifecycle-viewmodel", "androidx-lifecycle-runtime"]
-coil-compose = ["coil", "coil-network-ktor"]

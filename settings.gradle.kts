@@ -77,4 +77,6 @@ include(
     "clients:tv:feature:photos",
     "clients:tv:feature:stories",
     "clients:tv:feature:events",
+
+    "clients:smsrouter:app",
 )

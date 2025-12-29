@@ -32,4 +32,6 @@ dependencies {
     }
     implementation("org.jetbrains.compose:org.jetbrains.compose.gradle.plugin:1.8.1")
     implementation("com.google.gms:google-services:4.4.3")
+    implementation("org.jetbrains.kotlin.kapt:org.jetbrains.kotlin.kapt.gradle.plugin:2.1.21")
+
 }
