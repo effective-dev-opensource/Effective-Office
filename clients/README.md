@@ -144,3 +144,55 @@ If the basic setup fails:
 3. **Remove accounts**: Ensure no Google or other accounts are configured
 4. **Check manufacturer documentation**: Some devices have specific setup procedures
 5. **Consider enterprise solutions**: For production deployments, consider using Android Enterprise or manufacturer-specific kiosk solutions
+
+## SMS Router Module
+
+### Overview
+
+The SMS Router module is an Android client designed to intercept SMS messages and forward them to configured webhooks. It supports per-SIM settings, delivery logging.
+
+### Technology Stack
+
+- **Framework**: Android with Kotlin
+- **UI**: Jetpack Compose (for settings and logs screens)
+- **Dependency Injection**: Koin
+- **Networking**: Ktor Client
+- **Database**: Room (for delivery logs)
+- **State Management**: ViewModel and LiveData
+
+### Features
+
+- SMS interception and forwarding to webhooks.
+- Per-SIM configuration for webhook URLs and secrets.
+- Delivery logging with retry policies.
+- Support for Mattermost and Telegram payloads.
+
+### Development Setup
+
+#### Prerequisites
+
+- JDK 17 or higher
+- Android Studio Meerkat or newer
+- Gradle 8.0 or newer
+
+#### Running the Application
+
+1. Deploy the app to an Android device or emulator.
+2. Grant necessary permissions (e.g., RECEIVE_SMS, INTERNET).
+3. Configure SIM-specific settings in the app UI.
+
+#### Module Structure
+
+```
+smsrouter/
+├── app/               # Main application module
+│   ├── data/          # Data sources, repositories, and models
+│   ├── domain/        # Business logic, use cases, and domain models
+│   └── presentation/  # UI components and SMS receiver
+```
+
+#### Architectural Patterns
+
+- **Clean Architecture**: Separation of concerns with data, domain, and presentation layers.
+- **Dependency Injection**: Koin for managing dependencies.
+- **Reactive Programming**: LiveData for reactive state management.
