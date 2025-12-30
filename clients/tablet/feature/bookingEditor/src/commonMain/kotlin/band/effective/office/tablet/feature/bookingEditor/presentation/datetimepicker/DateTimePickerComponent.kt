@@ -2,11 +2,11 @@ package band.effective.office.tablet.feature.bookingEditor.presentation.datetime
 
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.useCase.CheckBookingUseCase
-import band.effective.office.tablet.core.domain.util.asInstant
-import band.effective.office.tablet.core.domain.util.asLocalDateTime
-import band.effective.office.tablet.core.domain.util.currentLocalDateTime
+import band.effective.office.shared.core.utils.asInstant
+import band.effective.office.shared.core.utils.asLocalDateTime
+import band.effective.office.shared.core.utils.currentLocalDateTime
 import band.effective.office.tablet.core.ui.common.ModalWindow
-import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
+import band.effective.office.shared.core.utils.componentCoroutineScope
 import com.arkivanov.decompose.ComponentContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes

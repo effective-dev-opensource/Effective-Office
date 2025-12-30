@@ -4,6 +4,7 @@ import band.effective.office.backend.feature.duolingo.dto.DuolingoResponseDTO
 import band.effective.office.backend.feature.duolingo.dto.DuolingoUserDTO
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
@@ -13,7 +14,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
  */
 @Service
 class DuolingoService(
-    private val webClient: WebClient,
+    @Qualifier("duolingoWebClient") private val webClient: WebClient,
     private val objectMapper: ObjectMapper
 ) {
 

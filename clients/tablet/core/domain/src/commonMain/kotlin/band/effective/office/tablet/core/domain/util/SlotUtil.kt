@@ -1,5 +1,6 @@
 package band.effective.office.tablet.core.domain.util
 
+import band.effective.office.shared.core.utils.asInstant
 import band.effective.office.tablet.core.domain.model.Slot
 
 fun Slot.freeTime(): Int {

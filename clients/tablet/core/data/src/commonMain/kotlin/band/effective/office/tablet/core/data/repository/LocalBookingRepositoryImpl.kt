@@ -1,13 +1,13 @@
 package band.effective.office.tablet.core.data.repository
 
 import band.effective.office.tablet.core.data.utils.Buffer
-import band.effective.office.tablet.core.domain.Either
-import band.effective.office.tablet.core.domain.ErrorResponse
-import band.effective.office.tablet.core.domain.map
+import band.effective.office.shared.core.domain.Either
+import band.effective.office.shared.core.domain.ErrorResponse
+import band.effective.office.shared.core.domain.map
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.repository.LocalBookingRepository
-import band.effective.office.tablet.core.domain.unbox
+import band.effective.office.shared.core.domain.unbox
 import kotlinx.coroutines.flow.update
 
 /**

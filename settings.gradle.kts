@@ -15,6 +15,7 @@ dependencyResolutionManagement {
         mavenCentral()
         maven(url = "https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven(url = "https://androidx.dev/storage/compose-compiler/repository")
+        maven(url = "https://jitpack.io")
     }
 
 }
@@ -40,6 +41,21 @@ include(
     "backend:feature:calendar-subscription",
     "backend:feature:notifications",
     "backend:feature:duolingo",
+    "backend:feature:leader-id",
+    "backend:feature:photos:core",
+    "backend:feature:photos:provider:synology",
+    "backend:feature:photos:provider:dummy",
+    "backend:feature:sport:core",
+    "backend:feature:sport:provider:dummy",
+    "backend:feature:sport:provider:clockify",
+    "backend:feature:teammates:core",
+    "backend:feature:teammates:provider:notion",
+    "backend:feature:teammates:provider:dummy",
+    "backend:feature:photo-saver:core",
+    "backend:feature:photo-saver:provider:dummy",
+    "backend:feature:photo-saver:provider:mattermost",
+    "backend:feature:photo-saver:storage:synology",
+    "backend:feature:photo-saver:storage:dummy",
 
     "clients:tablet:composeApp",
     "clients:tablet:core:ui",
@@ -50,4 +66,17 @@ include(
     "clients:tablet:feature:bookingEditor",
     "clients:tablet:feature:fastBooking",
     "clients:tablet:feature:slot",
+
+    "clients:shared:core",
+
+    "clients:tv:composeApp",
+    "clients:tv:core:domain",
+    "clients:tv:core:data",
+    "clients:tv:core:ui",
+    "clients:tv:feature:menu",
+    "clients:tv:feature:photos",
+    "clients:tv:feature:stories",
+    "clients:tv:feature:events",
+
+    "clients:smsrouter:app",
 )

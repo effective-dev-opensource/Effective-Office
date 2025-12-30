@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_title">Effective Office TV</string>
+
+    <!-- Welcome Screen -->
+    <string name="welcome_title">Не знаете, что посмотреть?</string>
+    <string name="main_screen_description">Бесконечная лента историй, фото и анонсов</string>
+    <string name="start_autoplay">Запустить автоплей</string>
+    <string name="autoplay_menu">Настройки</string>
+
+    <!-- Autoplay Menu Screen -->
+    <string name="autoplay_menu_title">Выберите категории</string>
+    <string name="category_stories">Истории</string>
+    <string name="category_photos">Фото</string>
+    <string name="category_events">События</string>
+    <string name="autoplay_menu_button">Запустить автоплей</string>
+    <string name="autoplay_zero_select">Выберите хотя бы одну категорию</string>
+    <string name="back_button">Назад</string>
+
+    <!-- Error Screen -->
+    <string name="error_title">Что-то пошло не так</string>
+    <string name="error_description">Произошла ошибка. Пожалуйста, попробуйте ещё раз.</string>
+    <string name="retry_button">Повторить</string>
+
+    <!-- Loading -->
+    <string name="loading">Загрузка…</string>
+
+    <!-- Autoplay Screen -->
+    <string name="no_categories_selected">Категории не выбраны</string>
+    <string name="press_back_to_select">Нажмите "Назад", чтобы выбрать категории</string>
+    <string name="autoplay_placeholder_status">Экран %1$d из %2$d</string>
+    <string name="autoplay_placeholder_playing">Воспроизведение…</string>
+    <string name="autoplay_placeholder_paused">Пауза</string>
+    <string name="autoplay_placeholder_stories_subtitle">Истории\n\n%1$s\n\n%2$s</string>
+    <string name="autoplay_placeholder_photos_subtitle">Фото команды\n\n%1$s\n\n%2$s</string>
+    <string name="autoplay_placeholder_events_subtitle">Ближайшие события\n\n%1$s\n\n%2$s</string>
+    <string name="autoplay_placeholder_unknown_title">Неизвестно</string>
+    <string name="autoplay_placeholder_unknown_subtitle">Неизвестная категория\n\n%1$s</string>
+</resources>

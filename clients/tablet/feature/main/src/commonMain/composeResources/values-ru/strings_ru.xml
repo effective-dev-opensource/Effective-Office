@@ -10,12 +10,18 @@
     <string name="electric_socket_property_nominative">Розетка</string>
     <string name="electric_socket_property_genitive">Розетки</string>
     <string name="electric_socket_property_plural">Розеток</string>
-    <string name="hour_nominative">час</string>
-    <string name="hour_genitive">часа</string>
-    <string name="hour_plural">часов</string>
-    <string name="minuit_nominative">минута</string>
-    <string name="minuit_genitive">минуты</string>
-    <string name="minuit_plural">минут</string>
+    <plurals name="hours">
+        <item quantity="one">час</item>
+        <item quantity="few">часа</item>
+        <item quantity="many">часов</item>
+        <item quantity="other">часов</item>
+    </plurals>
+    <plurals name="minutes">
+        <item quantity="one">минута</item>
+        <item quantity="few">минуты</item>
+        <item quantity="many">минут</item>
+        <item quantity="other">минут</item>
+    </plurals>
     <string name="change_booking_view_title">Занять</string>
     <string name="booking_button_text">Занять %1$s</string>
     <string name="busy_duration_string">До конца</string>

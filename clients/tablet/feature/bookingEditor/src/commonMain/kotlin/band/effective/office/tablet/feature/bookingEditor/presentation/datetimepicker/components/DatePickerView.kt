@@ -6,8 +6,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import band.effective.office.tablet.core.domain.util.asInstant
-import band.effective.office.tablet.core.domain.util.asLocalDateTime
+import band.effective.office.shared.core.utils.asInstant
+import band.effective.office.shared.core.utils.asLocalDateTime
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import com.mohamedrejeb.calf.ui.datepicker.AdaptiveDatePicker
 import com.mohamedrejeb.calf.ui.datepicker.rememberAdaptiveDatePickerState

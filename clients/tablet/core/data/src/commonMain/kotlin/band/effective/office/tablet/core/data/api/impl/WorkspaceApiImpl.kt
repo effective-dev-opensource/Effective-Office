@@ -4,10 +4,10 @@ import band.effective.office.tablet.core.data.api.Collector
 import band.effective.office.tablet.core.data.api.WorkspaceApi
 import band.effective.office.tablet.core.data.dto.workspace.WorkspaceDTO
 import band.effective.office.tablet.core.data.dto.workspace.WorkspaceZoneDTO
-import band.effective.office.tablet.core.data.network.HttpClientProvider
-import band.effective.office.tablet.core.data.network.HttpRequestUtil
-import band.effective.office.tablet.core.domain.Either
-import band.effective.office.tablet.core.domain.ErrorResponse
+import band.effective.office.shared.core.network.HttpClientProvider
+import band.effective.office.shared.core.network.HttpRequestUtil
+import band.effective.office.shared.core.domain.Either
+import band.effective.office.shared.core.domain.ErrorResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter

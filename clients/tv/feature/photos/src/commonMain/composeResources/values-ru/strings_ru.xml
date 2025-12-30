@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="photos_loading_title">Фото</string>
+    <string name="photos_empty_title">Нет фотографий для показа</string>
+    <string name="photos_content_description">Фото команды</string>
+</resources>

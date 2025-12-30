@@ -2,9 +2,9 @@ package band.effective.office.tablet.core.data.repository
 
 import band.effective.office.tablet.core.data.api.BookingApi
 import band.effective.office.tablet.core.data.mapper.EventInfoMapper
-import band.effective.office.tablet.core.domain.Either
-import band.effective.office.tablet.core.domain.ErrorResponse
-import band.effective.office.tablet.core.domain.map
+import band.effective.office.shared.core.domain.Either
+import band.effective.office.shared.core.domain.ErrorResponse
+import band.effective.office.shared.core.domain.map
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.repository.BookingRepository
