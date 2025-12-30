@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*
  * REST controller for managing kiosk mode.
  */
 @RestController
-@RequestMapping("/v1/kiosk")
+@RequestMapping("/api/v1/kiosk")
 @Tag(name = "Kiosk", description = "API for managing kiosk mode")
 class KioskController(
     private val notificationSender: INotificationSender,
