@@ -49,7 +49,6 @@ springdoc:
     - band.effective.office.backend.feature.photos.core.controller
     - band.effective.office.backend.feature.sport.core.controller
     - band.effective.office.backend.feature.teammates.core.controller
-    - band.effective.office.backend.feature.notifications.controller
 
 management:
   endpoints:
