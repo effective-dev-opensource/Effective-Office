@@ -29,6 +29,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import band.effective.office.shared.core.utils.dateTimeFormat
+import band.effective.office.shared.core.utils.dayMonthFormat
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.arrow_left
 import band.effective.office.tablet.core.ui.arrow_right

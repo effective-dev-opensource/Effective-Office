@@ -1,6 +1,6 @@
 package band.effective.office.tablet.feature.settings
 
-import band.effective.office.tablet.core.domain.unbox
+import band.effective.office.shared.core.domain.unbox
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.SetRoomUseCase

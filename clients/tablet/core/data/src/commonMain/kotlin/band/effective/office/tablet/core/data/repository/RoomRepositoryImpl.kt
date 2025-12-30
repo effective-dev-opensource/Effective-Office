@@ -3,13 +3,13 @@ package band.effective.office.tablet.core.data.repository
 import band.effective.office.tablet.core.data.api.BookingApi
 import band.effective.office.tablet.core.data.api.WorkspaceApi
 import band.effective.office.tablet.core.data.mapper.RoomInfoMapper
-import band.effective.office.tablet.core.domain.Either
+import band.effective.office.shared.core.domain.Either
 import band.effective.office.tablet.core.domain.ErrorWithData
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.repository.RoomRepository
-import band.effective.office.tablet.core.domain.util.asInstant
-import band.effective.office.tablet.core.domain.util.currentLocalDateTime
-import band.effective.office.tablet.core.domain.util.defaultTimeZone
+import band.effective.office.shared.core.utils.asInstant
+import band.effective.office.shared.core.utils.currentLocalDateTime
+import band.effective.office.shared.core.utils.defaultTimeZone
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO

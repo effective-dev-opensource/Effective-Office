@@ -31,10 +31,10 @@ data class BookingDto(
     @Schema(description = "Booking ID", example = "123e4567-e89b-12d3-a456-426614174000")
     val id: String,
 
-    @Schema(description = "Start time of the booking in milliseconds since epoch", example = "1672531200000")
+    @Schema(description = "Start time of the booking in milliseconds since epoch", example = "1755734400000")
     val beginBooking: Long,
 
-    @Schema(description = "End time of the booking in milliseconds since epoch", example = "1672534800000")
+    @Schema(description = "End time of the booking in milliseconds since epoch", example = "1761091199000")
     val endBooking: Long,
 
     @Schema(description = "Recurrence pattern for the booking")

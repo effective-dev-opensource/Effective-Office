@@ -1,10 +1,10 @@
 package band.effective.office.tablet.core.data.api
 
-import band.effective.office.tablet.core.data.dto.SuccessResponse
+import band.effective.office.shared.core.network.dto.SuccessResponse
 import band.effective.office.tablet.core.data.dto.booking.BookingRequestDTO
 import band.effective.office.tablet.core.data.dto.booking.BookingResponseDTO
-import band.effective.office.tablet.core.domain.Either
-import band.effective.office.tablet.core.domain.ErrorResponse
+import band.effective.office.shared.core.domain.Either
+import band.effective.office.shared.core.domain.ErrorResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 

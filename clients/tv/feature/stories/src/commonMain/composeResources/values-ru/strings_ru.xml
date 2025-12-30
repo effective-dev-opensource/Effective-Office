@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Duolingo -->
+    <string name="duolingo_title">Duolingo</string>
+    <string name="xp_label">XP</string>
+    <plurals name="days">
+        <item quantity="one">день</item>
+        <item quantity="few">дня</item>
+        <item quantity="many">дней</item>
+        <item quantity="other">дней</item>
+    </plurals>
+    
+    <!-- Sport -->
+    <string name="sport_title">Sport</string>
+    <string name="sport_hours">%1$d ч</string>
+    
+    <!-- Supernova -->
+    <string name="supernova_title">Supernova</string>
+    <string name="supernova_points">%1$d очков</string>
+    
+    <!-- Employee stories -->
+    <string name="story_intern">Стажёр</string>
+    <string name="story_birthday">С Днём Рождения!</string>
+    <string name="story_anniversary">%1$d лет с нами</string>
+    <string name="story_month_anniversary">%1$d месяцев с нами</string>
+    <string name="story_new_employee">Добро пожаловать в команду!</string>
+    <string name="story_employee_photo">Фото сотрудника</string>
+    
+    <!-- No stories -->
+    <string name="no_stories_today">Сегодня историй нет</string>
+    
+    <!-- Loading -->
+    <string name="stories_loading_title">Истории</string>
+
+    <!-- Warnings -->
+    <string name="stories_warning_partial">Некоторые данные недоступны</string>
+</resources>

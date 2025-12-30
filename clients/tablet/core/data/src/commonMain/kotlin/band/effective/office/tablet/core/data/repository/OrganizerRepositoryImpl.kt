@@ -3,10 +3,10 @@ package band.effective.office.tablet.core.data.repository
 import band.effective.office.tablet.core.data.api.UserApi
 import band.effective.office.tablet.core.data.dto.user.UserDTO
 import band.effective.office.tablet.core.data.utils.Converter.toOrganizer
-import band.effective.office.tablet.core.domain.Either
-import band.effective.office.tablet.core.domain.ErrorResponse
+import band.effective.office.shared.core.domain.Either
+import band.effective.office.shared.core.domain.ErrorResponse
 import band.effective.office.tablet.core.domain.ErrorWithData
-import band.effective.office.tablet.core.domain.map
+import band.effective.office.shared.core.domain.map
 import band.effective.office.tablet.core.domain.model.Organizer
 import band.effective.office.tablet.core.domain.repository.OrganizerRepository
 import kotlinx.coroutines.CoroutineScope

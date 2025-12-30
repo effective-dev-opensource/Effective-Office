@@ -7,9 +7,9 @@ import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.TimerUseCase
 import band.effective.office.tablet.core.domain.util.BootstrapperTimer
-import band.effective.office.tablet.core.domain.util.asInstant
-import band.effective.office.tablet.core.domain.util.asLocalDateTime
-import band.effective.office.tablet.core.domain.util.currentInstant
+import band.effective.office.shared.core.utils.asInstant
+import band.effective.office.shared.core.utils.asLocalDateTime
+import band.effective.office.shared.core.utils.currentInstant
 import band.effective.office.tablet.feature.slot.domain.usecase.GetSlotsByRoomUseCase
 import band.effective.office.tablet.feature.slot.presentation.mapper.SlotUiMapper
 import com.arkivanov.decompose.ComponentContext

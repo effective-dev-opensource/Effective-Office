@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_title">Effective Office TV</string>
+    
+    <!-- Welcome Screen -->
+    <string name="welcome_title">Don't know what to watch?</string>
+    <string name="main_screen_description">Endless stream of stories, photos and event announcements</string>
+    <string name="start_autoplay">Start autoplay</string>
+    <string name="autoplay_menu">Settings</string>
+    
+    <!-- Autoplay Menu Screen -->
+    <string name="autoplay_menu_title">Select categories</string>
+    <string name="category_stories">Stories</string>
+    <string name="category_photos">Photos</string>
+    <string name="category_events">Events</string>
+    <string name="autoplay_menu_button">Start autoplay</string>
+    <string name="autoplay_zero_select">Select at least one category</string>
+    <string name="back_button">Back</string>
+    
+    <!-- Error Screen -->
+    <string name="error_title">Something went wrong</string>
+    <string name="error_description">An error occurred. Please try again.</string>
+    <string name="retry_button">Retry</string>
+    
+    <!-- Loading -->
+    <string name="loading">Loading…</string>
+    
+    <!-- Autoplay Screen -->
+    <string name="no_categories_selected">No categories selected</string>
+    <string name="press_back_to_select">Press Back to select categories</string>
+    <string name="autoplay_placeholder_status">Screen %1$d of %2$d</string>
+    <string name="autoplay_placeholder_playing">Playing…</string>
+    <string name="autoplay_placeholder_paused">Paused</string>
+    <string name="autoplay_placeholder_stories_subtitle">Stories\n\n%1$s\n\n%2$s</string>
+    <string name="autoplay_placeholder_photos_subtitle">Team photos\n\n%1$s\n\n%2$s</string>
+    <string name="autoplay_placeholder_events_subtitle">Upcoming events\n\n%1$s\n\n%2$s</string>
+    <string name="autoplay_placeholder_unknown_title">Unknown</string>
+    <string name="autoplay_placeholder_unknown_subtitle">Unknown category\n\n%1$s</string>
+</resources>

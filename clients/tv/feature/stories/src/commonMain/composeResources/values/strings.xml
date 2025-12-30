@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Duolingo -->
+    <string name="duolingo_title">Duolingo</string>
+    <string name="xp_label">XP</string>
+    <plurals name="days">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
+    </plurals>
+    
+    <!-- Sport -->
+    <string name="sport_title">Sport</string>
+    <string name="sport_hours">%1$d h</string>
+    
+    <!-- Supernova -->
+    <string name="supernova_title">Supernova</string>
+    <string name="supernova_points">%1$d points</string>
+    
+    <!-- Employee stories -->
+    <string name="story_intern">Intern</string>
+    <string name="story_birthday">Happy Birthday!</string>
+    <string name="story_anniversary">%1$d years with us</string>
+    <string name="story_month_anniversary">%1$d months with us</string>
+    <string name="story_new_employee">Welcome to the team!</string>
+    <string name="story_employee_photo">Employee photo</string>
+    
+    <!-- No stories -->
+    <string name="no_stories_today">No stories today</string>
+    
+    <!-- Loading -->
+    <string name="stories_loading_title">Stories</string>
+
+    <!-- Warnings -->
+    <string name="stories_warning_partial">Some data is unavailable</string>
+</resources>
+

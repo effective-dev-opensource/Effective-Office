@@ -1,8 +1,8 @@
 package band.effective.office.tablet.core.domain.useCase
 
-import band.effective.office.tablet.core.domain.unbox
-import band.effective.office.tablet.core.domain.util.asInstant
-import band.effective.office.tablet.core.domain.util.currentInstant
+import band.effective.office.shared.core.domain.unbox
+import band.effective.office.shared.core.utils.asInstant
+import band.effective.office.shared.core.utils.currentInstant
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlin.time.Duration

@@ -3,10 +3,10 @@ package band.effective.office.tablet.core.data.api.impl
 import band.effective.office.tablet.core.data.api.Collector
 import band.effective.office.tablet.core.data.api.UserApi
 import band.effective.office.tablet.core.data.dto.user.UserDTO
-import band.effective.office.tablet.core.data.network.HttpClientProvider
-import band.effective.office.tablet.core.data.network.HttpRequestUtil
-import band.effective.office.tablet.core.domain.Either
-import band.effective.office.tablet.core.domain.ErrorResponse
+import band.effective.office.shared.core.network.HttpClientProvider
+import band.effective.office.shared.core.network.HttpRequestUtil
+import band.effective.office.shared.core.domain.Either
+import band.effective.office.shared.core.domain.ErrorResponse
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.appendPathSegments

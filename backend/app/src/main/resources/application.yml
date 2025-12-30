@@ -1,7 +1,7 @@
 server:
   port: 8080
   address: 0.0.0.0
-
+  forward-headers-strategy: FRAMEWORK
   servlet:
     context-path: /api
 
@@ -43,7 +43,12 @@ springdoc:
     - band.effective.office.backend.feature.authorization.controller
     - band.effective.office.backend.feature.booking.core.controller
     - band.effective.office.backend.feature.workspace.core.controller
+    - band.effective.office.backend.feature.duolingo.controller
     - band.effective.office.backend.feature.notifications.controller
+    - band.effective.office.backend.feature.leader.id.controller
+    - band.effective.office.backend.feature.photos.core.controller
+    - band.effective.office.backend.feature.sport.core.controller
+    - band.effective.office.backend.feature.teammates.core.controller
 
 management:
   endpoints:
@@ -74,6 +79,61 @@ logging:
 
 application:
   url: ${APPLICATION_URL:http://localhost:8080}
+
+# LeaderId configuration
+leaderid:
+  events-period-days: ${LEADERID_EVENTS_PERIOD_DAYS:14}
+  default-city-id: ${LEADERID_DEFAULT_CITY_ID:893}
+  default-place-id: ${LEADERID_DEFAULT_PLACE_ID:3942}
+  default-pagination-size: ${LEADERID_DEFAULT_PAGINATION_SIZE:100}
+
+# Photos provider configuration
+photos:
+  provider: synology # Options: synology, dummy
+
+# Teammates provider configuration
+teammates:
+  provider: notion # Options: notion, dummy
+
+# Notion configuration (required when using notion provider)
+NOTION_TOKEN: ${NOTION_TOKEN:}
+NOTION_TEAMMATES_DB_ID: ${NOTION_TEAMMATES_DB_ID:}
+NOTION_SUPERNOVA_DB_ID: ${NOTION_SUPERNOVA_DB_ID:}
+
+# Synology NAS configuration (required when using synology provider)
+SYNOLOGY_IP: ${SYNOLOGY_IP:}
+SYNOLOGY_LOGIN: ${SYNOLOGY_LOGIN:}
+SYNOLOGY_PASSWORD: ${SYNOLOGY_PASSWORD:}
+SYNOLOGY_ALBUM_NAME: ${SYNOLOGY_ALBUM_NAME:}
+
+# Sport provider configuration
+sport:
+  provider: clockify # Options: dummy, clockify
+
+# Clockify configuration (required when using clockify provider)
+CLOCKIFY_API_KEY: ${CLOCKIFY_API_KEY:}
+CLOCKIFY_WORKSPACE_ID: ${CLOCKIFY_WORKSPACE_ID:}
+CLOCKIFY_PROJECT_ID: ${CLOCKIFY_PROJECT_ID:}
+
+# Photo Saver provider configuration (Mattermost -> Synology sync)
+photo:
+  saver:
+    provider: mattermost # Options: dummy, mattermost
+    storage: synology # Options: dummy, synology
+    scheduler:
+      enabled: ${PHOTO_SAVER_SCHEDULER_ENABLED:true} # Enable automatic photo sync
+
+# Photo Saver Mattermost configuration
+PHOTO_SAVER_MATTERMOST_BASE_URL: ${PHOTO_SAVER_MATTERMOST_BASE_URL:}
+PHOTO_SAVER_MATTERMOST_TOKEN: ${PHOTO_SAVER_MATTERMOST_TOKEN:}
+PHOTO_SAVER_EMOJI_REQUEST_SAVE: ${PHOTO_SAVER_EMOJI_REQUEST_SAVE:star}
+PHOTO_SAVER_EMOJI_SUCCESS: ${PHOTO_SAVER_EMOJI_SUCCESS:white_check_mark}
+
+# Photo Saver Synology configuration
+PHOTO_SAVER_SYNOLOGY_BASE_URL: ${PHOTO_SAVER_SYNOLOGY_BASE_URL:}
+PHOTO_SAVER_SYNOLOGY_USERNAME: ${PHOTO_SAVER_SYNOLOGY_USERNAME:}
+PHOTO_SAVER_SYNOLOGY_PASSWORD: ${PHOTO_SAVER_SYNOLOGY_PASSWORD:}
+PHOTO_SAVER_SYNOLOGY_ALBUM_NAME: ${PHOTO_SAVER_ALBUM_NAME:}
 
 # Calendar provider configuration
 calendar:
