@@ -1,16 +1,12 @@
 # Effective Office
 
-## Goal
+## Project Goal
 
-The main goal of the project is the automation of various processes in the office and providing
-interesting statistics for employees.
+Our goal is to make everyday office work simpler and more enjoyable by automating key processes.
 
 ## Technical goal
 
-The main technical task of the project is to create a multi-module application on Kotlin,
-trying to focus on the most modern and relevant solutions in this language. Throughout the project,
-we tried to use other languages and
-technologies as little as possible.
+The main technical task of the project is to create a multi-module application on Kotlin, trying to focus on the most modern and relevant solutions in this language. Throughout the project, we tried to use other languages and technologies as little as possible.
 
 ## Meeting Room Tablet App
 
@@ -137,11 +133,13 @@ For comprehensive documentation, please visit our [Wiki](https://github.com/effe
 
 We welcome contributions! Please see our [CONTRIBUTION.md](CONTRIBUTION.md) file for guidelines.
 
-## Roadmap
+# AI Tools in Development
 
-**Foosball Tracker**
+We actively use [Junie](https://www.jetbrains.com//junie/), the AI coding agent from JetBrains, in the development and refactoring of Effective Office.  
+Junie helped us speed up backend initialization, migrate features from legacy code, and generate documentation and boilerplate.  
+We continue to use it as part of our workflow, combining automation with careful developer review.
 
-An application for tracking foosball match results. It allows users to log games, maintain leaderboards, and view statistics — all to encourage friendly competition in the office. Currently in development.
+Read more about our experience using Junie in [the Medium article](https://medium.com/effective-developers/how-we-used-junie-by-jetbrains-to-speed-up-development-of-an-internal-project-fc6f151a1f94).
 
 ## Authors
 
