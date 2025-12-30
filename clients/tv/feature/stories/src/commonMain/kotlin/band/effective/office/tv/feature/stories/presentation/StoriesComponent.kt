@@ -179,7 +179,11 @@ class StoriesComponent(
             if (currentState.items.size == 1) {
                 // Single-story loop: stay on the only item and keep playing.
                 resetProgress()
-                if (currentState.isPlaying) startAutoAdvance() else stopAutoAdvance()
+                if (currentState.isPlaying) {
+                    coroutineScope.launch {
+                        startAutoAdvance()
+                    }
+                } else stopAutoAdvance()
             } else {
                 Napier.d("All stories shown - finishing")
                 onFinished()
@@ -210,7 +214,6 @@ class StoriesComponent(
     }
 
     fun onHidden() {
-        setPlaying(false)
         stopAutoAdvance()
     }
 }

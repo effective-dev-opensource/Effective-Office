@@ -13,6 +13,10 @@ interface AutoplayFeature {
     @Composable
     fun Content(isPlaying: Boolean)
 
+
+    /** Triggered when the autoplay error screen wants to retry the current feature. */
+    fun retry() {}
+
     /**
      * Called when screen becomes visible in autoplay carousel.
      * Direction is the last slideshow move (FORWARD/BACKWARD).

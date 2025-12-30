@@ -9,7 +9,7 @@ interface PhotosRepository {
     suspend fun getPhotos(limit: Int = DEFAULT_LIMIT): Flow<Either<ErrorResponse, Photo>>
 
     companion object {
-        const val DEFAULT_LIMIT = 30
+        const val DEFAULT_LIMIT = 50
     }
 }
 

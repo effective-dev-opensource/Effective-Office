@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.core.ui.theme.LocalTvSizes
 import band.effective.office.tv.core.ui.theme.LocalTvTypography
@@ -21,8 +22,8 @@ import band.effective.office.tv.feature.events.events_registration_caption
 import band.effective.office.tv.feature.events.events_registration_label
 import org.jetbrains.compose.resources.stringResource
 
-private const val QR_MAX_WIDTH_RATIO = 0.45f
-private const val TEXT_MIN_WIDTH_RATIO = 0.9f
+private const val QR_MAX_WIDTH_RATIO = 0.9f
+private const val TEXT_MIN_WIDTH_RATIO = 0.8f
 private const val LEADER_ID_BASE_URL = "https://leader-id.ru"
 
 private fun buildEventRegistrationUrl(eventId: Int): String =
@@ -44,7 +45,7 @@ fun EventQr(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = sizes.gapLarge),
+                .padding(start = sizes.gapMedium),
             horizontalArrangement = Arrangement.spacedBy(sizes.gapXLarge)
         ) {
             Image(
@@ -59,7 +60,7 @@ fun EventQr(
     }
 }
 
-private fun calculateQrSize(maxWidth: androidx.compose.ui.unit.Dp, desiredSize: androidx.compose.ui.unit.Dp): androidx.compose.ui.unit.Dp {
+private fun calculateQrSize(maxWidth: Dp, desiredSize: Dp): Dp {
     val maxAllowedSize = maxWidth * QR_MAX_WIDTH_RATIO
     return if (desiredSize > maxAllowedSize) maxAllowedSize else desiredSize
 }

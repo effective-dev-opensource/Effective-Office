@@ -167,5 +167,7 @@ class AutoplayComponent(
                 transitionKey = it.transitionKey + 1
             )
         }
+        val currentCategory = state.value.currentScreen
+        currentCategory?.let { featureProvider.featureFor(it)?.retry() }
     }
 }

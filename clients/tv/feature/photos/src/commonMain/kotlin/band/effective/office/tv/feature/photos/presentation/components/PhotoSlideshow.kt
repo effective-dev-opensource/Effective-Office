@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import band.effective.office.tv.feature.photos.domain.model.Photo
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.compose.AsyncImage
@@ -17,7 +18,7 @@ import io.github.aakira.napier.Napier
 
 @Composable
 fun PhotoSlideshow(
-    photos: List<band.effective.office.tv.feature.photos.domain.model.Photo>,
+    photos: List<Photo>,
     currentIndex: Int,
     imageLoader: ImageLoader,
     onRemoveFailed: (String) -> Unit
@@ -67,9 +68,9 @@ fun PhotoSlideshow(
 }
 
 private fun isTransitionForward(
-    photos: List<band.effective.office.tv.feature.photos.domain.model.Photo>,
-    previousPhoto: band.effective.office.tv.feature.photos.domain.model.Photo?,
-    nextPhoto: band.effective.office.tv.feature.photos.domain.model.Photo
+    photos: List<Photo>,
+    previousPhoto: Photo?,
+    nextPhoto: Photo
 ): Boolean {
     if (previousPhoto == null) return true
     val prevIndex = photos.indexOf(previousPhoto)
@@ -78,7 +79,7 @@ private fun isTransitionForward(
 }
 
 private fun prefetchNextPhotos(
-    photos: List<band.effective.office.tv.feature.photos.domain.model.Photo>,
+    photos: List<Photo>,
     currentIndex: Int,
     imageLoader: ImageLoader,
     platformContext: PlatformContext

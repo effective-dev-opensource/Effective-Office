@@ -46,6 +46,14 @@ subprojects {
     tasks.withType<Test> {
         useJUnitPlatform()
     }
+
+    // Ensure feature module jars under backend have unique names
+    if (project.path.startsWith(":backend:feature") || project.projectDir.path.contains("${File.separator}backend${File.separator}feature")) {
+        tasks.withType<org.gradle.jvm.tasks.Jar> {
+            val normalized = project.path.trimStart(':').replace(':', '-')
+            archiveBaseName.set(normalized)
+        }
+    }
 }
 allprojects {
     configurations.all {

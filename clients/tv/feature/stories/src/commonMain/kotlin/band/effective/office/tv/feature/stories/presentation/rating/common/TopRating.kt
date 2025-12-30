@@ -3,9 +3,7 @@ package band.effective.office.tv.feature.stories.presentation.rating.common
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -32,13 +30,14 @@ fun <T> TopRating(
     val displayUsers = users.take(MAX_ITEMS)
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val columnWidth = (maxWidth - sizes.gapMedium) / 2f
+        val columnGap = sizes.gapXXLarge
+        val columnWidth = (maxWidth - columnGap) / 2f
         val rowHeight = (maxHeight - sizes.gapMedium * 4) / 5f
 
         LazyHorizontalGrid(
             rows = GridCells.Fixed(ROWS_COUNT),
             modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.spacedBy(sizes.gapMedium),
+            horizontalArrangement = Arrangement.spacedBy(columnGap),
             verticalArrangement = Arrangement.spacedBy(sizes.gapMedium),
         ) {
             itemsIndexed(displayUsers) { index, user ->

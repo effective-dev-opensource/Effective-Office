@@ -19,14 +19,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.core.ui.theme.LocalTvSizes
 import band.effective.office.tv.core.ui.theme.LocalTvTypography
+import band.effective.office.tv.core.ui.theme.robotoFontFamily
 import band.effective.office.tv.feature.stories.Res
 import band.effective.office.tv.feature.stories.currency
 import band.effective.office.tv.feature.stories.domain.model.supernova.SupernovaScore
 import band.effective.office.tv.feature.stories.presentation.components.PlaceBadge
 import band.effective.office.tv.feature.stories.supernova
+import band.effective.office.tv.feature.stories.presentation.rating.common.firstNameOf
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.painterResource
@@ -74,7 +77,7 @@ fun SupernovaItem(
             }
             Spacer(modifier = Modifier.width(sizes.gapMedium))
             Text(
-                text = user.name ?: user.id,
+                text = firstNameOf(user.name, user.id),
                 style = typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = colors.textPrimary,
                 maxLines = 1
@@ -83,7 +86,7 @@ fun SupernovaItem(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "${user.score}",
-                style = typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                style = typography.titleLarge,
                 color = colors.textPrimary,
                 textAlign = TextAlign.End
             )

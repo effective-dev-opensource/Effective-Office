@@ -10,9 +10,11 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.text.font.FontWeight
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.core.ui.theme.LocalTvSizes
 import band.effective.office.tv.core.ui.theme.LocalTvTypography
+import band.effective.office.tv.core.ui.theme.robotoFontFamily
 
 @Composable
 fun TitleRating(
@@ -36,7 +38,9 @@ fun TitleRating(
         }
         Text(
             text = title,
-            style = typography.titleMedium,
+            style = typography.titleMedium.copy(
+                fontWeight = FontWeight.Bold,
+            ),
             color = colors.textPrimary
         )
     }

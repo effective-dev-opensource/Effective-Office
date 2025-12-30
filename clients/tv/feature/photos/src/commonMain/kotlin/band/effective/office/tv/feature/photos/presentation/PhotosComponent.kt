@@ -17,7 +17,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import io.github.aakira.napier.Napier
 
-const val PHOTO_DURATION_MS = 10_000L // 10 sec
+const val PHOTO_DURATION_MS = 15_000L // 15 sec
 
 /**
  * Decompose component responsible for managing the photos slideshow.
@@ -60,7 +60,6 @@ class PhotosComponent(
     }
 
     fun onHidden() {
-        setPlaying(false)
         stopAutoAdvance()
     }
 

@@ -6,12 +6,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -22,7 +24,8 @@ import band.effective.office.tv.core.ui.theme.LocalTvTypography
 
 @Composable
 fun TextWithCaptionAndIcon(
-    icon: ImageVector,
+    iconVector: ImageVector? = null,
+    iconPainter: Painter? = null,
     text: String,
     caption: String? = null,
     modifier: Modifier = Modifier,
@@ -39,12 +42,23 @@ fun TextWithCaptionAndIcon(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = caption ?: text,
-            tint = iconTint ?: colors.textPrimary,
-            modifier = Modifier.size(iconSize ?: sizes.iconSmall)
-        )
+        when {
+            iconVector != null -> {
+                Icon(
+                    imageVector = iconVector,
+                    contentDescription = caption ?: text,
+                    tint = iconTint ?: colors.textPrimary,
+                    modifier = Modifier.size(iconSize ?: sizes.iconSmall)
+                )
+            }
+            iconPainter != null -> {
+                Image(
+                    painter = iconPainter,
+                    contentDescription = caption ?: text,
+                    modifier = Modifier.size(iconSize ?: sizes.iconSmall)
+                )
+            }
+        }
         Spacer(modifier = Modifier.width(sizes.gapMedium))
         Column {
             if (!caption.isNullOrBlank()) {

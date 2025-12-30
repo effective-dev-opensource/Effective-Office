@@ -16,12 +16,12 @@ import band.effective.office.tv.core.ui.theme.LocalTvSizes
 import band.effective.office.tv.feature.events.domain.model.EventInfo
 import coil3.ImageLoader
 
-private const val MAIN_INFO_WIDTH_RATIO = 0.40f
-private const val PHOTO_WIDTH_RATIO = 0.60f
-private const val ADDITIONAL_INFO_WIDTH_RATIO = 0.4f
-private const val QR_WIDTH_RATIO = 0.5f
-private const val TOP_ROW_HEIGHT_RATIO = 0.55f
-private const val BOTTOM_ROW_HEIGHT_RATIO = 0.45f
+private const val MAIN_INFO_WIDTH_RATIO = 0.35f
+private const val PHOTO_WIDTH_RATIO = 0.65f
+private const val ADDITIONAL_INFO_WIDTH_RATIO = 0.35f
+private const val QR_WIDTH_RATIO = 0.65f
+private const val TOP_ROW_HEIGHT_RATIO = 0.5f
+private const val BOTTOM_ROW_HEIGHT_RATIO = 0.5f
 
 @Composable
 fun EventCard(

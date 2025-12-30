@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="events_loading_title">События</string>
+    <string name="events_empty_title">Событий нет</string>
+    <string name="events_content_description">Изображение события</string>
+    <string name="events_registration_caption">Регистрация</string>
+    <string name="events_registration_label">Зарегистрироваться на событие</string>
+    <string name="events_organizer_caption">Организатор</string>
+    <string name="events_speakers_caption">Спикеры</string>
+    <string name="events_location_online_default">Онлайн — Точка кипения</string>
+    <string name="events_location_offline_default">Омск, Точка кипения — Омск</string>
+    <string name="events_organizer_fallback">Организатор не указан</string>
+    <string name="events_registration_ends_in">Заканчивается через %1$s</string>
+    <string name="events_qr_content_description">QR-код для регистрации</string>
+
+    <plurals name="events_registration_days">
+        <item quantity="one">%1$d день</item>
+        <item quantity="few">%1$d дня</item>
+        <item quantity="many">%1$d дней</item>
+        <item quantity="other">%1$d дня</item>
+    </plurals>
+
+    <plurals name="events_registration_hours">
+        <item quantity="one">%1$d час</item>
+        <item quantity="few">%1$d часа</item>
+        <item quantity="many">%1$d часов</item>
+        <item quantity="other">%1$d часа</item>
+    </plurals>
+
+    <plurals name="events_registration_minutes">
+        <item quantity="one">%1$d минута</item>
+        <item quantity="few">%1$d минуты</item>
+        <item quantity="many">%1$d минут</item>
+        <item quantity="other">%1$d минуты</item>
+    </plurals>
+</resources>

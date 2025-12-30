@@ -7,12 +7,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Person
+import band.effective.office.tv.core.ui.mic
+import org.jetbrains.compose.resources.painterResource
+import band.effective.office.tv.core.ui.Res as CoreRes
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.core.ui.theme.LocalTvSizes
 import band.effective.office.tv.core.ui.theme.LocalTvTypography
+import band.effective.office.tv.core.ui.user
 import band.effective.office.tv.feature.events.Res
 import band.effective.office.tv.feature.events.domain.model.EventInfo
 import band.effective.office.tv.feature.events.events_organizer_caption
@@ -40,7 +41,7 @@ fun MainEventInfo(
             overflow = TextOverflow.Ellipsis,
         )
         TextWithCaptionAndIcon(
-            icon = Icons.Filled.Person,
+            iconPainter = painterResource(CoreRes.drawable.user),
             text = eventInfo.organizer
                 .takeUnless { it.isNullOrBlank() }
                 ?: stringResource(Res.string.events_organizer_fallback),
@@ -53,7 +54,7 @@ fun MainEventInfo(
         )
         if (eventInfo.speakers.isNotEmpty()) {
             TextWithCaptionAndIcon(
-                icon = Icons.Filled.Mic,
+                iconPainter = painterResource(CoreRes.drawable.mic),
                 text = speakersName(eventInfo.speakers),
                 caption = stringResource(Res.string.events_speakers_caption),
                 iconSize = sizes.iconSmall,

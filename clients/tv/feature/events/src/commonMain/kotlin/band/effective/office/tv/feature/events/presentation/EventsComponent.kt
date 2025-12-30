@@ -63,7 +63,6 @@ class EventsComponent(
     }
 
     fun onHidden() {
-        setPlaying(false)
         stopAutoAdvance()
     }
 
@@ -174,7 +173,11 @@ class EventsComponent(
 
         val nextIndex = current.currentIndex + 1
         if (current.items.size == 1) {
-            if (current.isPlaying) startAutoAdvance() else stopAutoAdvance()
+            if (current.isPlaying) {
+                scope.launch {
+                    startAutoAdvance()
+                }
+            } else stopAutoAdvance()
             return
         }
 

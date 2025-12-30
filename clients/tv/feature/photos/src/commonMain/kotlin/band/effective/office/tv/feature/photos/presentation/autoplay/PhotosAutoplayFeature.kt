@@ -66,4 +66,8 @@ class PhotosAutoplayFeature(
     override fun onHidden() {
         component.onHidden()
     }
+
+    override fun retry() {
+        component.onIntent(PhotosIntent.Retry)
+    }
 }
