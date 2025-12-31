@@ -3,7 +3,7 @@ package band.effective.office.tablet.feature.bookingEditor.presentation.mapper
 import band.effective.office.tablet.core.domain.OfficeTime
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.Slot
-import band.effective.office.tablet.core.domain.util.asInstant
+import band.effective.office.shared.core.utils.asInstant
 import band.effective.office.tablet.feature.bookingEditor.presentation.State
 
 class EventInfoMapper {

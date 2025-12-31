@@ -1,12 +1,12 @@
 package band.effective.office.tablet.core.domain.useCase
 
-import band.effective.office.tablet.core.domain.Either
+import band.effective.office.shared.core.domain.Either
 import band.effective.office.tablet.core.domain.ErrorWithData
-import band.effective.office.tablet.core.domain.map
+import band.effective.office.shared.core.domain.map
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.repository.LocalRoomRepository
 import band.effective.office.tablet.core.domain.repository.RoomRepository
-import band.effective.office.tablet.core.domain.unbox
+import band.effective.office.shared.core.domain.unbox
 
 /**
  * Use case for refreshing room information from the network repository.

@@ -1,8 +1,8 @@
 package band.effective.office.tablet.core.domain.useCase
 
 import band.effective.office.tablet.core.domain.model.RoomInfo
-import band.effective.office.tablet.core.domain.util.asInstant
-import band.effective.office.tablet.core.domain.util.currentInstant
+import band.effective.office.shared.core.utils.asInstant
+import band.effective.office.shared.core.utils.currentInstant
 import kotlin.math.absoluteValue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes

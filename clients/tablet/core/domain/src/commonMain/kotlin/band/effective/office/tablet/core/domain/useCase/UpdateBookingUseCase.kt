@@ -1,7 +1,7 @@
 package band.effective.office.tablet.core.domain.useCase
 
-import band.effective.office.tablet.core.domain.Either
-import band.effective.office.tablet.core.domain.ErrorResponse
+import band.effective.office.shared.core.domain.Either
+import band.effective.office.shared.core.domain.ErrorResponse
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.repository.BookingRepository
 import band.effective.office.tablet.core.domain.repository.LocalBookingRepository

@@ -3,7 +3,7 @@ package band.effective.office.tablet.core.domain.useCase
 import band.effective.office.tablet.core.domain.OfficeTime
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.Slot
-import band.effective.office.tablet.core.domain.util.cropSeconds
+import band.effective.office.shared.core.utils.cropSeconds
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone

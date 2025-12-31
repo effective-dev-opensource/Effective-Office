@@ -4,8 +4,8 @@ import band.effective.office.tablet.core.domain.OfficeTime
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.tablet.core.domain.useCase.SlotUseCase
-import band.effective.office.tablet.core.domain.util.currentLocalDateTime
-import band.effective.office.tablet.core.domain.util.roundUpToNextQuarter
+import band.effective.office.shared.core.utils.currentLocalDateTime
+import band.effective.office.shared.core.utils.roundUpToNextQuarter
 import kotlinx.datetime.LocalDateTime
 
 class GetSlotsByRoomUseCase(

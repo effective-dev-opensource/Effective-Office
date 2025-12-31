@@ -2,13 +2,13 @@ package band.effective.office.tablet.core.data.api.impl
 
 import band.effective.office.tablet.core.data.api.BookingApi
 import band.effective.office.tablet.core.data.api.Collector
-import band.effective.office.tablet.core.data.dto.SuccessResponse
+import band.effective.office.shared.core.network.dto.SuccessResponse
 import band.effective.office.tablet.core.data.dto.booking.BookingRequestDTO
 import band.effective.office.tablet.core.data.dto.booking.BookingResponseDTO
-import band.effective.office.tablet.core.data.network.HttpClientProvider
-import band.effective.office.tablet.core.data.network.HttpRequestUtil
-import band.effective.office.tablet.core.domain.Either
-import band.effective.office.tablet.core.domain.ErrorResponse
+import band.effective.office.shared.core.network.HttpClientProvider
+import band.effective.office.shared.core.network.HttpRequestUtil
+import band.effective.office.shared.core.domain.Either
+import band.effective.office.shared.core.domain.ErrorResponse
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.appendPathSegments

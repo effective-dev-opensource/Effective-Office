@@ -11,7 +11,7 @@ import org.koin.android.ext.android.get
 import org.koin.core.qualifier.named
 import kotlin.time.Duration.Companion.minutes
 
-class App : Application() {
+class  App : Application() {
 
     override fun onCreate() {
         super.onCreate()

@@ -9,7 +9,7 @@ import band.effective.office.tablet.core.data.api.impl.UserApiImpl
 import band.effective.office.tablet.core.data.api.impl.WorkspaceApiImpl
 import band.effective.office.tablet.core.data.mapper.EventInfoMapper
 import band.effective.office.tablet.core.data.mapper.RoomInfoMapper
-import band.effective.office.tablet.core.data.network.HttpClientProvider
+import band.effective.office.shared.core.network.HttpClientProvider
 import band.effective.office.tablet.core.data.repository.BookingRepositoryImpl
 import band.effective.office.tablet.core.data.repository.LocalBookingRepositoryImpl
 import band.effective.office.tablet.core.data.repository.LocalRoomRepositoryImpl

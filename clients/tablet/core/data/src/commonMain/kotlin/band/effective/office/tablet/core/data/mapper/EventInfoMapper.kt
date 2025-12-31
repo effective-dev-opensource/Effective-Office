@@ -6,8 +6,8 @@ import band.effective.office.tablet.core.data.utils.Converter.toOrganizer
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.Organizer
 import band.effective.office.tablet.core.domain.model.RoomInfo
-import band.effective.office.tablet.core.domain.util.asInstant
-import band.effective.office.tablet.core.domain.util.asLocalDateTime
+import band.effective.office.shared.core.utils.asInstant
+import band.effective.office.shared.core.utils.asLocalDateTime
 import kotlinx.datetime.Instant
 
 class EventInfoMapper {

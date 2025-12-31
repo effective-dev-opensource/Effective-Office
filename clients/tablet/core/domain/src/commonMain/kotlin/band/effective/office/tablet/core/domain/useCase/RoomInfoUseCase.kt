@@ -1,8 +1,8 @@
 package band.effective.office.tablet.core.domain.useCase
 
-import band.effective.office.tablet.core.domain.map
+import band.effective.office.shared.core.domain.map
 import band.effective.office.tablet.core.domain.model.RoomInfo
-import band.effective.office.tablet.core.domain.unbox
+import band.effective.office.shared.core.domain.unbox
 import kotlin.collections.filter
 import kotlinx.datetime.Clock
 import kotlinx.coroutines.flow.map

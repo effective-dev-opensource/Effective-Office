@@ -24,7 +24,32 @@ The main technical task of the project is to create a multi-module Kotlin Multip
 | Early Room Release         | Free up the room before the end of the reservation           |
 | Google Calendar Integration| Syncs all bookings with Google Calendar                      |
 
-# Quick Start
+## TV App
+
+### Features Overview
+
+| Feature         | Description                                                 |
+| --------------- | ----------------------------------------------------------- |
+| Stories Display | Shows employee birthdays, anniversaries, new hires, and congratulatory highlights.     |
+| Leaderboard     | Displays stats for Duolingo, sports, and internal currency. |
+| Events          | Displays upcoming events with QR codes for registration.    |
+| Photo Slideshow | Displays corporate photos grouped by albums.                |
+| Autoplay        | Automatically switches between screens in a slideshow.      |
+| Remote Control  | Allows navigation and interaction using a remote control.   |
+
+## SMS Router
+
+### Features Overview
+
+| Feature               | Description                                                  |
+| --------------------- | ------------------------------------------------------------ |
+| SMS Interception      | Captures incoming SMS messages.                              |
+| Webhook Forwarding    | Sends SMS data to configured webhooks.                       |
+| Per-SIM Configuration | Stores webhook settings for each SIM in SharedPreferences.   |
+| Delivery Logging      | Logs SMS delivery status in Room database and provides a UI. |
+| Settings UI           | Allows configuration of webhook settings for each SIM.       |
+
+## Quick Start
 
 ### Prerequisites
 
@@ -86,6 +111,10 @@ For detailed installation instructions, including setting up credentials and run
 effective-office/
 ├── backend/           # Server-side Spring Boot application with PostgreSQL
 ├── clients/           # Client applications
+│   ├── tablet/        # Meeting Room Tablet App
+│   ├── tv/            # Company News & Photos TV App
+│   ├── smsrouter/     # Android SMS Router & Webhooks
+│   └── shared/        # Shared module for common functionality across clients
 ├── iosApp/            # iOS tablet application
 ├── deploy/            # Deployment configurations
 │   ├── dev/           # Development environment
@@ -105,31 +134,18 @@ For comprehensive documentation, please visit our [Wiki](https://github.com/effe
 We welcome contributions! Please see our [CONTRIBUTION.md](CONTRIBUTION.md) file for guidelines.
 
 # AI Tools in Development
+
 We actively use [Junie](https://www.jetbrains.com//junie/), the AI coding agent from JetBrains, in the development and refactoring of Effective Office.  
 Junie helped us speed up backend initialization, migrate features from legacy code, and generate documentation and boilerplate.  
-We continue to use it as part of our workflow, combining automation with careful developer review. 
+We continue to use it as part of our workflow, combining automation with careful developer review.
 
 Read more about our experience using Junie in [the Medium article](https://medium.com/effective-developers/how-we-used-junie-by-jetbrains-to-speed-up-development-of-an-internal-project-fc6f151a1f94).
-
-# Roadmap
-**TV**
-
-A TV application featuring a corporate news and photo feed, event announcements with external registration, Duolingo and sports leaderboards, and an internal currency tracker. Currently in development.
-
-
-**SMS Router**
-
-A service for automatic routing of incoming SMS messages to the appropriate channels and systems. Supports dual SIM and eSIM, operates in the background, and routes messages based on the recipient number — improving the security and reliability of the infrastructure. Currently in development.
-
-
-**Foosball Tracker**
-
-An application for tracking foosball match results. It allows users to log games, maintain leaderboards, and view statistics — all to encourage friendly competition in the office. Currently in development.
 
 # Authors
 
 - [Alex Korovyansky](https://t.me/alexkorovyansky) 
 - [Matvey Avgul](https://t.me/matthewavgul) 
+- [Maxim Mishenko](https://github.com/UserNameMax)
 - [Tatyana Terleeva](https://t.me/tatyana_terleeva) 
 - [Stanislav Radchenko](https://github.com/Radch-enko)
 - [Vitaly Smirnov](https://github.com/KrugarValdes)

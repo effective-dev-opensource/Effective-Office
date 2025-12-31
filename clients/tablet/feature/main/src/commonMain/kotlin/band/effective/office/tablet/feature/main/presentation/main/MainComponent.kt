@@ -1,6 +1,6 @@
 package band.effective.office.tablet.feature.main.presentation.main
 
-import band.effective.office.tablet.core.domain.Either
+import band.effective.office.shared.core.domain.Either
 import band.effective.office.tablet.core.domain.ErrorWithData
 import band.effective.office.tablet.core.domain.manager.DateResetManager
 import band.effective.office.tablet.core.domain.model.EventInfo
@@ -11,10 +11,10 @@ import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.TimerUseCase
 import band.effective.office.tablet.core.domain.useCase.UpdateUseCase
 import band.effective.office.tablet.core.domain.util.BootstrapperTimer
-import band.effective.office.tablet.core.domain.util.currentLocalDateTime
-import band.effective.office.tablet.core.domain.util.minus
-import band.effective.office.tablet.core.domain.util.plus
-import band.effective.office.tablet.core.ui.utils.componentCoroutineScope
+import band.effective.office.shared.core.utils.currentLocalDateTime
+import band.effective.office.shared.core.utils.minus
+import band.effective.office.shared.core.utils.plus
+import band.effective.office.shared.core.utils.componentCoroutineScope
 import band.effective.office.tablet.feature.main.domain.CurrentTimeHolder
 import band.effective.office.tablet.feature.main.domain.GetRoomIndexUseCase
 import band.effective.office.tablet.feature.main.domain.GetTimeToNextEventUseCase
