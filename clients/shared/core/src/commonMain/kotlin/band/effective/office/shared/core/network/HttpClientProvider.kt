@@ -12,7 +12,8 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
+import org.koin.core.component.get
+import org.koin.core.qualifier.Qualifier
 import org.koin.core.qualifier.named
 
 /**
@@ -26,9 +27,7 @@ import org.koin.core.qualifier.named
  * ```
  */
 object HttpClientProvider : KoinComponent {
-
-    private val apiKey by inject<String>(named("ApiKey"))
-    private val apiUrl by inject<String>(named("ApiUrl"))
+    inline fun <reified T : Any> getOrNull( qualifier: Qualifier? = null,) = runCatching { get<T>(qualifier) }.getOrNull()
 
     /**
      * Creates a configured HttpClient instance
@@ -48,10 +47,17 @@ object HttpClientProvider : KoinComponent {
                     prettyPrint = true
                 })
             }
-            install(DefaultRequest) {
-                headers.append(HttpHeaders.Authorization, "Bearer $apiKey")
-                url(apiUrl)
+
+            val apiKey = getOrNull<String>(named("ApiKey"))
+            val apiUrl = getOrNull<String>(named("ApiUrl"))
+
+            if (apiKey != null && apiUrl != null) {
+                install(DefaultRequest) {
+                    headers.append(HttpHeaders.Authorization, "Bearer $apiKey")
+                    url(apiUrl)
+                }
             }
+
             install(Logging) {
                 logger = object : Logger {
                     override fun log(message: String) {
