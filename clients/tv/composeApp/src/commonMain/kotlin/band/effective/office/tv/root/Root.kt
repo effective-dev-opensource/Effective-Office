@@ -9,6 +9,7 @@ import band.effective.office.tv.autoplay.AutoplayScreen
 import band.effective.office.tv.core.ui.screen.WelcomeScreen
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.feature.menu.presentation.MenuScreen
+import band.effective.office.tv.platform.SelfUpdateScreen
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
@@ -20,7 +21,7 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 @Composable
 fun Root(component: RootComponent, modifier: Modifier = Modifier) {
     val colors = LocalTvColorsPalette.current
-    
+
     Box(
         modifier = modifier
             .background(color = colors.background)
@@ -35,11 +36,17 @@ fun Root(component: RootComponent, modifier: Modifier = Modifier) {
                     onStartAutoplay = instance.onStartAutoplay,
                     onOpenMenu = instance.onOpenMenu
                 )
+
                 is RootComponent.Child.AutoplayChild -> AutoplayScreen(
                     component = instance.component
                 )
+
                 is RootComponent.Child.MenuChild -> MenuScreen(
                     component = instance.component
+                )
+
+                is RootComponent.Child.SelfUpdateChild -> SelfUpdateScreen(
+                    componentContext = instance.component
                 )
             }
         }

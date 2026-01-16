@@ -11,4 +11,6 @@ sealed interface MenuIntent {
 
     /** Navigate back to previous screen. */
     data object Back : MenuIntent
+
+    data object OpenUpdate: MenuIntent
 }

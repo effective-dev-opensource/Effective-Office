@@ -1,6 +1,7 @@
 package band.effective.office.tv
 
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -14,6 +15,7 @@ class AppActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         rootComponent = RootComponent(componentContext = defaultComponentContext())
 
@@ -22,5 +24,3 @@ class AppActivity : ComponentActivity() {
         }
     }
 }
-
-

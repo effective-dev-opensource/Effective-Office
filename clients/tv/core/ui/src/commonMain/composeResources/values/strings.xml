@@ -16,6 +16,7 @@
     <string name="autoplay_menu_button">Start autoplay</string>
     <string name="autoplay_zero_select">Select at least one category</string>
     <string name="back_button">Back</string>
+    <string name="update_button">Update</string>
     
     <!-- Error Screen -->
     <string name="error_title">Something went wrong</string>
@@ -24,6 +25,13 @@
     
     <!-- Loading -->
     <string name="loading">Loading…</string>
+
+    <!-- Update Screen -->
+    <string name="update_search_title">Search update</string>
+    <string name="update_download_title">Load and install update</string>
+    <string name="update_version">Version: %1$d</string>
+    <string name="update_download_button">Download</string>
+    <string name="update_search_button">Search</string>
     
     <!-- Autoplay Screen -->
     <string name="no_categories_selected">No categories selected</string>

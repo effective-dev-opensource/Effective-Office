@@ -16,6 +16,7 @@ class MenuComponent(
     initialCategories: List<ContentCategory> = ContentCategory.entries,
     private val onBack: () -> Unit,
     private val onStartAutoplay: (List<ContentCategory>) -> Unit,
+    private val onUpdate: () -> Unit
 ) : ComponentContext by componentContext {
 
     private val mutableState = MutableStateFlow(
@@ -31,6 +32,7 @@ class MenuComponent(
             is MenuIntent.ToggleCategory -> toggleCategory(intent.category)
             MenuIntent.StartAutoplay -> startAutoplay()
             MenuIntent.Back -> onBack()
+            MenuIntent.OpenUpdate -> onUpdate()
         }
     }
 
