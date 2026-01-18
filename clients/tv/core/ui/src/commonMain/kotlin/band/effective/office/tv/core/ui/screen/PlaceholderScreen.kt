@@ -13,6 +13,7 @@ import androidx.compose.ui.text.style.TextAlign
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.core.ui.theme.LocalTvSizes
 import band.effective.office.tv.core.ui.theme.LocalTvTypography
+import band.effective.office.tv.core.ui.theme.robotoFontFamily
 
 /**
  * Placeholder screen for features that are not yet implemented.
@@ -34,7 +35,7 @@ fun PlaceholderScreen(
     ) {
         Text(
             text = title,
-            style = typography.displaySmall,
+            style = typography.displaySmall.copy(fontFamily = robotoFontFamily()),
             color = colors.textPrimary,
             textAlign = TextAlign.Center
         )

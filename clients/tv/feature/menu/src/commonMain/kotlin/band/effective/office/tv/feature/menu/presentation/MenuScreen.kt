@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
 import band.effective.office.tv.core.ui.Res
 import band.effective.office.tv.core.ui.autoplay_menu_button
 import band.effective.office.tv.core.ui.autoplay_menu_title
@@ -152,7 +153,19 @@ fun MenuScreenView(
             }
         }
 
-        Spacer(modifier = Modifier.height(sizes.gapXXLarge))
+        Spacer(modifier = Modifier.height(sizes.gapLarge))
+
+        // Warning if nothing selected
+        if (!canStartAutoplay) {
+            Text(
+                text = stringResource(Res.string.autoplay_zero_select),
+                color = colors.textPrimary,
+                style = typography.bodyLarge,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(sizes.gapLarge))
+        }
 
         // Start button with auto-click progress
         ProgressButton(
@@ -199,14 +212,6 @@ fun MenuScreenView(
         )
 
         Spacer(modifier = Modifier.height(sizes.gapMedium))
-
-        // Warning if nothing selected
-        if (!canStartAutoplay) {
-            Text(
-                text = stringResource(Res.string.autoplay_zero_select),
-                color = colors.textPrimary
-            )
-        }
     }
 
     LaunchedEffect(focusRequester) {

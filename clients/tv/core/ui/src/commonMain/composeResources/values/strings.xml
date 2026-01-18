@@ -3,9 +3,9 @@
     <string name="app_title">Effective Office TV</string>
     
     <!-- Welcome Screen -->
-    <string name="welcome_title">Don't know what to watch?</string>
-    <string name="main_screen_description">Endless stream of stories, photos and event announcements</string>
-    <string name="start_autoplay">Start autoplay</string>
+    <string name="welcome_title">What’s new today?</string>
+    <string name="main_screen_description">Your daily mix of photos, stories, achievements,\n and events is ready</string>
+    <string name="start_autoplay">Play</string>
     <string name="autoplay_menu">Settings</string>
     
     <!-- Autoplay Menu Screen -->
@@ -13,7 +13,7 @@
     <string name="category_stories">Stories</string>
     <string name="category_photos">Photos</string>
     <string name="category_events">Events</string>
-    <string name="autoplay_menu_button">Start autoplay</string>
+    <string name="autoplay_menu_button">Play</string>
     <string name="autoplay_zero_select">Select at least one category</string>
     <string name="back_button">Back</string>
     
