@@ -114,6 +114,8 @@ class AutoplayComponent(
         val nextIndex = (state.value.currentIndex + 1) % screens.size
         val nextCategory = screens[nextIndex]
 
+        prepareFeature(nextCategory, Direction.FORWARD)
+
         Napier.d("Switching to next screen: $nextCategory (index $nextIndex/${screens.size})")
 
         mutableState.update {
@@ -134,6 +136,8 @@ class AutoplayComponent(
 
         val prevIndex = (state.value.currentIndex + screens.size - 1) % screens.size
         val prevCategory = screens[prevIndex]
+
+        prepareFeature(prevCategory, Direction.BACKWARD)
 
         Napier.d("Switching to previous screen: $prevCategory (index $prevIndex/${screens.size})")
 
@@ -169,5 +173,9 @@ class AutoplayComponent(
         }
         val currentCategory = state.value.currentScreen
         currentCategory?.let { featureProvider.featureFor(it)?.retry() }
+    }
+
+    private fun prepareFeature(category: ContentCategory?, direction: Direction) {
+        featureFor(category)?.onShown(direction)
     }
 }

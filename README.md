@@ -26,6 +26,9 @@ The main technical task of the project is to create a multi-module application o
 
 ## TV App
 
+
+<img src="media/tv/demo-tv.gif" style="height: 50%;" />
+
 ### Features Overview
 
 | Feature         | Description                                                 |
@@ -38,6 +41,9 @@ The main technical task of the project is to create a multi-module application o
 | Remote Control  | Allows navigation and interaction using a remote control.   |
 
 ## SMS Router
+
+
+<img src="media/smsRouter/demo-smsRouter.gif" style="height: 50%;" />
 
 ### Features Overview
 

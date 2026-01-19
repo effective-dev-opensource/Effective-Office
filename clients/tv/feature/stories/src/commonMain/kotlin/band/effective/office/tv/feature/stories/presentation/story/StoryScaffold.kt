@@ -17,6 +17,7 @@ import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.core.ui.theme.LocalTvShapes
 import band.effective.office.tv.core.ui.theme.LocalTvSizes
 import band.effective.office.tv.core.ui.theme.LocalTvTypography
+import band.effective.office.tv.core.ui.theme.robotoFontFamily
 import band.effective.office.tv.core.ui.theme.TvColorsPalette
 import band.effective.office.tv.feature.stories.Res
 import band.effective.office.tv.feature.stories.domain.model.StoryDomainModel
@@ -101,7 +102,7 @@ fun NoStoriesScreen() {
         ) {
             Text(
                 text = stringResource(Res.string.no_stories_today),
-                style = typography.displaySmall,
+                style = typography.displaySmall.copy(fontFamily = robotoFontFamily()),
                 color = colors.textPrimary
             )
         }

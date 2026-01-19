@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.drawscope.translate
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.core.ui.theme.LocalTvSizes
 import band.effective.office.tv.core.ui.theme.LocalTvTypography
+import band.effective.office.tv.core.ui.theme.robotoFontFamily
 import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.cos
@@ -111,7 +112,7 @@ fun LoadingScreen(
     ) {
         Text(
             text = title,
-            style = typography.displaySmall,
+            style = typography.displaySmall.copy(fontFamily = robotoFontFamily()),
             color = colors.textPrimary
         )
 
