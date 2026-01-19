@@ -14,7 +14,6 @@ import androidx.compose.ui.text.font.FontWeight
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.core.ui.theme.LocalTvSizes
 import band.effective.office.tv.core.ui.theme.LocalTvTypography
-import band.effective.office.tv.core.ui.theme.robotoFontFamily
 
 @Composable
 fun TitleRating(
@@ -39,7 +38,7 @@ fun TitleRating(
         Text(
             text = title,
             style = typography.titleMedium.copy(
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Normal,
             ),
             color = colors.textPrimary
         )
