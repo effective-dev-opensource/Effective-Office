@@ -6,12 +6,16 @@ import band.effective.office.tv.environment.Environment
 import band.effective.office.tv.feature.events.di.eventsModule
 import band.effective.office.tv.feature.photos.di.photosModule
 import band.effective.office.tv.feature.stories.di.storiesModule
+import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 
 class KoinInitializer {
 
-    fun init(environment: Environment) {
+    fun init(
+        environment: Environment,
+        appDeclaration: KoinApplication.() -> Unit =  {}
+    ) {
         startKoin {
             modules(
                 appModule(environment),
@@ -20,7 +24,9 @@ class KoinInitializer {
                 photosModule,
                 storiesModule,
                 eventsModule,
+                platformModule(),
             )
+            appDeclaration()
         }
     }
 

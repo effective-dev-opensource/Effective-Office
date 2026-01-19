@@ -8,6 +8,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.21"
     alias(libs.plugins.buildkonfig)
     id("com.google.gms.google-services") version "4.4.3"
+    id("sign-config")
 }
 
 kotlin {
@@ -98,28 +99,11 @@ android {
             targetCompatibility = JavaVersion.VERSION_17
         }
 
-        signingConfigs {
-            getByName("debug") {
-                keyAlias = "androiddebugkey"
-                keyPassword = "android"
-                storeFile = file("${rootDir}/keystore/debug.keystore")
-                storePassword = "android"
-            }
-            create("release") {
-                keyAlias = System.getenv()["OFFICE_ELEVATOR_RELEASE_ALIAS"]
-                keyPassword = System.getenv()["OFFICE_ELEVATOR_RELEASE_KEY_PASSWORD"]
-                storeFile = file("${rootDir}/keystore/main.keystore")
-                storePassword = System.getenv()["OFFICE_ELEVATOR_RELEASE_STORE_PASSWORD"]
-            }
-        }
-
         buildTypes {
             getByName("debug") {
-                signingConfig = signingConfigs.getByName("debug")
                 isDebuggable = true
             }
             getByName("release") {
-                signingConfig = signingConfigs.getByName("debug")
                 isDebuggable = false
                 isMinifyEnabled = false
             }

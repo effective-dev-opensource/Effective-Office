@@ -3,6 +3,8 @@ package band.effective.office.tv.root
 import band.effective.office.tv.autoplay.AutoplayComponent
 import band.effective.office.tv.core.ui.model.ContentCategory
 import band.effective.office.tv.feature.menu.presentation.MenuComponent
+import band.effective.office.tv.platform.createSelfUpdateChild
+import band.effective.office.tv.root.RootComponent.Child.*
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.DelicateDecomposeApi
 import com.arkivanov.decompose.router.stack.ChildStack
@@ -46,33 +48,43 @@ class RootComponent(
         config: Config,
         componentContext: ComponentContext
     ): Child = when (config) {
-        is Config.Welcome -> Child.WelcomeChild(
+        is Config.Welcome -> WelcomeChild(
             onStartAutoplay = { navigateToAutoplay(savedCategoriesOrder) },
             onOpenMenu = { navigateToMenu() }
         )
-        is Config.Autoplay -> Child.AutoplayChild(
+
+        is Config.Autoplay -> AutoplayChild(
             component = AutoplayComponent(
                 componentContext = componentContext,
                 categories = config.categories,
                 onBack = { navigateBack() }
             )
         )
-        is Config.Menu -> Child.MenuChild(
+
+        is Config.Menu -> MenuChild(
             component = MenuComponent(
                 componentContext = componentContext,
                 initialCategories = savedCategoriesOrder,
                 onBack = { navigateBack() },
-                onStartAutoplay = { categories -> 
+                onStartAutoplay = { categories ->
                     saveCategoriesOrder(categories)
                     navigateToAutoplay(categories)
-                }
+                },
+                onUpdate = ::navigateToUpdate
             )
         )
+
+        Config.SelfUpdate -> SelfUpdateChild(createSelfUpdateChild(componentContext))
     }
 
     @OptIn(DelicateDecomposeApi::class)
     private fun navigateToAutoplay(categories: List<ContentCategory>) {
         navigation.push(Config.Autoplay(categories))
+    }
+
+    @OptIn(DelicateDecomposeApi::class)
+    private fun navigateToUpdate() {
+        navigation.push(Config.SelfUpdate)
     }
 
     /**
@@ -118,6 +130,10 @@ class RootComponent(
         data class MenuChild(
             val component: MenuComponent
         ) : Child()
+
+        data class SelfUpdateChild(
+            val component: ComponentContext
+        ) : Child()
     }
 
     @Serializable
@@ -130,6 +146,9 @@ class RootComponent(
 
         @Serializable
         data object Menu : Config()
+
+        @Serializable
+        data object SelfUpdate : Config()
     }
 
     companion object {
