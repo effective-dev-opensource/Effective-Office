@@ -91,7 +91,7 @@ fun DuolingoItem(
             ) {
                 Text(
                     text = firstNameOf(user.name, user.username),
-                    style = typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    style = typography.titleMedium.copy(fontWeight = FontWeight.Medium),
                     color = colors.textPrimary,
                     maxLines = 1
                 )

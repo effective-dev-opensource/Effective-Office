@@ -32,6 +32,7 @@ import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.pluralStringResource
 
 /**
  * Employee story content - displays employee info with photo.
@@ -117,8 +118,16 @@ fun EmployeeStoryContent(
 @Composable
 private fun employeeDescription(story: StoryDomainModel.EmployeeStory): String = when (story.type) {
     EmployeeStoryType.Birthday -> stringResource(Res.string.story_birthday)
-    EmployeeStoryType.Anniversary -> stringResource(Res.string.story_anniversary, story.years)
-    EmployeeStoryType.MonthAnniversary -> stringResource(Res.string.story_month_anniversary, story.months)
+    EmployeeStoryType.Anniversary -> pluralStringResource(
+        Res.plurals.story_anniversary,
+        story.years,
+        story.years
+    )
+    EmployeeStoryType.MonthAnniversary -> pluralStringResource(
+        Res.plurals.story_month_anniversary,
+        story.months,
+        story.months
+    )
     EmployeeStoryType.NewEmployee -> stringResource(Res.string.story_new_employee)
 }
 

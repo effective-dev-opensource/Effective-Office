@@ -79,7 +79,7 @@ fun SportItem(
             Spacer(modifier = Modifier.width(sizes.gapMedium))
             Text(
                 text = firstNameOf(user.name),
-                style = typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                style = typography.titleMedium.copy(fontWeight = FontWeight.Medium),
                 color = colors.textPrimary,
                 maxLines = 1
             )

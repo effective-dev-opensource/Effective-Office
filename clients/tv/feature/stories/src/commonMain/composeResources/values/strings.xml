@@ -19,8 +19,14 @@
     <!-- Employee stories -->
     <string name="story_intern">Intern</string>
     <string name="story_birthday">Happy Birthday!</string>
-    <string name="story_anniversary">%1$d years with us</string>
-    <string name="story_month_anniversary">%1$d months with us</string>
+    <plurals name="story_anniversary">
+        <item quantity="one">%1$d year with us</item>
+        <item quantity="other">%1$d years with us</item>
+    </plurals>
+    <plurals name="story_month_anniversary">
+        <item quantity="one">%1$d month with us</item>
+        <item quantity="other">%1$d months with us</item>
+    </plurals>
     <string name="story_new_employee">Welcome to the team!</string>
     <string name="story_employee_photo">Employee photo</string>
     

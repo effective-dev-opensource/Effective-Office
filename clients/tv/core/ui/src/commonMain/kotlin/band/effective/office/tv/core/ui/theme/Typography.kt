@@ -62,8 +62,8 @@ fun tvTypography(): Typography {
     return Typography(
         // LoadScreen title (largest)
         displayLarge = TextStyle(
-            fontFamily = roboto,
-            fontWeight = FontWeight.Black,
+            fontFamily = druk,
+            fontWeight = FontWeight.Bold,
             fontSize = 60.sp,
             lineHeight = 68.sp,
         ),
@@ -76,29 +76,29 @@ fun tvTypography(): Typography {
         ),
         // Menu title, settings title
         displaySmall = TextStyle(
-            fontFamily = roboto,
-            fontWeight = FontWeight.Black,
+            fontFamily = druk,
+            fontWeight = FontWeight.Bold,
             fontSize = 50.sp,
             lineHeight = 58.sp,
         ),
         // Story body
         headlineLarge = TextStyle(
             fontFamily = druk,
-            fontWeight = FontWeight.Black,
+            fontWeight = FontWeight.Bold,
             fontSize = 46.sp,
             lineHeight = 54.sp,
         ),
         // Menu items, event info
         headlineMedium = TextStyle(
             fontFamily = roboto,
-            fontWeight = FontWeight.Black,
+            fontWeight = FontWeight.Bold,
             fontSize = 30.sp,
             lineHeight = 38.sp,
         ),
         // No stories message
         headlineSmall = TextStyle(
             fontFamily = roboto,
-            fontWeight = FontWeight.Black,
+            fontWeight = FontWeight.Bold,
             fontSize = 26.sp,
             lineHeight = 34.sp,
         ),
@@ -119,20 +119,20 @@ fun tvTypography(): Typography {
         // h2
         titleSmall = TextStyle(
             fontFamily = roboto,
-            fontWeight = FontWeight.Black,
+            fontWeight = FontWeight.Bold,
             fontSize = 14.sp,
             lineHeight = 22.sp,
         ),
         bodyLarge = TextStyle(
-            fontFamily = inter,
-            fontWeight = FontWeight.Black,
+            fontFamily = roboto,
+            fontWeight = FontWeight.Normal,
             fontSize = 14.sp,
             lineHeight = 22.sp,
         ),
         // Caption
         bodyMedium = TextStyle(
             fontFamily = roboto,
-            fontWeight = FontWeight.Black,
+            fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
             lineHeight = 18.sp,
         ),
@@ -146,21 +146,21 @@ fun tvTypography(): Typography {
         // Button label
         labelLarge = TextStyle(
             fontFamily = roboto,
-            fontWeight = FontWeight.Black,
+            fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
             lineHeight = 28.sp,
         ),
         // Button secondary
         labelMedium = TextStyle(
             fontFamily = roboto,
-            fontWeight = FontWeight.Black,
+            fontWeight = FontWeight.Medium,
             fontSize = 14.sp,
             lineHeight = 20.sp,
         ),
         // Caption
         labelSmall = TextStyle(
             fontFamily = roboto,
-            fontWeight = FontWeight.Black,
+            fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
             lineHeight = 16.sp,
         ),

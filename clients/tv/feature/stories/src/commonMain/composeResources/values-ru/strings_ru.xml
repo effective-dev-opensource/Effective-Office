@@ -21,8 +21,18 @@
     <!-- Employee stories -->
     <string name="story_intern">Стажёр</string>
     <string name="story_birthday">С Днём Рождения!</string>
-    <string name="story_anniversary">%1$d лет с нами</string>
-    <string name="story_month_anniversary">%1$d месяцев с нами</string>
+    <plurals name="story_anniversary">
+        <item quantity="one">%1$d год с нами</item>
+        <item quantity="few">%1$d года с нами</item>
+        <item quantity="many">%1$d лет с нами</item>
+        <item quantity="other">%1$d лет с нами</item>
+    </plurals>
+    <plurals name="story_month_anniversary">
+        <item quantity="one">%1$d месяц с нами</item>
+        <item quantity="few">%1$d месяца с нами</item>
+        <item quantity="many">%1$d месяцев с нами</item>
+        <item quantity="other">%1$d месяцев с нами</item>
+    </plurals>
     <string name="story_new_employee">Добро пожаловать в команду!</string>
     <string name="story_employee_photo">Фото сотрудника</string>
     
