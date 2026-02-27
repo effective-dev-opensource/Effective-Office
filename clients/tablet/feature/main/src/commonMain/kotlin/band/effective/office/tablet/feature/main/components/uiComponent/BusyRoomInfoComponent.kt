@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -19,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.domain.model.EventInfo
+import band.effective.office.tablet.core.domain.model.Organizer
+import band.effective.office.tablet.core.ui.theme.AppTheme
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h5
 import band.effective.office.tablet.core.ui.theme.roomInfoColor
@@ -28,7 +31,22 @@ import band.effective.office.tablet.feature.main.Res
 import band.effective.office.tablet.feature.main.room_occupancy_date
 import band.effective.office.tablet.feature.main.room_occupancy_time
 import band.effective.office.tablet.feature.main.stop_meeting_button
+import kotlinx.datetime.LocalDateTime
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
+
+@Composable
+private fun untilText(
+    finishTime: LocalDateTime,
+    timeToFinish: Int
+) = buildString {
+    val until = stringResource(Res.string.room_occupancy_date, DateDisplayMapper.formatTime(finishTime))
+    append(until)
+    if (timeToFinish > 0){
+        val toFinish = stringResource(Res.string.room_occupancy_time, timeToFinish.getDuration())
+        append(" $toFinish")
+    }
+}
 
 @Composable
 fun BusyRoomInfoComponent(
@@ -61,8 +79,7 @@ fun BusyRoomInfoComponent(
             isError = isError
         ) {
             Text(
-                text = stringResource(Res.string.room_occupancy_date, DateDisplayMapper.formatTime(event.finishTime)) +
-                        " " + if (timeToFinish > 0) stringResource(Res.string.room_occupancy_time, timeToFinish.getDuration()) else "",
+                text = untilText(event.finishTime, timeToFinish),
                 style = MaterialTheme.typography.h5,
                 color = roomInfoColor
             )
@@ -94,5 +111,30 @@ fun BusyRoomInfoComponent(
                 }
             }
         }
+    }
+}
+
+@Preview(widthDp = 700, heightDp = 300, locale = "ru")
+@Composable
+private fun PreviewBusyRoomInfoComponent() {
+    AppTheme {
+        BusyRoomInfoComponent(
+            modifier = Modifier.padding(30.dp),
+            name = "Sun",
+            capacity = 8,
+            isHaveTv = true,
+            electricSocketCount = 3,
+            event = EventInfo(
+                startTime = LocalDateTime(2024, 3, 15, 10, 0),
+                finishTime = LocalDateTime(2024, 3, 15, 11, 30),
+                organizer = Organizer(fullName = "John Doe", id = "1", email = "john@example.com"),
+                id = "event-1",
+                isLoading = false,
+                isEditable = true
+            ),
+            onButtonClick = {},
+            timeToFinish = 45,
+            isError = false
+        )
     }
 }
