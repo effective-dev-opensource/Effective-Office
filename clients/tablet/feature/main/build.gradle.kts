@@ -6,6 +6,8 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":clients:tablet:feature:slot"))
+            implementation("org.jetbrains.compose.components:components-ui-tooling-preview:1.10.0")
+
         }
     }
 }

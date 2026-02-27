@@ -2,13 +2,26 @@ package band.effective.office.tablet.feature.main.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
+import band.effective.office.tablet.core.domain.model.nextEvent
+import band.effective.office.tablet.core.ui.theme.AppTheme
 import band.effective.office.tablet.feature.main.components.uiComponent.BusyRoomInfoComponent
 import band.effective.office.tablet.feature.main.components.uiComponent.FreeRoomInfoComponent
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.toDateTimePeriod
+import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.ui.tooling.preview.Preview
+import kotlin.time.Duration.Companion.days
 
 @Composable
 fun RoomInfoComponent(
@@ -28,7 +41,9 @@ fun RoomInfoComponent(
                     capacity = room.capacity,
                     isHaveTv = room.isHaveTv,
                     electricSocketCount = room.socketCount,
-                    isError = isError
+                    isError = isError,
+                    nextEvent = room.nextEvent(),
+                    timeToNextEvent = timeToNextEvent
                 )
             }
 
