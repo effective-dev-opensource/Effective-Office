@@ -175,7 +175,7 @@ class SettingsViewModel(
             val checkMessage = SmsData(
                 sender = "SMS Router",
                 operatorName = "Effective",
-                messageBody = "Check connection",
+                messageBody = "Connection checked — everything works.",
                 simId = simId
             )
             forwardSmsUseCase(checkMessage)
