@@ -2,6 +2,7 @@ package band.effective.office.tv.feature.events.presentation.components
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -39,7 +40,7 @@ fun EventPhoto(
 
     BoxWithConstraints(
         modifier = modifier
-            .fillMaxHeight()
+            .height(240.dp)
             .padding(start = sizes.gapMedium)
     ) {
         val request = remember(eventInfo.photoUrl) {

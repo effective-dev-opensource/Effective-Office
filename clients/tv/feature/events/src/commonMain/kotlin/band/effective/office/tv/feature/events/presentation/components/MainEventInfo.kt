@@ -1,11 +1,14 @@
 package band.effective.office.tv.feature.events.presentation.components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.Text
+import androidx.compose.ui.text.font.FontWeight
 import band.effective.office.tv.core.ui.mic
 import org.jetbrains.compose.resources.painterResource
 import band.effective.office.tv.core.ui.Res as CoreRes
@@ -39,30 +42,24 @@ fun MainEventInfo(
             text = eventInfo.name,
             color = colors.textPrimary,
             style = typography.headlineMedium,
-            maxLines = 3,
+            maxLines = 4,
             overflow = TextOverflow.Ellipsis,
         )
-        TextWithCaptionAndIcon(
-            iconPainter = painterResource(CoreRes.drawable.user),
-            text = eventInfo.organizer
+
+        Spacer(modifier = Modifier.height(sizes.gapLarge))
+
+        LabelValueText(
+            label = stringResource(Res.string.events_organizer_caption),
+            value = eventInfo.organizer
                 .takeUnless { it.isNullOrBlank() }
                 ?: stringResource(Res.string.events_organizer_fallback),
-            caption = stringResource(Res.string.events_organizer_caption),
-            iconSize = sizes.iconSmall,
             modifier = Modifier.padding(vertical = sizes.gapLarge - sizes.gapSmall),
-            textStyle = typography.titleSmall,
-            captionStyle = typography.bodyMedium,
-            iconTint = colors.textPrimary
         )
         if (eventInfo.speakers.isNotEmpty()) {
-            TextWithCaptionAndIcon(
-                iconPainter = painterResource(CoreRes.drawable.mic),
-                text = speakersName(eventInfo.speakers),
-                caption = stringResource(Res.string.events_speakers_caption),
-                iconSize = sizes.iconSmall,
-                textStyle = typography.titleSmall,
-                captionStyle = typography.bodyMedium,
-                iconTint = colors.textPrimary
+            LabelValueText(
+                label = stringResource(Res.string.events_speakers_caption),
+                value = speakersName(eventInfo.speakers),
+                modifier = Modifier.padding(vertical = sizes.gapLarge - sizes.gapSmall),
             )
         }
     }

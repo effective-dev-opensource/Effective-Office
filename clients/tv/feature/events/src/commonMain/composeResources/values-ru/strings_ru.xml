@@ -10,7 +10,7 @@
     <string name="events_location_online_default">Онлайн — Точка кипения</string>
     <string name="events_location_offline_default">Омск, Точка кипения — Омск</string>
     <string name="events_organizer_fallback">Организатор не указан</string>
-    <string name="events_registration_ends_in">Заканчивается через %1$s</string>
+    <string name="events_registration_ends_in">заканчивается через %1$s</string>
     <string name="events_qr_content_description">QR-код для регистрации</string>
 
     <plurals name="events_registration_days">

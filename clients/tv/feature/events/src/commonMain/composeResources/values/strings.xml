@@ -10,7 +10,7 @@
     <string name="events_location_online_default">Online — Tochka Kipeniya support</string>
     <string name="events_location_offline_default">Omsk, Tochka Kipeniya — Omsk</string>
     <string name="events_organizer_fallback">Organizer not specified</string>
-    <string name="events_registration_ends_in">Ends in %1$s</string>
+    <string name="events_registration_ends_in">ends in %1$s</string>
     <string name="events_qr_content_description">QR code for registration</string>
     <plurals name="events_registration_days">
         <item quantity="one">%1$d day</item>

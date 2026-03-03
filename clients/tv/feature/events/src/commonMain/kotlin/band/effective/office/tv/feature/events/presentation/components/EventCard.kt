@@ -1,10 +1,12 @@
 package band.effective.office.tv.feature.events.presentation.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,12 +22,12 @@ import coil3.compose.LocalPlatformContext
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
-private const val MAIN_INFO_WIDTH_RATIO = 0.35f
-private const val PHOTO_WIDTH_RATIO = 0.65f
+private const val MAIN_INFO_WIDTH_RATIO = 0.5f
+private const val PHOTO_WIDTH_RATIO = 0.8f
 private const val ADDITIONAL_INFO_WIDTH_RATIO = 0.35f
 private const val QR_WIDTH_RATIO = 0.65f
-private const val TOP_ROW_HEIGHT_RATIO = 0.5f
-private const val BOTTOM_ROW_HEIGHT_RATIO = 0.5f
+private const val TOP_ROW_HEIGHT_RATIO = 0.6f
+private const val BOTTOM_ROW_HEIGHT_RATIO = 0.4f
 
 @Composable
 fun EventCard(
@@ -93,10 +95,15 @@ private fun EventBottomRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
+
         AdditionalEventInfo(
             eventInfo = eventInfo,
-            modifier = Modifier.fillMaxWidth(ADDITIONAL_INFO_WIDTH_RATIO)
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .fillMaxWidth(ADDITIONAL_INFO_WIDTH_RATIO)
         )
+
         EventQr(
             eventId = eventInfo.id,
             modifier = Modifier.fillMaxWidth(QR_WIDTH_RATIO)
