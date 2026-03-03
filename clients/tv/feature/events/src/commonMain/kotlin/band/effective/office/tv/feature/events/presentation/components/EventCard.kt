@@ -40,7 +40,7 @@ fun EventCard(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .padding(sizes.gapXLarge)
+            .padding(sizes.gapXXLarge)
     ) {
         val spacerHeight = sizes.gapXLarge - sizes.gapSmall
         val availableHeight = maxHeight - spacerHeight
