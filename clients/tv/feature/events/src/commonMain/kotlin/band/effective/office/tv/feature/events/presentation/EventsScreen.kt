@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import band.effective.office.tv.core.ui.components.LoadingScreen
 import band.effective.office.tv.core.ui.screen.ErrorScreen
+import band.effective.office.tv.core.ui.theme.AppTheme
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.core.ui.theme.LocalTvTypography
 import band.effective.office.tv.feature.events.Res
@@ -25,7 +26,9 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
+import kotlinx.datetime.LocalDateTime
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.core.parameter.parametersOf
 import org.koin.mp.KoinPlatformTools
 
@@ -36,7 +39,6 @@ fun EventsScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by component.state.collectAsState()
-    val colors = LocalTvColorsPalette.current
     val platformContext = LocalPlatformContext.current
     val imageLoader = remember(platformContext) {
         KoinPlatformTools.defaultContext().get().get<ImageLoader> { parametersOf(platformContext) }
@@ -50,6 +52,22 @@ fun EventsScreen(
         component.onIntent(EventsIntent.SetPlaying(isPlaying))
     }
 
+    EventsScreen(
+        state = state,
+        imageLoader = imageLoader,
+        onIntent = component::onIntent,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun EventsScreen(
+    state: EventsState,
+    imageLoader: ImageLoader,
+    onIntent: (EventsIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = LocalTvColorsPalette.current
     Surface(
         modifier = modifier.fillMaxSize(),
         color = colors.background
@@ -57,7 +75,7 @@ fun EventsScreen(
         EventsContent(
             state = state,
             imageLoader = imageLoader,
-            onIntent = component::onIntent
+            onIntent = onIntent
         )
     }
 }
@@ -123,4 +141,48 @@ private fun prefetchEvents(
                     .build()
             )
         }
+}
+
+private val sampleEvent = EventInfo(
+    id = 1,
+    name = "Effective Dev Days",
+    startDateTime = LocalDateTime(2024, 7, 10, 11, 0),
+    finishDateTime = LocalDateTime(2024, 7, 10, 15, 30),
+    isOnline = true,
+    photoUrl = null,
+    organizer = "Effective Team",
+    speakers = listOf("Speaker 1", "Speaker 2", "Speaker 3"),
+    location = "Office / Online"
+)
+
+private val sampleState = EventsState(
+    items = listOf(sampleEvent),
+    currentIndex = 0,
+    isLoading = false,
+    isPlaying = true,
+    error = null
+)
+
+@Preview
+@Composable
+private fun EventsScreenPreview() {
+    AppTheme {
+        EventsScreen(
+            state = sampleState,
+            imageLoader = ImageLoader.Builder(LocalPlatformContext.current).build(),
+            onIntent = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun EventsContentPreview() {
+    AppTheme {
+        EventsContent(
+            state = sampleState,
+            imageLoader = ImageLoader.Builder(LocalPlatformContext.current).build(),
+            onIntent = {}
+        )
+    }
 }

@@ -15,6 +15,10 @@ import androidx.compose.ui.Modifier
 import band.effective.office.tv.core.ui.theme.LocalTvSizes
 import band.effective.office.tv.feature.events.domain.model.EventInfo
 import coil3.ImageLoader
+import band.effective.office.tv.core.ui.theme.AppTheme
+import coil3.compose.LocalPlatformContext
+import kotlinx.datetime.LocalDateTime
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 private const val MAIN_INFO_WIDTH_RATIO = 0.35f
 private const val PHOTO_WIDTH_RATIO = 0.65f
@@ -96,6 +100,28 @@ private fun EventBottomRow(
         EventQr(
             eventId = eventInfo.id,
             modifier = Modifier.fillMaxWidth(QR_WIDTH_RATIO)
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun EventCardPreview() {
+    val imageLoader = ImageLoader.Builder(LocalPlatformContext.current).build()
+    AppTheme {
+        EventCard(
+            eventInfo = EventInfo(
+                id = 1,
+                name = "Effective Dev Days",
+                startDateTime = LocalDateTime(2024, 7, 10, 11, 0),
+                finishDateTime = LocalDateTime(2024, 7, 10, 15, 30),
+                isOnline = true,
+                photoUrl = null,
+                organizer = "Effective Team",
+                speakers = listOf("Speaker 1", "Speaker 2", "Speaker 3"),
+                location = "Office / Online"
+            ),
+            imageLoader = imageLoader
         )
     }
 }

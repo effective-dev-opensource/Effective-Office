@@ -36,27 +36,21 @@ fun EventQr(
 ) {
     val sizes = LocalTvSizes.current
 
-    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+    BoxWithConstraints(modifier = modifier) {
         val qrSize = calculateQrSize(maxWidth, sizes.qrCodeSize)
         val qrUrl = buildEventRegistrationUrl(eventId)
 
-        val painter = rememberQrPainter(content = qrUrl, size = qrSize)
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = sizes.gapMedium),
-            horizontalArrangement = Arrangement.spacedBy(sizes.gapXLarge)
-        ) {
-            Image(
-                painter = painter,
-                contentDescription = stringResource(Res.string.events_qr_content_description),
-                modifier = Modifier.size(qrSize)
-            )
-            RegistrationInfo(
-                modifier = Modifier.widthIn(min = qrSize * TEXT_MIN_WIDTH_RATIO)
-            )
-        }
+        val painter = rememberQrPainter(
+            content = qrUrl,
+            size = qrSize,
+            color = LocalTvColorsPalette.current.textPrimary,
+            backgroundColor = LocalTvColorsPalette.current.background
+        )
+        Image(
+            painter = painter,
+            contentDescription = stringResource(Res.string.events_qr_content_description),
+            modifier = Modifier.size(qrSize)
+        )
     }
 }
 
