@@ -91,7 +91,7 @@ fun tvTypography(): Typography {
         // Menu items, event info
         headlineMedium = TextStyle(
             fontFamily = druk,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.Bold,
             fontSize = 28.sp,
             lineHeight = 36.sp,
         ),

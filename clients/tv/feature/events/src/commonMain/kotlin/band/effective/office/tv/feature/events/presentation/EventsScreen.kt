@@ -61,7 +61,7 @@ fun EventsScreen(
 }
 
 @Composable
-fun EventsScreen(
+private fun EventsScreen(
     state: EventsState,
     imageLoader: ImageLoader,
     onIntent: (EventsIntent) -> Unit,
@@ -141,48 +141,4 @@ private fun prefetchEvents(
                     .build()
             )
         }
-}
-
-private val sampleEvent = EventInfo(
-    id = 1,
-    name = "Effective Dev Days",
-    startDateTime = LocalDateTime(2024, 7, 10, 11, 0),
-    finishDateTime = LocalDateTime(2024, 7, 10, 15, 30),
-    isOnline = true,
-    photoUrl = null,
-    organizer = "Effective Team",
-    speakers = listOf("Speaker 1", "Speaker 2", "Speaker 3"),
-    location = "Office / Online"
-)
-
-private val sampleState = EventsState(
-    items = listOf(sampleEvent),
-    currentIndex = 0,
-    isLoading = false,
-    isPlaying = true,
-    error = null
-)
-
-@Preview
-@Composable
-private fun EventsScreenPreview() {
-    AppTheme {
-        EventsScreen(
-            state = sampleState,
-            imageLoader = ImageLoader.Builder(LocalPlatformContext.current).build(),
-            onIntent = {}
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun EventsContentPreview() {
-    AppTheme {
-        EventsContent(
-            state = sampleState,
-            imageLoader = ImageLoader.Builder(LocalPlatformContext.current).build(),
-            onIntent = {}
-        )
-    }
 }
