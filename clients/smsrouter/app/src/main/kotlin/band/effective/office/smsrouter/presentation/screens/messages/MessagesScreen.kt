@@ -51,7 +51,17 @@ fun MessagesScreen() {
 @Composable
 private fun MessagesScreenContent(viewModel: MessageScreenViewModel = koinInject()) {
     val smsLogs by viewModel.smsLogs.collectAsState()
+    MessagesScreenContent(
+        smsLogs = smsLogs,
+        onClearAll = { viewModel.clearAllLogs() }
+    )
+}
 
+@Composable
+private fun MessagesScreenContent(
+    smsLogs: List<SmsLog>,
+    onClearAll: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -83,7 +93,7 @@ private fun MessagesScreenContent(viewModel: MessageScreenViewModel = koinInject
                 )
 
                 Button(
-                    onClick = { viewModel.clearAllLogs() }
+                    onClick = onClearAll
                 ) {
                     Text("Clear All")
                 }
@@ -108,9 +118,9 @@ fun SmsLogItem(log: SmsLog) {
 
     // Define status colors with animation
     val targetColor = when (log.status) {
-        SmsStatus.DELIVERED -> Color.Green
-        SmsStatus.ERROR -> Color.Red
-        SmsStatus.IN_PROGRESS -> Color.Blue
+        SmsStatus.DELIVERED -> Color(0xFF3EA437)
+        SmsStatus.ERROR -> Color(0xFFCA5454)
+        SmsStatus.IN_PROGRESS -> Color(0xFF2A29B5)
     }
 
     // Animate color change
@@ -226,6 +236,37 @@ fun SmsLogItem(log: SmsLog) {
 @Composable
 fun SmsLogScreenPreview() {
     SmsRouterTheme {
-        MessagesScreenContent()
+        MessagesScreenContent(
+            smsLogs = listOf(
+                SmsLog(
+                    id = "1",
+                    sender = "+79001234567",
+                    message = "Sample message 1",
+                    simType = "SIM 1",
+                    timestamp = System.currentTimeMillis(),
+                    status = SmsStatus.DELIVERED
+                ),
+                SmsLog(
+                    id = "2",
+                    sender = "+79007654321",
+                    message = "Sample message 2",
+                    simType = "SIM 2",
+                    timestamp = System.currentTimeMillis() - 30000,
+                    status = SmsStatus.IN_PROGRESS
+                ),
+                SmsLog(
+                    id = "3",
+                    sender = "Bank",
+                    message = "Error message sample",
+                    simType = "SIM 1",
+                    timestamp = System.currentTimeMillis(),
+                    status = SmsStatus.ERROR,
+                    errorDetails = "Network connection failed",
+                    retryCount = 3
+                )
+
+            ),
+            onClearAll = {}
+        )
     }
 }

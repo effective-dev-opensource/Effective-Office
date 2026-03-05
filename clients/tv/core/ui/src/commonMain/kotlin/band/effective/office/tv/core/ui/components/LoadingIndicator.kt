@@ -23,6 +23,7 @@ import band.effective.office.tv.core.ui.theme.LocalTvSizes
 import band.effective.office.tv.core.ui.theme.LocalTvTypography
 import band.effective.office.tv.core.ui.theme.robotoFontFamily
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -101,23 +102,11 @@ fun LoadingScreen(
     title: String,
     modifier: Modifier = Modifier,
 ) {
-    val typography = LocalTvTypography.current
-    val colors = LocalTvColorsPalette.current
-    val sizes = LocalTvSizes.current
-
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = title,
-            style = typography.displaySmall.copy(fontFamily = robotoFontFamily()),
-            color = colors.textPrimary
-        )
-
-        Spacer(Modifier.height(sizes.gapXLarge))
-
         LoadingIndicator()
     }
 }
