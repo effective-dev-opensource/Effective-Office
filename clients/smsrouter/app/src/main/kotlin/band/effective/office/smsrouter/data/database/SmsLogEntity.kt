@@ -25,7 +25,7 @@ data class SmsLogEntity(
                 message = smsLog.message,
                 simType = smsLog.simType,
                 timestamp = smsLog.timestamp,
-                status = smsLog.status.name,
+                status = smsLog.status.storageValue,
                 errorDetails = smsLog.errorDetails,
                 retryCount = smsLog.retryCount
             )
@@ -38,7 +38,7 @@ data class SmsLogEntity(
                 message = entity.message,
                 simType = entity.simType,
                 timestamp = entity.timestamp,
-                status = SmsStatus.valueOf(entity.status),
+                status = SmsStatus.fromStorageValue(entity.status),
                 errorDetails = entity.errorDetails,
                 retryCount = entity.retryCount
             )

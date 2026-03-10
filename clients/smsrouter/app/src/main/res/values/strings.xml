@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">SmsRouter</string>
+    <string name="messages_empty_state">No SMS messages received yet.\nWaiting for incoming messages...</string>
+    <string name="messages_title">SMS Messages (%1$d)</string>
+    <string name="messages_clear_all">Clear All</string>
+    <string name="sms_status_delivered">Delivered</string>
+    <string name="sms_status_error">Error</string>
+    <string name="sms_status_in_progress">In progress</string>
+    <string name="sms_status_in_progress_retry">%1$s (Retry %2$d)</string>
+    <string name="sms_status_error_retry">%1$s (After %2$d retries)</string>
 </resources>

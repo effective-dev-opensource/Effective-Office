@@ -36,7 +36,7 @@ internal class ForwardSmsUseCaseImpl(
             message = sms.messageBody,
             simType = sms.operatorName,
             timestamp = System.currentTimeMillis(),
-            status = SmsStatus.IN_PROGRESS,
+            status = SmsStatus.InProgress,
             retryCount = retryCount
         )
 
@@ -88,7 +88,7 @@ internal class ForwardSmsUseCaseImpl(
 
                 // Update log with ERROR status, error details, and retry count
                 val updatedLog = initialLog.copy(
-                    status = SmsStatus.ERROR,
+                    status = SmsStatus.Error,
                     errorDetails = "Error ${error.code}: ${error.description}",
                     retryCount = retryCount
                 )
@@ -102,7 +102,7 @@ internal class ForwardSmsUseCaseImpl(
 
                 // Update log with DELIVERED status and retry count
                 val updatedLog = initialLog.copy(
-                    status = SmsStatus.DELIVERED,
+                    status = SmsStatus.Delivered,
                     retryCount = retryCount
                 )
                 smsLogsRepository.put(updatedLog)
