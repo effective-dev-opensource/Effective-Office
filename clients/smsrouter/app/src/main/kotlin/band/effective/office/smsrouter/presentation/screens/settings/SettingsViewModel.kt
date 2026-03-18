@@ -4,9 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import band.effective.office.smsrouter.domain.model.Settings
 import band.effective.office.smsrouter.domain.model.SimCardSettings
+import band.effective.office.smsrouter.domain.model.SmsData
 import band.effective.office.smsrouter.domain.model.WebhookType
 import band.effective.office.smsrouter.domain.provider.SimCardProvider
 import band.effective.office.smsrouter.domain.repository.SettingsRepository
+import band.effective.office.smsrouter.domain.usecase.ForwardSmsUseCase
+import band.effective.office.smsrouter.domain.usecase.ForwardSmsUseCaseImpl
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +24,7 @@ import kotlinx.coroutines.launch
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
     private val simcardProvider: SimCardProvider,
+    private val forwardSmsUseCase: ForwardSmsUseCase
 ) : ViewModel() {
 
     // State
@@ -45,6 +49,7 @@ class SettingsViewModel(
             is Intent.UpdateChatId -> updateChatId(intent.simId, intent.chatId)
             is Intent.SaveSettings -> saveSettings()
             is Intent.ReloadSimCards -> loadSimCards()
+            is Intent.CheckWebHook -> sendCheckMessage(intent.simId)
         }
     }
 
@@ -61,7 +66,8 @@ class SettingsViewModel(
             _state.update { it.copy(isLoading = true) }
             delay(1000)
             val simCards = simcardProvider.getAvailableSimCards().map { simCard ->
-                val existingSettings = _state.value.settings.simCards.find { it.simId == simCard.simId }
+                val existingSettings =
+                    _state.value.settings.simCards.find { it.simId == simCard.simId }
                 SimCardUiModel(
                     simId = simCard.simId,
                     simName = simCard.simName,
@@ -153,9 +159,26 @@ class SettingsViewModel(
                 _effect.emit(Effect.SettingsSaved)
                 _state.update { it.copy(isSaving = false) }
             } catch (e: Exception) {
-                _state.update { it.copy(isSaving = false, error = e.message ?: "Failed to save settings") }
+                _state.update {
+                    it.copy(
+                        isSaving = false,
+                        error = e.message ?: "Failed to save settings"
+                    )
+                }
                 _effect.emit(Effect.ShowError("Failed to save settings: ${e.message}"))
             }
+        }
+    }
+
+    private fun sendCheckMessage(simId: String) {
+        viewModelScope.launch {
+            val checkMessage = SmsData(
+                sender = "SMS Router",
+                operatorName = "Effective",
+                messageBody = "Connection checked — everything works.",
+                simId = simId
+            )
+            forwardSmsUseCase(checkMessage)
         }
     }
 
@@ -186,6 +209,7 @@ class SettingsViewModel(
         data class UpdateChatId(val simId: String, val chatId: String) : Intent()
         object SaveSettings : Intent()
         object ReloadSimCards : Intent()
+        data class CheckWebHook(val simId: String) : Intent()
     }
 
     // Effect sealed class for one-time events
