@@ -22,6 +22,7 @@ import band.effective.office.tv.feature.events.events_registration_ends_in
 import band.effective.office.tv.feature.events.presentation.format.formatRegistrationEndsIn
 import band.effective.office.tv.feature.events.presentation.format.formatTimeRange
 import org.jetbrains.compose.resources.stringResource
+import kotlinx.datetime.LocalDateTime
 
 @Composable
 fun AdditionalEventInfo(
@@ -41,22 +42,12 @@ fun AdditionalEventInfo(
         Column(
             verticalArrangement = Arrangement.spacedBy(sizes.gapMedium)
         ) {
-
-            val registrationText = eventInfo.endRegDate
-                ?.takeIf { it > currentLocalDateTime }
-                ?.let { formatRegistrationEndsIn(it) }
-                ?.takeUnless { it.isBlank() }
+            val registrationText = registrationText(eventInfo.endRegDate)
 
             if (registrationText != null) {
                 TextWithIcon(
                     iconPainter = painterResource(CoreRes.drawable.error_circle),
-                    text = stringResource(
-                        Res.string.events_registration_caption
-                    ) + " " +
-                            stringResource(
-                                Res.string.events_registration_ends_in,
-                                registrationText
-                            ),
+                    text = registrationText,
                     textStyle = textStyle,
                     iconSize = iconSize
                 )
@@ -89,5 +80,20 @@ fun AdditionalEventInfo(
                 iconSize = iconSize
             )
         }
+    }
+}
+
+@Composable
+private fun registrationText(endRegDate: LocalDateTime?): String? {
+    val timeLeft = endRegDate
+        ?.takeIf { it > currentLocalDateTime }
+        ?.let { date: LocalDateTime -> formatRegistrationEndsIn(date) }
+        ?.takeUnless { it.isBlank() }
+        ?: return null
+
+    return buildString {
+        append(stringResource(Res.string.events_registration_caption))
+        append(' ')
+        append(stringResource(Res.string.events_registration_ends_in, timeLeft))
     }
 }

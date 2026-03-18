@@ -54,7 +54,7 @@ val TvColors = TvColorsPalette(
     primary = orangePrimary,
     onPrimary = md_theme_dark_onPrimary,
     secondary = md_theme_dark_surfaceVariant,
-    background = md_theme_new_dark_background,
+    background = md_theme_dark_background,
     surface = md_theme_dark_surface,
     
     // Text colors
@@ -83,7 +83,7 @@ val TvColors = TvColorsPalette(
  * Material color scheme for TV (dark theme)
  */
 private val TvColorScheme = darkColorScheme(
-    background = md_theme_new_dark_background,
+    background = md_theme_dark_background,
     primary = md_theme_dark_primary,
     secondary = md_theme_dark_secondary,
     surface = md_theme_dark_surface,
