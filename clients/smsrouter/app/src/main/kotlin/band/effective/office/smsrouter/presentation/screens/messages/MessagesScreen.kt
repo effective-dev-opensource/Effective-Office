@@ -121,9 +121,9 @@ fun SmsLogItem(log: SmsLog) {
 
     // Define status colors with animation
     val targetColor = when (log.status) {
-        SmsStatus.Delivered -> Color(0xFF3EA437)
-        SmsStatus.Error -> Color(0xFFCA5454)
-        SmsStatus.InProgress -> Color(0xFF2A29B5)
+        SmsStatus.DELIVERED -> Color(0xFF3EA437)
+        SmsStatus.ERROR -> Color(0xFFCA5454)
+        SmsStatus.IN_PROGRESS -> Color(0xFF2A29B5)
     }
 
     // Animate color change
@@ -183,9 +183,9 @@ fun SmsLogItem(log: SmsLog) {
                 ) {
                     Text(
                         text = when {
-                            log.status == SmsStatus.InProgress && log.retryCount > 0 ->
+                            log.status == SmsStatus.IN_PROGRESS && log.retryCount > 0 ->
                                 stringResource(R.string.sms_status_in_progress_retry, statusLabel, log.retryCount)
-                            log.status == SmsStatus.Error && log.retryCount > 0 ->
+                            log.status == SmsStatus.ERROR && log.retryCount > 0 ->
                                 stringResource(R.string.sms_status_error_retry, statusLabel, log.retryCount)
                             else -> statusLabel
                         },
@@ -215,7 +215,7 @@ fun SmsLogItem(log: SmsLog) {
         )
 
         // Show error details if status is ERROR
-        if (log.status == SmsStatus.Error && log.errorDetails != null) {
+        if (log.status == SmsStatus.ERROR && log.errorDetails != null) {
             Text(
                 text = log.errorDetails,
                 fontSize = 12.sp,
@@ -244,7 +244,7 @@ fun SmsLogScreenPreview() {
                     message = "Sample message 1",
                     simType = "SIM 1",
                     timestamp = System.currentTimeMillis(),
-                    status = SmsStatus.Delivered
+                    status = SmsStatus.DELIVERED
                 ),
                 SmsLog(
                     id = "2",
@@ -252,7 +252,7 @@ fun SmsLogScreenPreview() {
                     message = "Sample message 2",
                     simType = "SIM 2",
                     timestamp = System.currentTimeMillis() - 30000,
-                    status = SmsStatus.InProgress
+                    status = SmsStatus.IN_PROGRESS
                 ),
                 SmsLog(
                     id = "3",
@@ -260,7 +260,7 @@ fun SmsLogScreenPreview() {
                     message = "Error message sample",
                     simType = "SIM 1",
                     timestamp = System.currentTimeMillis(),
-                    status = SmsStatus.Error,
+                    status = SmsStatus.ERROR,
                     errorDetails = "Network connection failed",
                     retryCount = 3
                 )
@@ -273,7 +273,7 @@ fun SmsLogScreenPreview() {
 
 private val SmsStatus.labelResId: Int
     get() = when (this) {
-        SmsStatus.Delivered -> R.string.sms_status_delivered
-        SmsStatus.Error -> R.string.sms_status_error
-        SmsStatus.InProgress -> R.string.sms_status_in_progress
+        SmsStatus.DELIVERED -> R.string.sms_status_delivered
+        SmsStatus.ERROR -> R.string.sms_status_error
+        SmsStatus.IN_PROGRESS -> R.string.sms_status_in_progress
     }
