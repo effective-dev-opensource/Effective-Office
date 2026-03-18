@@ -38,6 +38,9 @@ import androidx.compose.ui.unit.sp
 import band.effective.office.smsrouter.R
 import band.effective.office.smsrouter.presentation.model.SmsLog
 import band.effective.office.smsrouter.presentation.model.SmsStatus
+import band.effective.office.smsrouter.presentation.ui.theme.SmsStatusDelivered
+import band.effective.office.smsrouter.presentation.ui.theme.SmsStatusError
+import band.effective.office.smsrouter.presentation.ui.theme.SmsStatusInProgress
 import band.effective.office.smsrouter.presentation.ui.theme.SmsRouterTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -47,20 +50,15 @@ import org.koin.compose.koinInject
 @Composable
 fun MessagesScreen() {
     val viewModel: MessageScreenViewModel = koinInject()
-    MessagesScreenContent(viewModel)
-}
-
-@Composable
-private fun MessagesScreenContent(viewModel: MessageScreenViewModel = koinInject()) {
     val smsLogs by viewModel.smsLogs.collectAsState()
-    MessagesScreenContent(
+    MessagesContent(
         smsLogs = smsLogs,
         onClearAll = { viewModel.clearAllLogs() }
     )
 }
 
 @Composable
-private fun MessagesScreenContent(
+private fun MessagesContent(
     smsLogs: List<SmsLog>,
     onClearAll: () -> Unit
 ) {
@@ -121,9 +119,9 @@ fun SmsLogItem(log: SmsLog) {
 
     // Define status colors with animation
     val targetColor = when (log.status) {
-        SmsStatus.DELIVERED -> Color(0xFF3EA437)
-        SmsStatus.ERROR -> Color(0xFFCA5454)
-        SmsStatus.IN_PROGRESS -> Color(0xFF2A29B5)
+        SmsStatus.DELIVERED -> SmsStatusDelivered
+        SmsStatus.ERROR -> SmsStatusError
+        SmsStatus.IN_PROGRESS -> SmsStatusInProgress
     }
 
     // Animate color change
@@ -183,10 +181,13 @@ fun SmsLogItem(log: SmsLog) {
                 ) {
                     Text(
                         text = when {
+                            // Show retry count for IN_PROGRESS status
                             log.status == SmsStatus.IN_PROGRESS && log.retryCount > 0 ->
                                 stringResource(R.string.sms_status_in_progress_retry, statusLabel, log.retryCount)
+                            // Show retry count for ERROR status if retries were attempted
                             log.status == SmsStatus.ERROR && log.retryCount > 0 ->
                                 stringResource(R.string.sms_status_error_retry, statusLabel, log.retryCount)
+                            // Default case - just show the status label
                             else -> statusLabel
                         },
                         color = Color.White,
@@ -236,7 +237,7 @@ fun SmsLogItem(log: SmsLog) {
 @Composable
 fun SmsLogScreenPreview() {
     SmsRouterTheme {
-        MessagesScreenContent(
+        MessagesContent(
             smsLogs = listOf(
                 SmsLog(
                     id = "1",
