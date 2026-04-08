@@ -31,11 +31,16 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import band.effective.office.smsrouter.R
 import band.effective.office.smsrouter.presentation.model.SmsLog
 import band.effective.office.smsrouter.presentation.model.SmsStatus
+import band.effective.office.smsrouter.presentation.ui.theme.SmsStatusDelivered
+import band.effective.office.smsrouter.presentation.ui.theme.SmsStatusError
+import band.effective.office.smsrouter.presentation.ui.theme.SmsStatusInProgress
 import band.effective.office.smsrouter.presentation.ui.theme.SmsRouterTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -45,13 +50,18 @@ import org.koin.compose.koinInject
 @Composable
 fun MessagesScreen() {
     val viewModel: MessageScreenViewModel = koinInject()
-    MessagesScreenContent(viewModel)
+    val smsLogs by viewModel.smsLogs.collectAsState()
+    MessagesContent(
+        smsLogs = smsLogs,
+        onClearAll = { viewModel.clearAllLogs() }
+    )
 }
 
 @Composable
-private fun MessagesScreenContent(viewModel: MessageScreenViewModel = koinInject()) {
-    val smsLogs by viewModel.smsLogs.collectAsState()
-
+private fun MessagesContent(
+    smsLogs: List<SmsLog>,
+    onClearAll: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -63,7 +73,7 @@ private fun MessagesScreenContent(viewModel: MessageScreenViewModel = koinInject
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No SMS messages received yet.\nWaiting for incoming messages...",
+                    text = stringResource(R.string.messages_empty_state),
                     textAlign = TextAlign.Center,
                     fontSize = 16.sp
                 )
@@ -77,15 +87,15 @@ private fun MessagesScreenContent(viewModel: MessageScreenViewModel = koinInject
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "SMS Messages (${smsLogs.size})",
+                    text = stringResource(R.string.messages_title, smsLogs.size),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
 
                 Button(
-                    onClick = { viewModel.clearAllLogs() }
+                    onClick = onClearAll
                 ) {
-                    Text("Clear All")
+                    Text(stringResource(R.string.messages_clear_all))
                 }
             }
 
@@ -105,12 +115,13 @@ private fun MessagesScreenContent(viewModel: MessageScreenViewModel = koinInject
 fun SmsLogItem(log: SmsLog) {
     val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()) }
     val formattedDate = dateFormat.format(Date(log.timestamp))
+    val statusLabel = stringResource(log.status.labelResId)
 
     // Define status colors with animation
     val targetColor = when (log.status) {
-        SmsStatus.DELIVERED -> Color.Green
-        SmsStatus.ERROR -> Color.Red
-        SmsStatus.IN_PROGRESS -> Color.Blue
+        SmsStatus.DELIVERED -> SmsStatusDelivered
+        SmsStatus.ERROR -> SmsStatusError
+        SmsStatus.IN_PROGRESS -> SmsStatusInProgress
     }
 
     // Animate color change
@@ -172,12 +183,12 @@ fun SmsLogItem(log: SmsLog) {
                         text = when {
                             // Show retry count for IN_PROGRESS status
                             log.status == SmsStatus.IN_PROGRESS && log.retryCount > 0 ->
-                                "${log.status.name} (Retry ${log.retryCount})"
+                                stringResource(R.string.sms_status_in_progress_retry, statusLabel, log.retryCount)
                             // Show retry count for ERROR status if retries were attempted
                             log.status == SmsStatus.ERROR && log.retryCount > 0 ->
-                                "${log.status.name} (After ${log.retryCount} ${if (log.retryCount == 1) "retry" else "retries"})"
-                            // Default case - just show the status name
-                            else -> log.status.name
+                                stringResource(R.string.sms_status_error_retry, statusLabel, log.retryCount)
+                            // Default case - just show the status label
+                            else -> statusLabel
                         },
                         color = Color.White,
                         fontSize = 12.sp
@@ -226,6 +237,44 @@ fun SmsLogItem(log: SmsLog) {
 @Composable
 fun SmsLogScreenPreview() {
     SmsRouterTheme {
-        MessagesScreenContent()
+        MessagesContent(
+            smsLogs = listOf(
+                SmsLog(
+                    id = "1",
+                    sender = "+79001234567",
+                    message = "Sample message 1",
+                    simType = "SIM 1",
+                    timestamp = System.currentTimeMillis(),
+                    status = SmsStatus.DELIVERED
+                ),
+                SmsLog(
+                    id = "2",
+                    sender = "+79007654321",
+                    message = "Sample message 2",
+                    simType = "SIM 2",
+                    timestamp = System.currentTimeMillis() - 30000,
+                    status = SmsStatus.IN_PROGRESS
+                ),
+                SmsLog(
+                    id = "3",
+                    sender = "Bank",
+                    message = "Error message sample",
+                    simType = "SIM 1",
+                    timestamp = System.currentTimeMillis(),
+                    status = SmsStatus.ERROR,
+                    errorDetails = "Network connection failed",
+                    retryCount = 3
+                )
+
+            ),
+            onClearAll = {}
+        )
     }
 }
+
+private val SmsStatus.labelResId: Int
+    get() = when (this) {
+        SmsStatus.DELIVERED -> R.string.sms_status_delivered
+        SmsStatus.ERROR -> R.string.sms_status_error
+        SmsStatus.IN_PROGRESS -> R.string.sms_status_in_progress
+    }

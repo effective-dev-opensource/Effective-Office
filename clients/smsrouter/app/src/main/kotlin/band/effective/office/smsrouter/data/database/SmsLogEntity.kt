@@ -38,7 +38,7 @@ data class SmsLogEntity(
                 message = entity.message,
                 simType = entity.simType,
                 timestamp = entity.timestamp,
-                status = SmsStatus.valueOf(entity.status),
+                status = SmsStatus.fromStorageValue(entity.status),
                 errorDetails = entity.errorDetails,
                 retryCount = entity.retryCount
             )
