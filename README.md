@@ -1,15 +1,15 @@
 # Effective Office
 
-## Project Goal
+### Project Goal
 
-Our goal is to make everyday office work simpler and more enjoyable by automating key processes.
+Our goal is to make everyday office work simpler and more enjoyable by automating key processes.  
 
-## Technical goal
+### Technical goal
 
-The main technical task of the project is to create a multi-module application on Kotlin, trying to focus on the most modern and relevant solutions in this language. Throughout the project, we tried to use other languages and technologies as little as possible.
+The main technical task of the project is to create a multi-module Kotlin Multiplatform application, focusing on modern and relevant solutions in this ecosystem. Throughout the project, we tried to minimize the use of other languages and technologies.  
 
-## Meeting Room Tablet App
-
+# Apps
+## Meeting Room
 
 <img src="media/tablet/demo-tablet.gif" style="height: 50%;" />
 
@@ -103,7 +103,7 @@ The main technical task of the project is to create a multi-module application o
    ./gradlew :backend:app:bootRun --args='--spring.profiles.active=local'
    ```
 
-#### Run Clients
+### Run Clients
 1. Open the project in Android Studio or IntelliJ IDEA
 2. Sync the Gradle project to download dependencies
 3. Choose the appropriate run configuration in IDE
@@ -111,7 +111,7 @@ The main technical task of the project is to create a multi-module application o
 
 For detailed installation instructions, including setting up credentials and running client applications, see our [Getting Started Guide](https://github.com/effective-dev-opensource/Effective-Office/wiki/Getting-Started-with-Effective-Office) in the wiki.
 
-## Project Structure
+### Project Structure
 
 ```
 effective-office/
@@ -131,11 +131,11 @@ effective-office/
 └── build-logic/       # Build configuration
 ```
 
-## Documentation
+# Documentation
 
 For comprehensive documentation, please visit our [Wiki](https://github.com/effective-dev-opensource/Effective-Office/wiki).
 
-## Contributing
+# Contributing
 
 We welcome contributions! Please see our [CONTRIBUTION.md](CONTRIBUTION.md) file for guidelines.
 
@@ -147,7 +147,7 @@ We continue to use it as part of our workflow, combining automation with careful
 
 Read more about our experience using Junie in [the Medium article](https://medium.com/effective-developers/how-we-used-junie-by-jetbrains-to-speed-up-development-of-an-internal-project-fc6f151a1f94).
 
-## Authors
+# Authors
 
 - [Alex Korovyansky](https://t.me/alexkorovyansky) 
 - [Matvey Avgul](https://t.me/matthewavgul) 
@@ -157,5 +157,5 @@ Read more about our experience using Junie in [the Medium article](https://mediu
 - [Vitaly Smirnov](https://github.com/KrugarValdes)
 - [Viktoriya Kokh](https://t.me/the_koheskine)
 
-## License
+# License
 The code is available as open source under the terms of the [MIT LICENSE](LICENSE).
