@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,11 +23,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
+import band.effective.office.tv.core.ui.theme.AppTheme
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.core.ui.theme.LocalTvSizes
 import band.effective.office.tv.core.ui.theme.LocalTvTypography
-import band.effective.office.tv.core.ui.theme.robotoFontFamily
 import band.effective.office.tv.feature.stories.Res
 import band.effective.office.tv.feature.stories.*
 import band.effective.office.tv.feature.stories.domain.model.DuolingoUser
@@ -34,7 +35,9 @@ import band.effective.office.tv.feature.stories.presentation.components.PlaceBad
 import band.effective.office.tv.feature.stories.presentation.rating.common.firstNameOf
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun DuolingoItem(
@@ -71,7 +74,7 @@ fun DuolingoItem(
                     contentDescription = null,
                     imageLoader = imageLoader,
                     modifier = Modifier
-                        .size(sizes.ratingAvatarSize)
+                        .requiredSize(sizes.ratingAvatarSize)
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.15f)),
                     contentScale = ContentScale.Crop,
@@ -123,3 +126,26 @@ fun DuolingoItem(
     }
 }
 
+@Preview
+@Composable
+private fun DuolingoItemPreview() {
+    val platformContext = LocalPlatformContext.current
+    val imageLoader = remember(platformContext) { ImageLoader.Builder(platformContext).build() }
+
+    AppTheme {
+        DuolingoItem(
+            user = DuolingoUser(
+                username = "preview_user",
+                name = "Taylor Smith",
+                streak = 42,
+                totalXp = 12500,
+                countryLang = listOf("en", "de"),
+                photo = "https://picsum.photos/340/520"
+            ),
+            indicator = "12 500 XP",
+            place = 3,
+            key = DuolingoKey.Xp,
+            imageLoader = imageLoader
+        )
+    }
+}
