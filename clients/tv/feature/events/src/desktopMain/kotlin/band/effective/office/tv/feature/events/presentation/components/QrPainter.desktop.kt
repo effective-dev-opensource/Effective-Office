@@ -2,9 +2,11 @@ package band.effective.office.tv.feature.events.presentation.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import com.google.zxing.BarcodeFormat
@@ -17,12 +19,24 @@ import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.ImageInfo
 
 @Composable
-internal actual fun rememberQrPainter(content: String, size: Dp): Painter {
+internal actual fun rememberQrPainter(
+    content: String,
+    size: Dp,
+    color: Color,
+    backgroundColor: Color
+): Painter {
     val sizePx = with(LocalDensity.current) { size.roundToPx() }
-    return remember(content, sizePx) { generateQrPainter(content, sizePx) }
+    return remember(content, sizePx, color, backgroundColor) {
+        generateQrPainter(content, sizePx, color, backgroundColor)
+    }
 }
 
-private fun generateQrPainter(content: String, sizePx: Int): Painter {
+private fun generateQrPainter(
+    content: String,
+    sizePx: Int,
+    color: Color,
+    backgroundColor: Color
+): Painter {
     val writer = QRCodeWriter()
     val matrix = runCatching {
         writer.encode(
@@ -36,9 +50,9 @@ private fun generateQrPainter(content: String, sizePx: Int): Painter {
 
     val surface = Surface.makeRaster(ImageInfo.makeN32(sizePx, sizePx, ColorAlphaType.PREMUL))
     val canvas = surface.canvas
-    canvas.clear(org.jetbrains.skia.Color.WHITE)
+    canvas.clear(backgroundColor.toArgb())
 
-    val paint = Paint().apply { color = org.jetbrains.skia.Color.BLACK }
+    val paint = Paint().apply { this.color = color.toArgb() }
     for (x in 0 until sizePx) {
         for (y in 0 until sizePx) {
             if (matrix?.get(x, y) == true) {

@@ -1,10 +1,8 @@
 package band.effective.office.tv.feature.events.presentation.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -27,16 +25,14 @@ import band.effective.office.tv.core.ui.theme.LocalTvTypography
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
-fun TextWithCaptionAndIcon(
+fun TextWithIcon(
     iconVector: ImageVector? = null,
     iconPainter: Painter? = null,
     text: String,
-    caption: String? = null,
     modifier: Modifier = Modifier,
     iconTint: Color? = null,
     iconSize: Dp? = null,
     textStyle: TextStyle? = null,
-    captionStyle: TextStyle? = null,
 ) {
     val sizes = LocalTvSizes.current
     val colors = LocalTvColorsPalette.current
@@ -46,53 +42,44 @@ fun TextWithCaptionAndIcon(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
+
         when {
             iconVector != null -> {
                 Icon(
                     imageVector = iconVector,
-                    contentDescription = caption ?: text,
-                    tint = iconTint ?: colors.textPrimary,
+                    contentDescription = text,
+                    tint = iconTint ?: colors.textSecondary,
                     modifier = Modifier.size(iconSize ?: sizes.iconSmall)
                 )
             }
+
             iconPainter != null -> {
                 Image(
                     painter = iconPainter,
-                    contentDescription = caption ?: text,
+                    contentDescription = text,
                     modifier = Modifier.size(iconSize ?: sizes.iconSmall)
                 )
             }
         }
+
         Spacer(modifier = Modifier.width(sizes.gapMedium))
-        Column {
-            if (!caption.isNullOrBlank()) {
-                Text(
-                    text = caption,
-                    style = captionStyle ?: typography.bodyMedium,
-                    color = colors.textSecondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(sizes.gapSmall / 2))
-            }
-            Text(
-                text = text,
-                style = textStyle ?: typography.titleMedium,
-                color = colors.textPrimary,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
+
+        Text(
+            text = text,
+            style = textStyle ?: typography.bodyMedium,
+            color = colors.textPrimary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
 @Preview
 @Composable
-fun TextWithCaptionAndIconPreview() {
+fun TextWithIconPreview() {
     AppTheme {
-        TextWithCaptionAndIcon(
+        TextWithIcon(
             iconVector = Icons.Default.Info,
-            caption = "Caption",
             text = "Main Text Content"
         )
     }

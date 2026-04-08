@@ -90,10 +90,10 @@ fun tvTypography(): Typography {
         ),
         // Menu items, event info
         headlineMedium = TextStyle(
-            fontFamily = roboto,
+            fontFamily = druk,
             fontWeight = FontWeight.Bold,
-            fontSize = 30.sp,
-            lineHeight = 38.sp,
+            fontSize = 28.sp,
+            lineHeight = 36.sp,
         ),
         // No stories message
         headlineSmall = TextStyle(
@@ -132,9 +132,9 @@ fun tvTypography(): Typography {
         // Caption
         bodyMedium = TextStyle(
             fontFamily = roboto,
-            fontWeight = FontWeight.Bold,
-            fontSize = 12.sp,
-            lineHeight = 18.sp,
+            fontWeight = FontWeight.Normal,
+            fontSize = 14.sp,
+            lineHeight = 20.sp,
         ),
         // Smallest (badges)
         bodySmall = TextStyle(
