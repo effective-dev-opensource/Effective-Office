@@ -44,6 +44,7 @@ import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.core.ui.theme.LocalTvShapes
 import band.effective.office.tv.core.ui.theme.LocalTvSizes
 import band.effective.office.tv.core.ui.theme.LocalTvTypography
+import band.effective.office.tv.core.ui.update_button
 import band.effective.office.tv.feature.menu.presentation.components.CategoryCard
 import band.effective.office.tv.feature.menu.presentation.components.ProgressButton
 import kotlinx.coroutines.delay
@@ -91,6 +92,9 @@ fun MenuScreen(
         onBack = {
             component.sendIntent(MenuIntent.Back)
         },
+        onUpdate = {
+            component.sendIntent(MenuIntent.OpenUpdate)
+        }
     )
 }
 
@@ -106,6 +110,7 @@ fun MenuScreenView(
     onToggleCategory: (ContentCategory) -> Unit,
     onStartAutoplay: () -> Unit,
     onBack: () -> Unit,
+    onUpdate: () -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
     val typography = LocalTvTypography.current
@@ -210,6 +215,16 @@ fun MenuScreenView(
             text = stringResource(Res.string.back_button),
             onClick = onBack,
         )
+
+        Spacer(modifier = Modifier.height(sizes.gapSmall))
+
+        if (showDownloadButton) {
+            // Update button
+            TextButton(
+                text = stringResource(Res.string.update_button),
+                onClick = onUpdate,
+            )
+        }
 
         Spacer(modifier = Modifier.height(sizes.gapMedium))
     }

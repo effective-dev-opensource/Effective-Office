@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.buildkonfig)
+    id("sign-config")
 }
 
 kotlin {
@@ -47,6 +48,8 @@ kotlin {
                 implementation(compose.uiTooling)
                 implementation(libs.androidx.activityCompose)
                 implementation(libs.koin.android)
+
+                implementation(project(":clients:tv:feature:selfUpdate"))
             }
         }
 
@@ -67,8 +70,8 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
 
         applicationId = "band.effective.office.tv"
-        versionCode = 1
-        versionName = "2.0.0"
+        versionCode = 2
+        versionName = "2.1.0"
 
         buildFeatures {
             buildConfig = true
@@ -87,6 +90,7 @@ android {
     buildTypes {
         getByName("debug") {
             isDebuggable = true
+            applicationIdSuffix = ".dev"
         }
         getByName("release") {
             isMinifyEnabled = false
@@ -108,6 +112,9 @@ val apiUrlDebug: String = gradleLocalProperties(rootDir, providers).getProperty(
 val apiKey: String = gradleLocalProperties(rootDir, providers).getProperty("apiKey", "")
 val appVersionName: String = android.defaultConfig.versionName!!
 val tvIsDebug: String = gradleLocalProperties(rootDir, providers).getProperty("tv.isDebug", "false")
+val crashHandlerBotToken: String = gradleLocalProperties(rootDir, providers).getProperty("crashHandler.botToken", "")
+val crashHandlerChatId: String = gradleLocalProperties(rootDir, providers).getProperty("crashHandler.chatId", "")
+val selfUpdateApiUrl: String = "https://d5dpp3puo2m6ma9t17h3.apigw.yandexcloud.net/actualApk"
 
 compose.desktop {
     application {
@@ -156,6 +163,21 @@ buildkonfig {
             com.codingfeline.buildkonfig.compiler.FieldSpec.Type.BOOLEAN,
             "IS_DEBUG",
             tvIsDebug,
+        )
+        buildConfigField(
+            com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
+            "CRASH_HANDLER_BOT_TOKEN",
+            crashHandlerBotToken,
+        )
+        buildConfigField(
+            com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
+            "CRASH_HANDLER_CHAT_ID",
+            crashHandlerChatId,
+        )
+        buildConfigField(
+            com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
+            "SELF_UPDATE_API_URL",
+            selfUpdateApiUrl,
         )
     }
 }

@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,9 +30,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -141,6 +144,9 @@ fun SettingsScreen() {
         },
         onSaveClick = {
             viewModel.sendIntent(SettingsViewModel.Intent.SaveSettings)
+        },
+        onCheckClick = { simCard ->
+            viewModel.sendIntent(SettingsViewModel.Intent.CheckWebHook(simCard.simId))
         }
     )
 }
@@ -155,6 +161,7 @@ private fun SettingsScreenContent(
     onWebhookTypeChanged: (SettingsViewModel.SimCardUiModel, WebhookType) -> Unit,
     onChatIdChanged: (SettingsViewModel.SimCardUiModel, String) -> Unit,
     onSaveClick: () -> Unit,
+    onCheckClick: (SettingsViewModel.SimCardUiModel) -> Unit
 ) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -225,13 +232,49 @@ private fun SettingsScreenContent(
                                 simCard = simCard,
                                 onWebhookUrlChanged = { url -> onWebhookUrlChanged(simCard, url) },
                                 onSecretKeyChanged = { key -> onSecretKeyChanged(simCard, key) },
-                                onWebhookTypeChanged = { type -> onWebhookTypeChanged(simCard, type) },
-                                onChatIdChanged = { chatId -> onChatIdChanged(simCard, chatId) }
+                                onWebhookTypeChanged = { type ->
+                                    onWebhookTypeChanged(simCard, type)
+                                },
+                                onChatIdChanged = { chatId -> onChatIdChanged(simCard, chatId) },
+                                onCheckClick = { onCheckClick(simCard) }
                             )
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun SimCardSettingsItemHeader(
+    modifier: Modifier,
+    simName: String,
+    simId: String,
+    onCheckClick: () -> Unit
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
+            // SIM Card Name
+            Text(
+                text = simName,
+                style = MaterialTheme.typography.titleLarge
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            // SIM Card ID
+            Text(
+                text = "SIM ID: $simId",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        Button(onClick = onCheckClick) {
+            Text("Check")
         }
     }
 }
@@ -243,7 +286,8 @@ private fun SimCardSettingsItem(
     onWebhookUrlChanged: (String) -> Unit,
     onSecretKeyChanged: (String) -> Unit,
     onWebhookTypeChanged: (WebhookType) -> Unit,
-    onChatIdChanged: (String) -> Unit
+    onChatIdChanged: (String) -> Unit,
+    onCheckClick: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -256,18 +300,13 @@ private fun SimCardSettingsItem(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // SIM Card Name
-            Text(
-                text = simCard.simName,
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            // SIM Card ID
-            Text(
-                text = "SIM ID: ${simCard.simId}",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
+            SimCardSettingsItemHeader(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                simName = simCard.simName,
+                simId = simCard.simId,
+                onCheckClick = onCheckClick
             )
 
             // Webhook Type Dropdown
@@ -351,5 +390,71 @@ private fun SimCardSettingsItem(
                 singleLine = true
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SettingsScreenContentPreview() {
+    val snackbarHostState = remember { SnackbarHostState() }
+    SettingsScreenContent(
+        state = SettingsViewModel.State(
+            isLoading = false,
+            simCards = listOf(
+                SettingsViewModel.SimCardUiModel(
+                    simId = "1",
+                    simName = "SIM 1",
+                    webhookUrl = "https://example.com/webhook",
+                    secretKey = "secret",
+                    webhookType = WebhookType.MATTERMOST,
+                    chatId = ""
+                ),
+                SettingsViewModel.SimCardUiModel(
+                    simId = "2",
+                    simName = "SIM 2",
+                    webhookUrl = "https://t.me/bot",
+                    secretKey = "tg-secret",
+                    webhookType = WebhookType.TELEGRAM,
+                    chatId = "-100123456"
+                )
+            )
+        ),
+        snackbarHostState = snackbarHostState,
+        onWebhookUrlChanged = { _, _ -> },
+        onSecretKeyChanged = { _, _ -> },
+        onWebhookTypeChanged = { _, _ -> },
+        onChatIdChanged = { _, _ -> },
+        onSaveClick = {},
+        onCheckClick = {}
+    )
+}
+
+@Composable
+@Preview
+private fun PreviewSimCardSettingsItem() {
+    Surface {
+        SimCardSettingsItem(
+            simCard = SettingsViewModel.SimCardUiModel(
+                simId = "1",
+                simName = "SIM 1",
+                webhookUrl = "https://example.com/webhook",
+                secretKey = "secret",
+                webhookType = WebhookType.MATTERMOST,
+                chatId = ""
+            ),
+            onWebhookUrlChanged = {},
+            onSecretKeyChanged = {},
+            onWebhookTypeChanged = {},
+            onChatIdChanged = {},
+            onCheckClick = {}
+        )
+    }
+}
+
+@Composable
+@Preview
+private fun PreviewSimCardSettingsItemHeader() {
+    Surface() {
+        SimCardSettingsItemHeader(Modifier.fillMaxWidth(), "Name", "123321", {})
     }
 }

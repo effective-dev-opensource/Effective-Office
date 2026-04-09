@@ -1,16 +1,17 @@
 package band.effective.office.tv.feature.events.presentation.components
 
 import android.graphics.Bitmap
-import android.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import com.google.zxing.BarcodeFormat
@@ -21,12 +22,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
-internal actual fun rememberQrPainter(content: String, size: Dp): Painter {
+internal actual fun rememberQrPainter(
+    content: String,
+    size: Dp,
+    color: Color,
+    backgroundColor: Color
+): Painter {
     val sizePx = with(LocalDensity.current) { size.roundToPx() }
 
     var bitmap by remember(content, sizePx) { mutableStateOf<Bitmap?>(null) }
 
-    LaunchedEffect(content, sizePx) {
+    val colorArgb = color.toArgb()
+    val backgroundColorArgb = backgroundColor.toArgb()
+
+    LaunchedEffect(content, sizePx, colorArgb, backgroundColorArgb) {
         bitmap = withContext(Dispatchers.IO) {
             val qrCodeWriter = QRCodeWriter()
             val hints = mutableMapOf<EncodeHintType, Any?>(EncodeHintType.MARGIN to 0)
@@ -43,7 +52,7 @@ internal actual fun rememberQrPainter(content: String, size: Dp): Painter {
                 for (x in 0 until width) {
                     for (y in 0 until height) {
                         val set = matrix?.get(x, y) ?: false
-                        setPixel(x, y, if (set) Color.BLACK else Color.WHITE)
+                        setPixel(x, y, if (set) colorArgb else backgroundColorArgb)
                     }
                 }
             }
@@ -53,7 +62,7 @@ internal actual fun rememberQrPainter(content: String, size: Dp): Painter {
     return remember(content, sizePx, bitmap) {
         BitmapPainter(
             (bitmap ?: Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
-                .apply { eraseColor(Color.WHITE) }).asImageBitmap()
+                .apply { eraseColor(colorArgb) }).asImageBitmap()
         )
     }
 }

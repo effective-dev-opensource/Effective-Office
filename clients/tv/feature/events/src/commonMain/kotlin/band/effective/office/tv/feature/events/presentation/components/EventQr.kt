@@ -1,6 +1,7 @@
 package band.effective.office.tv.feature.events.presentation.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
@@ -36,27 +38,21 @@ fun EventQr(
 ) {
     val sizes = LocalTvSizes.current
 
-    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+    BoxWithConstraints(modifier = modifier) {
         val qrSize = calculateQrSize(maxWidth, sizes.qrCodeSize)
         val qrUrl = buildEventRegistrationUrl(eventId)
 
-        val painter = rememberQrPainter(content = qrUrl, size = qrSize)
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = sizes.gapMedium),
-            horizontalArrangement = Arrangement.spacedBy(sizes.gapXLarge)
-        ) {
-            Image(
-                painter = painter,
-                contentDescription = stringResource(Res.string.events_qr_content_description),
-                modifier = Modifier.size(qrSize)
-            )
-            RegistrationInfo(
-                modifier = Modifier.widthIn(min = qrSize * TEXT_MIN_WIDTH_RATIO)
-            )
-        }
+        val painter = rememberQrPainter(
+            content = qrUrl,
+            size = qrSize,
+            color = LocalTvColorsPalette.current.textPrimary,
+            backgroundColor = LocalTvColorsPalette.current.background
+        )
+        Image(
+            painter = painter,
+            contentDescription = stringResource(Res.string.events_qr_content_description),
+            modifier = Modifier.align(Alignment.CenterEnd).size(qrSize)
+        )
     }
 }
 

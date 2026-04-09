@@ -1,12 +1,14 @@
 package band.effective.office.tv.feature.events.presentation.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.Image
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,9 +20,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import band.effective.office.tv.core.ui.theme.AppTheme
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.core.ui.theme.LocalTvSizes
 import band.effective.office.tv.core.ui.theme.LocalTvTypography
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun TextWithCaptionAndIcon(
@@ -79,5 +83,17 @@ fun TextWithCaptionAndIcon(
                 overflow = TextOverflow.Ellipsis
             )
         }
+    }
+}
+
+@Preview
+@Composable
+fun TextWithCaptionAndIconPreview() {
+    AppTheme {
+        TextWithCaptionAndIcon(
+            iconVector = Icons.Default.Info,
+            caption = "Caption",
+            text = "Main Text Content"
+        )
     }
 }

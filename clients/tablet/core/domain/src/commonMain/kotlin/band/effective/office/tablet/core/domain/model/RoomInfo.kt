@@ -1,5 +1,12 @@
 package band.effective.office.tablet.core.domain.model
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 
 /**
@@ -27,4 +34,10 @@ data class RoomInfo(
                 id = ""
             )
     }
+}
+
+fun RoomInfo.nextEvent(): EventInfo? {
+    val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    val tomorrow = LocalDateTime((now.date + DatePeriod(days = 1)), LocalTime(0,0))
+    return eventList.filter { it.startTime > now && it.startTime < tomorrow }.minByOrNull { it.startTime }
 }

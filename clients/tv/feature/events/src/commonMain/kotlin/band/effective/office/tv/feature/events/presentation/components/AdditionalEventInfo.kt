@@ -2,10 +2,9 @@ package band.effective.office.tv.feature.events.presentation.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import org.jetbrains.compose.resources.painterResource
 import band.effective.office.tv.core.ui.Res as CoreRes
 import band.effective.office.shared.core.utils.currentLocalDateTime
@@ -23,6 +22,7 @@ import band.effective.office.tv.feature.events.events_registration_ends_in
 import band.effective.office.tv.feature.events.presentation.format.formatRegistrationEndsIn
 import band.effective.office.tv.feature.events.presentation.format.formatTimeRange
 import org.jetbrains.compose.resources.stringResource
+import kotlinx.datetime.LocalDateTime
 
 @Composable
 fun AdditionalEventInfo(
@@ -31,51 +31,69 @@ fun AdditionalEventInfo(
 ) {
     val typography = LocalTvTypography.current
     val sizes = LocalTvSizes.current
+    val textStyle = typography.bodyMedium
+    val iconSize = sizes.eventLargeIconSize
 
     Column(
-        modifier = modifier
-            .padding(bottom = sizes.gapXXLarge, top = sizes.gapSmall),
-        verticalArrangement = Arrangement.spacedBy(sizes.gapMedium)
+        modifier = modifier.fillMaxHeight(),
+        verticalArrangement = Arrangement.Center,
     ) {
-        val registrationText = eventInfo.endRegDate
-            ?.takeIf { it > currentLocalDateTime }
-            ?.let { formatRegistrationEndsIn(it) }
-            ?.takeUnless { it.isBlank() }
 
-        if (registrationText != null) {
-            TextWithCaptionAndIcon(
-                iconPainter = painterResource(CoreRes.drawable.error_circle),
-                text = stringResource(Res.string.events_registration_ends_in, registrationText),
-                caption = stringResource(Res.string.events_registration_caption),
-                textStyle = typography.titleMedium.copy(fontWeight = FontWeight.Black),
-                captionStyle = typography.bodyMedium,
-                iconSize = sizes.eventLargeIconSize
+        Column(
+            verticalArrangement = Arrangement.spacedBy(sizes.gapMedium)
+        ) {
+            val registrationText = registrationText(eventInfo.endRegDate)
+
+            if (registrationText != null) {
+                TextWithIcon(
+                    iconPainter = painterResource(CoreRes.drawable.error_circle),
+                    text = registrationText,
+                    textStyle = textStyle,
+                    iconSize = iconSize
+                )
+            }
+
+            val locationText = if (!eventInfo.location.isNullOrBlank()) {
+                eventInfo.location.trim()
+            } else {
+                if (eventInfo.isOnline) {
+                    stringResource(Res.string.events_location_online_default)
+                } else {
+                    stringResource(Res.string.events_location_offline_default)
+                }
+            }
+
+            TextWithIcon(
+                iconPainter = painterResource(CoreRes.drawable.location),
+                text = locationText,
+                textStyle = textStyle,
+                iconSize = iconSize
+            )
+
+            TextWithIcon(
+                iconPainter = painterResource(CoreRes.drawable.clock),
+                text = formatTimeRange(
+                    eventInfo.startDateTime,
+                    eventInfo.finishDateTime
+                ),
+                textStyle = textStyle,
+                iconSize = iconSize
             )
         }
+    }
+}
 
-        TextWithCaptionAndIcon(
-            iconPainter = painterResource(CoreRes.drawable.clock),
-            text = formatTimeRange(eventInfo.startDateTime, eventInfo.finishDateTime),
-            textStyle = typography.titleMedium.copy(fontWeight = FontWeight.Black),
-            captionStyle = typography.bodyMedium,
-            iconSize = sizes.eventLargeIconSize
-        )
+@Composable
+private fun registrationText(endRegDate: LocalDateTime?): String? {
+    val timeLeft = endRegDate
+        ?.takeIf { it > currentLocalDateTime }
+        ?.let { date: LocalDateTime -> formatRegistrationEndsIn(date) }
+        ?.takeUnless { it.isBlank() }
+        ?: return null
 
-        val locationText = if (!eventInfo.location.isNullOrBlank()) {
-            eventInfo.location.trim()
-        } else {
-            if (eventInfo.isOnline) {
-                stringResource(Res.string.events_location_online_default)
-            } else {
-                stringResource(Res.string.events_location_offline_default)
-            }
-        }
-        TextWithCaptionAndIcon(
-            iconPainter = painterResource(CoreRes.drawable.location),
-            text = locationText,
-            textStyle = typography.titleMedium.copy(fontWeight = FontWeight.Black),
-            captionStyle = typography.bodyMedium,
-            iconSize = sizes.eventLargeIconSize
-        )
+    return buildString {
+        append(stringResource(Res.string.events_registration_caption))
+        append(' ')
+        append(stringResource(Res.string.events_registration_ends_in, timeLeft))
     }
 }
