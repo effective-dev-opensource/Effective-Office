@@ -39,6 +39,11 @@ bin/
 ### Mac OS ###
 .DS_Store
 
+### Xcode (per-user, machine-specific — should never be committed) ###
+**/xcuserdata/
+*.xcuserstate
+DerivedData/
+
 ### Kotlin ###
 .kotlin/
 
