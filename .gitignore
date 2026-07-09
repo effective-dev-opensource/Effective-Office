@@ -86,6 +86,7 @@ coverage/
 /oldProject/
 /clients/tablet/composeApp/google-services.json
 /local.properties
+/localQuickStart/.local-fake-credentials.json
 /deploy/dev/.env
 /deploy/dev/*.jar
 /deploy/prod/.env
