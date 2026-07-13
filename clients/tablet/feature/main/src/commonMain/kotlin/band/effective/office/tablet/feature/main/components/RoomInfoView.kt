@@ -12,7 +12,7 @@ import band.effective.office.tablet.core.domain.model.nextEvent
 import band.effective.office.tablet.core.ui.theme.AppTheme
 import band.effective.office.tablet.feature.main.components.uiComponent.BusyRoomInfoComponent
 import band.effective.office.tablet.feature.main.components.uiComponent.FreeRoomInfoComponent
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime

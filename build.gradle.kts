@@ -37,9 +37,17 @@ subprojects {
     }
 
     tasks.withType<KotlinCompile> {
-        kotlinOptions {
-            freeCompilerArgs = listOf("-Xjsr305=strict")
-            jvmTarget = JavaVersion.VERSION_17.toString()
+        compilerOptions {
+            freeCompilerArgs.add("-Xjsr305=strict")
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
+    }
+
+    // kotlinx-datetime 0.7.x is built on the still-experimental kotlin.time.Clock/Instant,
+    // so opt in project-wide for every Kotlin compilation (JVM, Android and Native).
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
+        compilerOptions {
+            optIn.add("kotlin.time.ExperimentalTime")
         }
     }
 

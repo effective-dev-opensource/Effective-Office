@@ -14,24 +14,30 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:2.1.21")
-    implementation("org.springframework.boot:org.springframework.boot.gradle.plugin:3.5.0")
-    implementation("org.jetbrains.kotlin.plugin.spring:org.jetbrains.kotlin.plugin.spring.gradle.plugin:2.1.21")
-    implementation("org.jetbrains.kotlin.plugin.jpa:org.jetbrains.kotlin.plugin.jpa.gradle.plugin:2.1.21")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.21")
-    implementation("org.jetbrains.kotlin:kotlin-allopen:2.1.21")
-    implementation("org.jetbrains.kotlin:kotlin-noarg:2.1.21")
-    implementation("org.springframework.boot:spring-boot-gradle-plugin:3.5.0")
-    implementation("io.spring.gradle:dependency-management-plugin:1.1.7")
+    val kotlinVersion = libs.versions.kotlin.get()
+    val springBootVersion = libs.versions.springBoot.get()
+    val springDepManagementVersion = libs.versions.springDependencyManagement.get()
+    val agpVersion = libs.versions.agp.get()
+    val composeGradlePluginVersion = libs.versions.compose.get()
+    val googleServicesVersion = libs.versions.googleServices.get()
 
-    implementation("org.jetbrains.kotlin.multiplatform:org.jetbrains.kotlin.multiplatform.gradle.plugin:2.1.21")
-    implementation("org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:2.1.21")
-    implementation("org.jetbrains.kotlin.plugin.serialization:org.jetbrains.kotlin.plugin.serialization.gradle.plugin:2.1.21")
-    implementation("com.android.tools.build:gradle:8.9.1") {
+    implementation("org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:$kotlinVersion")
+    implementation("org.springframework.boot:org.springframework.boot.gradle.plugin:$springBootVersion")
+    implementation("org.jetbrains.kotlin.plugin.spring:org.jetbrains.kotlin.plugin.spring.gradle.plugin:$kotlinVersion")
+    implementation("org.jetbrains.kotlin.plugin.jpa:org.jetbrains.kotlin.plugin.jpa.gradle.plugin:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-noarg:$kotlinVersion")
+    implementation("org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion")
+    implementation("io.spring.gradle:dependency-management-plugin:$springDepManagementVersion")
+
+    implementation("org.jetbrains.kotlin.multiplatform:org.jetbrains.kotlin.multiplatform.gradle.plugin:$kotlinVersion")
+    implementation("org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:$kotlinVersion")
+    implementation("org.jetbrains.kotlin.plugin.serialization:org.jetbrains.kotlin.plugin.serialization.gradle.plugin:$kotlinVersion")
+    implementation("com.android.tools.build:gradle:$agpVersion") {
         exclude(group = "org.apache.commons", module = "commons-compress")
     }
-    implementation("org.jetbrains.compose:org.jetbrains.compose.gradle.plugin:1.8.1")
-    implementation("com.google.gms:google-services:4.4.3")
-    implementation("org.jetbrains.kotlin.kapt:org.jetbrains.kotlin.kapt.gradle.plugin:2.1.21")
-
+    implementation("org.jetbrains.compose:org.jetbrains.compose.gradle.plugin:$composeGradlePluginVersion")
+    implementation("com.google.gms:google-services:$googleServicesVersion")
+    implementation("org.jetbrains.kotlin.kapt:org.jetbrains.kotlin.kapt.gradle.plugin:$kotlinVersion")
 }

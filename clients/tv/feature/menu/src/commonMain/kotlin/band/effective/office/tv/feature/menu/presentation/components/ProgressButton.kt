@@ -28,7 +28,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import band.effective.office.tv.core.ui.theme.LocalTvColorsPalette
 import band.effective.office.tv.core.ui.theme.LocalTvShapes
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.coroutines.delay
 
 private const val AUTO_CLICK_DELAY_MS = 15000L // 15 seconds

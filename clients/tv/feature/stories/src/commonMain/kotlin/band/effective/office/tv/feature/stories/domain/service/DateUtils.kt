@@ -1,6 +1,6 @@
 package band.effective.office.tv.feature.stories.domain.service
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime

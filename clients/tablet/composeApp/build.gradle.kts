@@ -1,13 +1,13 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 plugins {
-    id("org.jetbrains.kotlin.multiplatform")
-    id("org.jetbrains.kotlin.plugin.compose") version "2.1.21"
-    id("org.jetbrains.compose")
-    id("com.android.application")
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.21"
+    alias(libs.plugins.multiplatform)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.buildkonfig)
-    id("com.google.gms.google-services") version "4.4.3"
+    alias(libs.plugins.google.services)
     id("sign-config")
 }
 
@@ -30,7 +30,9 @@ kotlin {
             export("com.mohamedrejeb.calf:calf-ui:0.8.0")
         }
         it.compilations.all {
-            kotlinOptions.freeCompilerArgs += "-Xdisable-decompose-parcelize"
+            compileTaskProvider.configure {
+                compilerOptions.freeCompilerArgs.add("-Xdisable-decompose-parcelize")
+            }
         }
 
     }
