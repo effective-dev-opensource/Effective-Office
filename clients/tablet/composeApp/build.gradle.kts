@@ -27,7 +27,7 @@ kotlin {
             export(libs.decompose.compose.jetbrains)
             export(libs.essenty.lifecycle)
 
-            export("com.mohamedrejeb.calf:calf-ui:0.8.0")
+            export(libs.calf.ui)
         }
         it.compilations.all {
             compileTaskProvider.configure {
@@ -47,7 +47,7 @@ kotlin {
 
             api(libs.decompose)
             api(libs.decompose.compose.jetbrains)
-            api("com.mohamedrejeb.calf:calf-ui:0.8.0")
+            api(libs.calf.ui)
             api(libs.kotlinx.datetime)
 
             implementation(libs.kotlin.coroutines.core)
