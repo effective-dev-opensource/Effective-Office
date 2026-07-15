@@ -23,18 +23,8 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
 
-            export(libs.decompose)
-            export(libs.decompose.compose.jetbrains)
-            export(libs.essenty.lifecycle)
-
             export(libs.calf.ui)
         }
-        it.compilations.all {
-            compileTaskProvider.configure {
-                compilerOptions.freeCompilerArgs.add("-Xdisable-decompose-parcelize")
-            }
-        }
-
     }
 
     sourceSets {
@@ -45,8 +35,6 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
 
-            api(libs.decompose)
-            api(libs.decompose.compose.jetbrains)
             api(libs.calf.ui)
             api(libs.kotlinx.datetime)
 
