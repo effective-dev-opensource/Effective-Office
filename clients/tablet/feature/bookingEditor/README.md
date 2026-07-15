@@ -21,19 +21,19 @@ bookingEditor/
 ├── di/              # Dependency injection setup
 ├── domain/          # Domain models and business logic
 └── presentation/    # UI components and screens
-    ├── BookingEditor.kt         # Main UI component
-    ├── BookingEditorComponent.kt # Component implementation
-    ├── datetimepicker/          # Date and time picker components
-    ├── Intent.kt                # User actions/intents
-    ├── mapper/                  # Model mappers
-    └── State.kt                 # UI state definitions
+    ├── BookingEditor.kt          # Main UI component
+    ├── BookingEditorViewModel.kt # koin ViewModel (MVI) implementation
+    ├── datetimepicker/           # Date and time picker components
+    ├── Intent.kt                 # User actions/intents
+    ├── mapper/                   # Model mappers
+    └── State.kt                  # UI state definitions
 ```
 
 ## Key Components
 
 ### Main Components
 - **BookingEditor**: Main UI component for the booking editor screen
-- **BookingEditorComponent**: Implementation of the booking editor component following MVI architecture
+- **BookingEditorViewModel**: koin ViewModel for the booking editor, following MVI architecture
 
 ### State Management
 - **Intent**: Defines user actions and events that can occur in the booking editor
@@ -74,5 +74,5 @@ To add a new field to the booking form:
 2. Update the State.kt file to include the new field in the UI state
 3. Modify the Intent.kt file if new user actions are needed
 4. Update the BookingEditor.kt UI component to display the new field
-5. Update the BookingEditorComponent.kt to handle the new field's logic
+5. Update the BookingEditorViewModel.kt to handle the new field's logic
 6. Update any mappers if needed to convert between domain and UI models

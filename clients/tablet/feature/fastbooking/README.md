@@ -18,17 +18,17 @@ The module follows a feature-based architecture:
 ```
 fastbooking/
 └── presentation/    # UI components and screens
-    ├── FastBooking.kt         # Main UI component
-    ├── FastBookingComponent.kt # Component implementation
-    ├── Intent.kt              # User actions/intents
-    └── State.kt               # UI state definitions
+    ├── FastBooking.kt          # Main UI component
+    ├── FastBookingViewModel.kt # koin ViewModel (MVI) implementation
+    ├── Intent.kt               # User actions/intents
+    └── State.kt                # UI state definitions
 ```
 
 ## Key Components
 
 ### Main Components
 - **FastBooking**: Main UI component for the fast booking screen
-- **FastBookingComponent**: Implementation of the fast booking component following MVI architecture
+- **FastBookingViewModel**: koin ViewModel for the fast booking flow, following MVI architecture
 
 ### State Management
 - **Intent**: Defines user actions and events that can occur in the fast booking screen
@@ -75,5 +75,5 @@ To add a new quick booking feature:
 2. Update the State.kt file to include any new UI state needed
 3. Modify the Intent.kt file to add new user actions if needed
 4. Update the FastBooking.kt UI component to implement the new feature
-5. Update the FastBookingComponent.kt to handle the new feature's logic
+5. Update the FastBookingViewModel.kt to handle the new feature's logic
 6. Ensure it integrates with the full booking system
