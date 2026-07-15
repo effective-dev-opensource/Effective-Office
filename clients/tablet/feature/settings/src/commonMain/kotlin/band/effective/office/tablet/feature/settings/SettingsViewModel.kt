@@ -1,40 +1,35 @@
 package band.effective.office.tablet.feature.settings
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import band.effective.office.shared.core.domain.unbox
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.SetRoomUseCase
-import com.arkivanov.decompose.ComponentContext
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
-class SettingsComponent(
-    private val onExitApp: () -> Unit,
-    private val onMainScreen: () -> Unit,
-    componentContext: ComponentContext,
-) : ComponentContext by componentContext, KoinComponent {
-
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-
-    private val setRoomUseCase: SetRoomUseCase by inject()
-    private val checkSettingsUseCase: CheckSettingsUseCase by inject()
-    private val roomUseCase: RoomInfoUseCase by inject()
+class SettingsViewModel(
+    private val setRoomUseCase: SetRoomUseCase,
+    private val checkSettingsUseCase: CheckSettingsUseCase,
+    private val roomUseCase: RoomInfoUseCase,
+) : ViewModel() {
 
     private val mutableState = MutableStateFlow(State.defaultState)
     val state = mutableState.asStateFlow()
 
+    private val navEventChannel = Channel<SettingsNavEvent>(Channel.BUFFERED)
+    val navEvents = navEventChannel.receiveAsFlow()
+
     init {
-        coroutineScope.launch {
+        viewModelScope.launch {
             setCurrentRoom(checkSettingsUseCase())
         }
-        coroutineScope.launch {
+        viewModelScope.launch {
             mutableState.update { it.copy(loading = true) }
             roomUseCase.updateCache().unbox(
                 errorHandler = { error ->
@@ -46,19 +41,29 @@ class SettingsComponent(
         }
     }
 
-    private fun setCurrentRoom(checkSettingsUseCase: String) {
-        mutableState.update { it.copy(currentName = checkSettingsUseCase) }
+    private fun setCurrentRoom(currentRoom: String) {
+        mutableState.update { it.copy(currentName = currentRoom) }
     }
 
     fun sendIntent(intent: Intent) {
         when (intent) {
             is Intent.ChangeCurrentNameRoom -> {
                 setRoomUseCase(intent.nameRoom)
-                onMainScreen()
+                emit(SettingsNavEvent.NavigateToMain)
             }
 
-            Intent.OnExitApp -> onExitApp()
-            Intent.SaveData -> onMainScreen()
+            Intent.OnExitApp -> emit(SettingsNavEvent.ExitApp)
+            Intent.SaveData -> emit(SettingsNavEvent.NavigateToMain)
         }
     }
+
+    private fun emit(event: SettingsNavEvent) {
+        viewModelScope.launch { navEventChannel.send(event) }
+    }
+}
+
+/** One-time navigation requests emitted by [SettingsViewModel], handled by the host NavController. */
+sealed interface SettingsNavEvent {
+    data object NavigateToMain : SettingsNavEvent
+    data object ExitApp : SettingsNavEvent
 }

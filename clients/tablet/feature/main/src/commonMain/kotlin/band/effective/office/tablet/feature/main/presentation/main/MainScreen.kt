@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -13,12 +14,21 @@ import band.effective.office.tablet.core.ui.LoadMainScreen
 import band.effective.office.tablet.core.ui.common.ErrorMainScreen
 import band.effective.office.tablet.feature.main.domain.CurrentTimeHolder
 import kotlin.time.ExperimentalTime
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalTime::class)
 @Composable
-fun MainScreen(component: MainComponent) {
+fun MainScreen(
+    onNavigate: (MainNavEvent) -> Unit,
+    viewModel: MainViewModel = koinViewModel(),
+) {
+    val component = viewModel
     val state by component.state.collectAsState()
     val currentDate by CurrentTimeHolder.currentTime.collectAsState()
+
+    LaunchedEffect(Unit) {
+        component.navEvents.collect(onNavigate)
+    }
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally

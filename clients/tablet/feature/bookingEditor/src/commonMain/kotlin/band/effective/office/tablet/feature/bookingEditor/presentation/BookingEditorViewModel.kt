@@ -1,5 +1,7 @@
 package band.effective.office.tablet.feature.bookingEditor.presentation
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import band.effective.office.shared.core.domain.Either
 import band.effective.office.tablet.core.domain.OfficeTime
 import band.effective.office.tablet.core.domain.model.EventInfo
@@ -12,22 +14,20 @@ import band.effective.office.tablet.core.domain.useCase.OrganizersInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.UpdateBookingUseCase
 import band.effective.office.shared.core.utils.asInstant
 import band.effective.office.shared.core.utils.asLocalDateTime
-import band.effective.office.tablet.core.ui.common.ModalWindow
-import band.effective.office.shared.core.utils.componentCoroutineScope
 import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.DateTimePickerComponent
+import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.DateTimePickerComponentFactory
 import band.effective.office.tablet.feature.bookingEditor.presentation.mapper.EventInfoMapper
 import band.effective.office.tablet.feature.bookingEditor.presentation.mapper.UpdateEventComponentStateToEventInfoMapper
-import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.childStack
 import io.github.aakira.napier.Napier
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,26 +35,32 @@ import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import kotlinx.serialization.Serializable
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 /**
- * Component responsible for editing booking events.
+ * ViewModel responsible for editing booking events.
  * Handles creating new bookings and updating existing ones.
  */
 const val DURATION_INCREMENT_MINUTES = 30
 const val DELETE_SUCCESS_DELAY = 2000L
-class BookingEditorComponent(
-    componentContext: ComponentContext,
+
+class BookingEditorViewModel(
+    private val organizersInfoUseCase: OrganizersInfoUseCase,
+    private val checkBookingUseCase: CheckBookingUseCase,
+    private val updateBookingUseCase: UpdateBookingUseCase,
+    private val createBookingUseCase: CreateBookingUseCase,
+    private val deleteBookingUseCase: DeleteBookingUseCase,
+    private val eventInfoMapper: EventInfoMapper,
+    private val stateToEventInfoMapper: UpdateEventComponentStateToEventInfoMapper,
+    private val dateTimePickerComponentFactory: DateTimePickerComponentFactory,
     initialEvent: EventInfo,
     val roomName: String,
-    private val onCloseRequest: () -> Unit,
-) : ComponentContext by componentContext, KoinComponent, ModalWindow {
+) : ViewModel() {
+
+    private val coroutineScope = viewModelScope
 
     val dateTimePickerComponent: DateTimePickerComponent by lazy {
-        DateTimePickerComponent(
-            componentContext = componentContext,
+        dateTimePickerComponentFactory.create(
+            scope = coroutineScope,
             onSelectDate = { newDate -> updateEventDate(newDate) },
             onCloseRequest = { mutableState.update { it.copy(showSelectDate = false) } },
             event = initialEvent,
@@ -64,35 +70,19 @@ class BookingEditorComponent(
         )
     }
 
-    private val coroutineScope = componentCoroutineScope()
-
-    // Use cases
-    private val organizersInfoUseCase: OrganizersInfoUseCase by inject()
-    private val checkBookingUseCase: CheckBookingUseCase by inject()
-    private val updateBookingUseCase: UpdateBookingUseCase by inject()
-    private val createBookingUseCase: CreateBookingUseCase by inject()
-    private val deleteBookingUseCase: DeleteBookingUseCase by inject()
-
-    // Mappers
-    private val eventInfoMapper: EventInfoMapper by inject()
-    private val stateToEventInfoMapper: UpdateEventComponentStateToEventInfoMapper by inject()
-
     // State management
     private val mutableState = MutableStateFlow(eventInfoMapper.mapToUpdateBookingState(initialEvent))
     val state = mutableState.asStateFlow()
 
-    // Navigation
-    private val navigation = StackNavigation<ModalConfig>()
-
-    val childStack = childStack(
-        source = navigation,
-        initialConfiguration = ModalConfig.UpdateModal,
-        serializer = ModalConfig.serializer(),
-        childFactory = { config, _ -> config },
-    )
+    private val closeChannel = Channel<Unit>(Channel.BUFFERED)
+    val closeEvents = closeChannel.receiveAsFlow()
 
     init {
         loadOrganizers()
+    }
+
+    private fun requestClose() {
+        coroutineScope.launch { closeChannel.send(Unit) }
     }
 
     /**
@@ -101,7 +91,7 @@ class BookingEditorComponent(
     fun sendIntent(intent: Intent) {
         when (intent) {
             Intent.OnBooking -> createNewEvent()
-            Intent.OnClose -> onCloseRequest()
+            Intent.OnClose -> requestClose()
             Intent.OnCloseSelectDateDialog -> closeSelectDateDialog()
             Intent.OnDeleteEvent -> deleteEvent()
             Intent.OnDoneInput -> finalizeOrganizerSelection()
@@ -139,7 +129,7 @@ class BookingEditorComponent(
             },
             successHandler = {
                 mutableState.update { it.copy(isLoadUpdate = false) }
-                onCloseRequest()
+                requestClose()
             }
         )
     }
@@ -178,7 +168,7 @@ class BookingEditorComponent(
 
             is Either.Success -> {
                 delay(DELETE_SUCCESS_DELAY)
-                onCloseRequest()
+                requestClose()
             }
         }
     }
@@ -414,7 +404,7 @@ class BookingEditorComponent(
             },
             successHandler = {
                 mutableState.update { it.copy(isLoadCreate = false) }
-                onCloseRequest()
+                requestClose()
             }
         )
     }
@@ -458,27 +448,13 @@ class BookingEditorComponent(
      */
     private fun toggleExpandedState() = mutableState.update { it.copy(expanded = !it.expanded) }
 
-
     /**
      * Opens the select date dialog
      */
     private fun openSelectDateDialog() = mutableState.update { it.copy(showSelectDate = true) }
 
-
     /**
      * Closes the select date dialog
      */
     private fun closeSelectDateDialog() = mutableState.update { it.copy(showSelectDate = false) }
-
-    @Serializable
-    sealed interface ModalConfig {
-        @Serializable
-        object UpdateModal : ModalConfig
-
-        @Serializable
-        object SuccessModal : ModalConfig
-
-        @Serializable
-        object FailureModal : ModalConfig
-    }
 }

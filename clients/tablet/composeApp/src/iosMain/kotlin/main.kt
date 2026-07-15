@@ -1,9 +1,8 @@
 import androidx.compose.ui.window.ComposeUIViewController
-import band.effective.office.tablet.App
-import band.effective.office.tablet.root.RootComponent
+import band.effective.office.tablet.AppRoot
 import platform.UIKit.UIViewController
 
-fun rootViewController(root: RootComponent): UIViewController =
+fun MainViewController(): UIViewController =
     ComposeUIViewController {
-        App(root)
+        AppRoot()
     }

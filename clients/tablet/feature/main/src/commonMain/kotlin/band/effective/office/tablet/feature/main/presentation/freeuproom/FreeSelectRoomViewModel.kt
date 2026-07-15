@@ -1,34 +1,32 @@
 package band.effective.office.tablet.feature.main.presentation.freeuproom
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.useCase.DeleteBookingUseCase
-import band.effective.office.tablet.core.ui.common.ModalWindow
-import band.effective.office.shared.core.utils.componentCoroutineScope
-import com.arkivanov.decompose.ComponentContext
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
-class FreeSelectRoomComponent(
-    componentContext: ComponentContext,
+class FreeSelectRoomViewModel(
+    private val deleteBookingUseCase: DeleteBookingUseCase,
     private val eventInfo: EventInfo,
     private val roomName: String,
-    private val onCloseRequest: () -> Unit,
-) : ComponentContext by componentContext, ModalWindow, KoinComponent {
-    private val scope = componentCoroutineScope()
+) : ViewModel() {
 
     private val mutableState = MutableStateFlow(State.defaultState)
     val state = mutableState.asStateFlow()
 
-    private val deleteBookingUseCase: DeleteBookingUseCase by inject()
+    private val closeChannel = Channel<Unit>(Channel.BUFFERED)
+    val closeEvents = closeChannel.receiveAsFlow()
 
     fun sendIntent(intent: Intent) {
         when (intent) {
             Intent.OnCloseWindowRequest -> {
-                onCloseRequest()
+                requestClose()
                 mutableState.update { State.defaultState }
             }
 
@@ -36,13 +34,17 @@ class FreeSelectRoomComponent(
         }
     }
 
-    private fun freeRoom() = scope.launch {
+    private fun freeRoom() = viewModelScope.launch {
         mutableState.update { it.copy(isLoad = true) }
         deleteBookingUseCase(
             roomName = roomName,
             eventInfo = eventInfo,
         )
-        onCloseRequest()
+        requestClose()
         mutableState.update { State.defaultState }
+    }
+
+    private fun requestClose() {
+        viewModelScope.launch { closeChannel.send(Unit) }
     }
 }
