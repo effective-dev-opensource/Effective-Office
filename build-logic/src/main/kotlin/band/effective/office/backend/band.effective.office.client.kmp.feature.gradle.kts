@@ -18,6 +18,8 @@ kotlin {
             implementation(libs.findLibrary("essenty.lifecycle").get())
             implementation(libs.findLibrary("essenty.state.keeper").get())
 
+            implementation(libs.findLibrary("jetbrains-lifecycle-viewmodel").get())
+
             implementation(libs.findLibrary("kotlin.coroutines.core").get())
 
             implementation(libs.findBundle("koin").get())
