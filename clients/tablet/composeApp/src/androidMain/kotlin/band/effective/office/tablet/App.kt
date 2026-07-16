@@ -6,6 +6,7 @@ import band.effective.office.tablet.core.domain.model.SettingsManager
 import band.effective.office.tablet.core.domain.model.SettingsStore
 import band.effective.office.tablet.core.ui.inactivity.InactivityLifecycleCallbacks
 import band.effective.office.tablet.di.KoinInitializer
+import band.effective.office.tablet.di.firebaseTopicsModule
 import com.google.firebase.messaging.FirebaseMessaging
 import com.russhwolf.settings.SharedPreferencesSettings
 import org.koin.android.ext.android.get
@@ -17,7 +18,7 @@ class  App : Application() {
     override fun onCreate() {
         super.onCreate()
         LoggerInitializer().init()
-        KoinInitializer().init()
+        KoinInitializer().init(listOf(firebaseTopicsModule))
         val settings = SharedPreferencesSettings(getSharedPreferences("settings", MODE_PRIVATE))
         SettingsManager.init(object : SettingsStore {
             override fun getString(key: String, defaultValue: String) = settings.getString(key, defaultValue)
