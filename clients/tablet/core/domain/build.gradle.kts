@@ -13,6 +13,10 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.coroutines.android)
             implementation(libs.koin.android)
+            implementation(libs.settings)
+        }
+        iosMain.dependencies {
+            implementation(libs.settings)
         }
     }
 }

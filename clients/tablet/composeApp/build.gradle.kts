@@ -61,10 +61,6 @@ kotlin {
             implementation(libs.koin.android)
             implementation("org.slf4j:slf4j-android:1.7.36")
             implementation(libs.firebase.messaging.ktx)
-            implementation(libs.settings)
-        }
-        iosMain.dependencies {
-            implementation(libs.settings)
         }
     }
 }

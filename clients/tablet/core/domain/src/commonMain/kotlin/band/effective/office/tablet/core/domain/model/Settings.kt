@@ -2,24 +2,6 @@ package band.effective.office.tablet.core.domain.model
 
 class SettingsManager(private val settings: SettingsStore) {
 
-    companion object {
-        private const val KEY_NAME_ROOM = "nameRoom"
-
-        // Singleton-like instance
-        private var currentInstance: SettingsManager? = null
-
-        fun init(settings: SettingsStore) {
-            if(currentInstance == null) {
-                currentInstance = SettingsManager(settings)
-            }
-        }
-
-        fun current(): SettingsManager {
-            return currentInstance
-                ?: error("SettingsManager not initialized. Call SettingsManager.init(settings) first.")
-        }
-    }
-
     var currentRoomName: String
         get() = settings.getString(KEY_NAME_ROOM, "")
         private set(value) {
@@ -34,6 +16,10 @@ class SettingsManager(private val settings: SettingsStore) {
 
     fun removeRoomName() {
         settings.remove(KEY_NAME_ROOM)
+    }
+
+    private companion object {
+        const val KEY_NAME_ROOM = "nameRoom"
     }
 }
 
