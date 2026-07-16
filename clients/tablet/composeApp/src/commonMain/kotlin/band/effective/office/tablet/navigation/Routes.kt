@@ -1,7 +1,6 @@
 package band.effective.office.tablet.navigation
 
 import band.effective.office.tablet.core.domain.model.EventInfo
-import band.effective.office.tablet.core.domain.model.RoomInfo
 import kotlinx.serialization.Serializable
 
 /**
@@ -37,13 +36,15 @@ data class BookingFlowRoute(val event: EventInfo, val room: String)
 @Serializable
 object BookingEditorRoute
 
-/** Modal: quick booking of the nearest available room. */
+/**
+ * Modal: quick booking of the nearest available room. Carries only the requested duration — the
+ * room list and the currently-selected room are read from the shared [MainRoute] `MainViewModel`
+ * (see AppNavHost) rather than serialized into the route: each `RoomInfo` carries its full event
+ * list, so embedding `List<RoomInfo>` in the route would bloat it and risk a
+ * `TransactionTooLargeException`.
+ */
 @Serializable
-data class FastBookingRoute(
-    val minEventDuration: Int,
-    val selectedRoom: RoomInfo,
-    val rooms: List<RoomInfo>,
-)
+data class FastBookingRoute(val minEventDuration: Int)
 
 /**
  * Date/time picker for the booking editor. Carries no payload: it lives inside [BookingFlowRoute]

@@ -12,7 +12,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import band.effective.office.tablet.core.domain.model.EventInfo
-import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditor
 import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditorViewModel
 import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.DateTimePicker
@@ -23,6 +22,7 @@ import band.effective.office.tablet.feature.main.presentation.freeuproom.FreeSel
 import band.effective.office.tablet.feature.main.presentation.freeuproom.FreeSelectRoomViewModel
 import band.effective.office.tablet.feature.main.presentation.main.MainNavEvent
 import band.effective.office.tablet.feature.main.presentation.main.MainScreen
+import band.effective.office.tablet.feature.main.presentation.main.MainViewModel
 import band.effective.office.tablet.feature.settings.SettingsScreen
 import kotlin.reflect.typeOf
 import org.koin.compose.viewmodel.koinViewModel
@@ -33,12 +33,6 @@ import org.koin.core.parameter.parametersOf
 private object ModalNav {
     /** NavType map for routes carrying a single [EventInfo] payload. */
     val eventTypeMap = mapOf(typeOf<EventInfo>() to serializableNavType<EventInfo>())
-
-    /** NavType map for the fast-booking route (a [RoomInfo] and a list of them). */
-    val fastBookingTypeMap = mapOf(
-        typeOf<RoomInfo>() to serializableNavType<RoomInfo>(),
-        typeOf<List<RoomInfo>>() to serializableNavType<List<RoomInfo>>(),
-    )
 
     /** Modals fill the screen so [DialogBackgroundDim] can draw the full-screen dim behind the
      *  centered content. */
@@ -74,7 +68,7 @@ fun AppNavHost(startRoomConfigured: Boolean) {
                 onNavigate = { event ->
                     when (event) {
                         is MainNavEvent.OpenFastBooking -> navController.navigate(
-                            FastBookingRoute(event.minDuration, event.selectedRoom, event.rooms)
+                            FastBookingRoute(event.minDuration)
                         )
 
                         is MainNavEvent.OpenFreeRoom -> navController.navigate(
@@ -142,10 +136,17 @@ fun AppNavHost(startRoomConfigured: Boolean) {
             }
         }
 
-        dialog<FastBookingRoute>(typeMap = ModalNav.fastBookingTypeMap, dialogProperties = ModalNav.dialogProperties) { entry ->
-            val route = entry.toRoute<FastBookingRoute>()
+        dialog<FastBookingRoute>(dialogProperties = ModalNav.dialogProperties) { entry ->
+            val minDuration = entry.toRoute<FastBookingRoute>().minEventDuration
+            val mainEntry = remember(entry) { navController.getBackStackEntry<MainRoute>() }
+            val mainViewModel = koinViewModel<MainViewModel>(viewModelStoreOwner = mainEntry)
+            val mainSnapshot = remember { mainViewModel.state.value }
             val viewModel = koinViewModel<FastBookingViewModel> {
-                parametersOf(route.minEventDuration, route.selectedRoom, route.rooms)
+                parametersOf(
+                    minDuration,
+                    mainSnapshot.roomList[mainSnapshot.indexSelectRoom],
+                    mainSnapshot.roomList,
+                )
             }
             DialogBackgroundDim(onDismiss = { navController.popBackStack() }) {
                 FastBooking(

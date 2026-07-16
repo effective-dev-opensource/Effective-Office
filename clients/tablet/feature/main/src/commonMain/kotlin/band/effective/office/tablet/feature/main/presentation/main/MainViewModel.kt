@@ -186,14 +186,7 @@ class MainViewModel(
      * Handles the fast booking intent.
      */
     private fun handleFastBookingIntent(intent: Intent.OnFastBooking) {
-        val currentState = state.value
-        emitNav(
-            MainNavEvent.OpenFastBooking(
-                minDuration = intent.minDuration,
-                selectedRoom = currentState.roomList[currentState.indexSelectRoom],
-                rooms = currentState.roomList,
-            )
-        )
+        emitNav(MainNavEvent.OpenFastBooking(minDuration = intent.minDuration))
     }
 
     /**
@@ -378,11 +371,7 @@ class MainViewModel(
 
 /** One-time navigation requests emitted by [MainViewModel], handled by the host NavController. */
 sealed interface MainNavEvent {
-    data class OpenFastBooking(
-        val minDuration: Int,
-        val selectedRoom: RoomInfo,
-        val rooms: List<RoomInfo>,
-    ) : MainNavEvent
+    data class OpenFastBooking(val minDuration: Int) : MainNavEvent
 
     data class OpenFreeRoom(val event: EventInfo, val roomName: String) : MainNavEvent
 
