@@ -71,8 +71,6 @@ fun BookingEditor(
         viewModel.closeEvents.collect { onClose() }
     }
 
-    // Cap the form width so it stays a centered card (its fields are fillMaxWidth and would
-    // otherwise stretch edge-to-edge inside the full-screen modal scrim).
     Box(modifier = Modifier.widthIn(max = 720.dp)) {
         BookingEditor(
             onDismissRequest = { viewModel.sendIntent(Intent.OnClose) },

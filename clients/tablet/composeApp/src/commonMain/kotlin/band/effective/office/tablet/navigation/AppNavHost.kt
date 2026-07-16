@@ -30,7 +30,7 @@ import org.koin.core.parameter.parametersOf
 
 /** Stateless nav constants for the modal `dialog<>` destinations (hoisted so they aren't
  *  re-allocated on recomposition). */
-private object ModalNav {
+private object AppNavHostData {
     /** NavType map for routes carrying a single [EventInfo] payload. */
     val eventTypeMap = mapOf(typeOf<EventInfo>() to serializableNavType<EventInfo>())
 
@@ -83,7 +83,7 @@ fun AppNavHost(startRoomConfigured: Boolean) {
             )
         }
 
-        dialog<FreeRoomRoute>(typeMap = ModalNav.eventTypeMap, dialogProperties = ModalNav.dialogProperties) { entry ->
+        dialog<FreeRoomRoute>(typeMap = AppNavHostData.eventTypeMap, dialogProperties = AppNavHostData.dialogProperties) { entry ->
             val route = entry.toRoute<FreeRoomRoute>()
             val viewModel = koinViewModel<FreeSelectRoomViewModel> {
                 parametersOf(route.event, route.roomName)
@@ -98,9 +98,9 @@ fun AppNavHost(startRoomConfigured: Boolean) {
 
         navigation<BookingFlowRoute>(
             startDestination = BookingEditorRoute,
-            typeMap = ModalNav.eventTypeMap,
+            typeMap = AppNavHostData.eventTypeMap,
         ) {
-            dialog<BookingEditorRoute>(dialogProperties = ModalNav.dialogProperties) {
+            dialog<BookingEditorRoute>(dialogProperties = AppNavHostData.dialogProperties) {
                 val flowEntry = remember(it) { navController.getBackStackEntry<BookingFlowRoute>() }
                 val route = flowEntry.toRoute<BookingFlowRoute>()
                 val viewModel = koinViewModel<BookingEditorViewModel>(viewModelStoreOwner = flowEntry) {
@@ -115,7 +115,7 @@ fun AppNavHost(startRoomConfigured: Boolean) {
                 }
             }
 
-            dialog<DateTimePickerRoute>(dialogProperties = ModalNav.dialogProperties) {
+            dialog<DateTimePickerRoute>(dialogProperties = AppNavHostData.dialogProperties) {
                 val flowEntry = remember(it) { navController.getBackStackEntry<BookingFlowRoute>() }
                 val viewModel = koinViewModel<BookingEditorViewModel>(viewModelStoreOwner = flowEntry)
                 val component = viewModel.dateTimePickerComponent
@@ -136,7 +136,7 @@ fun AppNavHost(startRoomConfigured: Boolean) {
             }
         }
 
-        dialog<FastBookingRoute>(dialogProperties = ModalNav.dialogProperties) { entry ->
+        dialog<FastBookingRoute>(dialogProperties = AppNavHostData.dialogProperties) { entry ->
             val minDuration = entry.toRoute<FastBookingRoute>().minEventDuration
             val mainEntry = remember(entry) { navController.getBackStackEntry<MainRoute>() }
             val mainViewModel = koinViewModel<MainViewModel>(viewModelStoreOwner = mainEntry)

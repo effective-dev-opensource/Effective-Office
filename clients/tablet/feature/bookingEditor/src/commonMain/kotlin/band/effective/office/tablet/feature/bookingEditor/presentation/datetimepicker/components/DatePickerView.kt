@@ -47,8 +47,6 @@ fun DatePickerView(
     val onAccent = MaterialTheme.colorScheme.onPrimary
 
     Column {
-        // Display the date picker. All colors come from our theme so the (native, on iOS) picker
-        // matches the app immediately rather than briefly showing default system colors.
         AdaptiveDatePicker(
             state = state,
             modifier = modifier,

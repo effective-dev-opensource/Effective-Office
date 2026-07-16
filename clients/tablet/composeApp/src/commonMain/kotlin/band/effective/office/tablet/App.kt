@@ -22,8 +22,6 @@ import org.koin.compose.koinInject
 
 @Composable
 fun AppRoot() {
-    // Provide a root ViewModelStoreOwner so the NavHost/NavController and its ViewModels have an
-    // owner on every platform (Android's Activity already provides one; iOS/Aurora need this).
     val rootViewModelStoreOwner = rememberRootViewModelStoreOwner()
 
     CompositionLocalProvider(LocalViewModelStoreOwner provides rootViewModelStoreOwner) {

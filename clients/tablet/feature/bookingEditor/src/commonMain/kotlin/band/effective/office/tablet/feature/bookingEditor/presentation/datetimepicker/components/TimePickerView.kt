@@ -38,7 +38,6 @@ fun TimePickerView(
     val accent = MaterialTheme.colorScheme.primary
     val onAccent = MaterialTheme.colorScheme.onPrimary
 
-    // All colors from our theme so the (native, on iOS) picker matches the app from the first frame.
     AdaptiveTimePicker(
         state = state,
         modifier = modifier,
