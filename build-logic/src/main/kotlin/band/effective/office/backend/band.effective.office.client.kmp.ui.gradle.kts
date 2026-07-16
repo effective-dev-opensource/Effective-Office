@@ -17,7 +17,6 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.findLibrary("coil").get())
             implementation(libs.findLibrary("coil.network.ktor").get())
-            api(libs.findLibrary("calf-ui").get())
         }
 
         androidMain.dependencies {

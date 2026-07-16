@@ -1,5 +1,6 @@
 package band.effective.office.tablet.core.domain.di
 
+import band.effective.office.tablet.core.domain.model.SettingsManager
 import band.effective.office.tablet.core.domain.useCase.CheckBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.CreateBookingUseCase
@@ -19,9 +20,17 @@ import band.effective.office.tablet.core.domain.useCase.SlotUseCase
 import band.effective.office.tablet.core.domain.useCase.TimerUseCase
 import band.effective.office.tablet.core.domain.useCase.UpdateBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.UpdateUseCase
+import org.koin.core.module.Module
 import org.koin.dsl.module
 
+expect fun settingsStoreModule(): Module
+
 val domainModule = module {
+
+    includes(settingsStoreModule())
+
+    single { SettingsManager(settings = get()) }
+
     // Booking use cases
     single {
         CreateBookingUseCase(
@@ -68,9 +77,9 @@ val domainModule = module {
     // Other use cases
     single { OrganizersInfoUseCase(repository = get()) }
     single { CheckBookingUseCase(roomInfoUseCase = get()) }
-    single { CheckSettingsUseCase() }
+    single { CheckSettingsUseCase(settingsManager = get()) }
     single { SelectRoomUseCase() }
-    single { SetRoomUseCase() }
+    single { SetRoomUseCase(settingsManager = get()) }
     single { SlotUseCase() }
     single { TimerUseCase() }
     single { UpdateUseCase(roomInfoUseCase = get(), timerUseCase = get()) }

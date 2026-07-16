@@ -22,8 +22,6 @@ kotlin {
         it.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
-
-            export(libs.calf.ui)
         }
     }
 
@@ -35,7 +33,6 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
 
-            api(libs.calf.ui)
             api(libs.kotlinx.datetime)
 
             implementation(libs.jetbrains.navigation.compose)
@@ -47,8 +44,6 @@ kotlin {
             implementation(libs.bundles.koin)
 
             implementation(libs.napier)
-
-            implementation(libs.settings)
 
             implementation(project(":clients:tablet:core:ui"))
             implementation(project(":clients:tablet:feature:main"))
