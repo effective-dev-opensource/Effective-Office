@@ -2,7 +2,7 @@ package band.effective.office.shared.core.utils
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime

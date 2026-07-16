@@ -1,7 +1,7 @@
 [versions]
 # Common
 ## Kotlin
-kotlin = "2.1.21"
+kotlin = "2.3.10"
 kotlinCoroutines = "1.10.2"
 kotlinx-serialization = "1.8.1"
 
@@ -38,13 +38,13 @@ googleOAuthClient = "1.33.3"
 
 # Client
 ## Android
-android-compileSdk = "35"
+android-compileSdk = "36"
 android-minSdk = "26"
 android-targetSdk = "35"
-agp = "8.9.3"
+agp = "8.11.2"
 
 ## Compose
-compose = "1.8.1"
+compose = "1.10.2"
 hotReload = "1.0.0-alpha09"
 
 ## Androidx
@@ -64,6 +64,7 @@ ktor = "3.1.3"
 ## UI
 coil = "3.2.0"
 zxing = "3.5.1"
+calf = "0.11.0"
 
 ## DI
 koin = "4.1.0"
@@ -71,10 +72,10 @@ koin = "4.1.0"
 ## Storage
 multiplatformSettings = "1.3.0"
 buildkonfig = "0.15.1"
-room = "2.7.2"
+room = "2.8.4"
 
 ## Datetime
-datetime = "0.6.2"
+datetime = "0.7.1"
 
 ## Decompose
 decompose = "3.3.0"
@@ -84,6 +85,7 @@ essenty-ios = "0.2.4"
 ## Settings
 settings = "1.3.0"
 firebaseMessagingKtx = "24.1.2"
+googleServices = "4.4.3"
 
 ## Notion
 notion-ver = "1.11.1"
@@ -196,6 +198,7 @@ ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "k
 ## UI
 coil = { module = "io.coil-kt.coil3:coil-compose-core", version.ref = "coil" }
 coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+calf-ui = { module = "com.mohamedrejeb.calf:calf-ui", version.ref = "calf" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
 
 ## DI
@@ -239,11 +242,12 @@ spring-dependency-management = { id = "io.spring.dependency-management", version
 # Client
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-compose = { id = "org.jetbrains.compose", version = "1.8.1" }
+compose = { id = "org.jetbrains.compose", version.ref = "compose" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 hotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "hotReload" }
 buildkonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildkonfig" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 
 [bundles]
 # Common

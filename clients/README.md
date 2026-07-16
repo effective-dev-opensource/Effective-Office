@@ -26,9 +26,9 @@ The TV application is a Compose Multiplatform app designed for large-screen devi
 - **Framework**: Kotlin Multiplatform with Jetpack Compose
 - **Platforms**: Android and iOS
 - **UI**: Jetpack Compose
-- **Navigation**: Decompose
+- **Navigation**: Compose Navigation (NavHost/NavController with type-safe routes)
 - **Dependency Injection**: Koin
-- **State Management**: Decompose with MVI pattern
+- **State Management**: Koin ViewModels + MVI pattern (StateFlow)
 - **API Communication**: Ktor Client
 - **Date/Time Handling**: Kotlinx.datetime
 - **Logging**: Napier

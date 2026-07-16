@@ -15,16 +15,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.common.CrossButtonView
 import band.effective.office.tablet.core.ui.common.FailureFastSelectRoomView
@@ -35,79 +33,74 @@ import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h2
 import band.effective.office.tablet.core.ui.theme.h4
 import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
-import com.arkivanov.decompose.extensions.compose.stack.Children
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * Main composable for the Fast Booking feature.
- * Displays different views based on the current state of the component.
+ * Displays different views based on [FastBookingModal] in the current state.
+ * Hosted as a `dialog<>` destination — the surrounding dialog window is provided by the NavHost.
  *
- * @param component The FastBookingComponent that manages the state and logic
+ * @param viewModel manages the fast-booking state and logic
+ * @param onClose called when the flow requests to close (pops the dialog destination)
  */
 @Composable
-fun FastBooking(component: FastBookingComponent) {
-    val state by component.state.collectAsState()
+fun FastBooking(
+    viewModel: FastBookingViewModel,
+    onClose: () -> Unit,
+) {
+    val state by viewModel.state.collectAsState()
 
-    Children(stack = component.childStack, modifier = Modifier.padding(35.dp)) { modal ->
-        Dialog(
-            onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) },
-            properties = DialogProperties(
-                usePlatformDefaultWidth = modal.instance != FastBookingComponent.ModalConfig.LoadingModal
-            )
+    LaunchedEffect(Unit) {
+        viewModel.closeEvents.collect { onClose() }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(35.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Spacer(modifier = Modifier.height(50.dp))
+        Text(
+            text = DateDisplayMapper.formatTime(state.currentTime),
+            style = MaterialTheme.typography.h2,
+            color = LocalCustomColorsPalette.current.primaryTextAndIcon
+        )
+        Row(
+            modifier = Modifier.fillMaxHeight(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Spacer(modifier = Modifier.height(50.dp))
-                Text(
-                    text = DateDisplayMapper.formatTime(state.currentTime),
-                    style = MaterialTheme.typography.h2,
-                    color = LocalCustomColorsPalette.current.primaryTextAndIcon
+            when (val modal = state.modal) {
+                FastBookingModal.Loading -> LoadingView(
+                    onDismissRequest = { viewModel.sendIntent(Intent.OnCloseWindowRequest) }
                 )
-                Row(
-                    modifier = Modifier.fillMaxHeight(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    when (val modalInstance = modal.instance) {
-                        FastBookingComponent.ModalConfig.LoadingModal -> LoadingView(
-                            onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) }
+
+                is FastBookingModal.Failure -> {
+                    // Show failure view - either due to no available rooms or an error
+                    if (state.isError) {
+                        ErrorView(onDismissRequest = { viewModel.sendIntent(Intent.OnCloseWindowRequest) })
+                    } else {
+                        FailureFastSelectRoomView(
+                            onDismissRequest = { viewModel.sendIntent(Intent.OnCloseWindowRequest) },
+                            minutes = state.minutesLeft,
+                            room = modal.room
                         )
+                    }
+                }
 
-                        is FastBookingComponent.ModalConfig.FailureModal -> {
-                            // Show failure view - either due to no available rooms or an error
-                            if (state.isError) {
-                                ErrorView(onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) })
-                            } else {
-                                FailureFastSelectRoomView(
-                                    onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) },
-                                    minutes = state.minutesLeft,
-                                    room = modalInstance.room
-                                )
-                            }
-                        }
-
-                        is FastBookingComponent.ModalConfig.SuccessModal -> {
-                            // Only show success view if there's no error
-                            if (state.isError) {
-                                ErrorView(onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) })
-                            } else {
-                                SuccessFastSelectRoomView(
-                                    roomName = modalInstance.room,
-                                    finishTime = modalInstance.eventInfo.finishTime,
-                                    close = { component.sendIntent(Intent.OnCloseWindowRequest) },
-                                    onFreeRoomRequest = {
-                                        component.sendIntent(
-                                            Intent.OnFreeSelectRequest(
-                                                it
-                                            )
-                                        )
-                                    },
-                                    isLoading = state.isLoad
-                                )
-                            }
-                        }
+                is FastBookingModal.Success -> {
+                    // Only show success view if there's no error
+                    if (state.isError) {
+                        ErrorView(onDismissRequest = { viewModel.sendIntent(Intent.OnCloseWindowRequest) })
+                    } else {
+                        SuccessFastSelectRoomView(
+                            roomName = modal.room,
+                            finishTime = modal.eventInfo.finishTime,
+                            close = { viewModel.sendIntent(Intent.OnCloseWindowRequest) },
+                            onFreeRoomRequest = {
+                                viewModel.sendIntent(Intent.OnFreeSelectRequest(it))
+                            },
+                            isLoading = state.isLoad
+                        )
                     }
                 }
             }

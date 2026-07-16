@@ -25,8 +25,8 @@ composeApp/
 ```
 
 ## Key Components
-- **App**: Main application composable that sets up the navigation and theme
-- **Navigation**: Handles routing between different screens and features
+- **AppRoot**: Main application composable that provides the root `ViewModelStoreOwner`, theme, and `AppNavHost`
+- **AppNavHost**: Compose Navigation graph (`NavHost`/`NavController`) with type-safe routes; full-screen `composable<>` destinations (Settings/Main) and modal `dialog<>` destinations (FreeRoom/BookingEditor/FastBooking)
 - **DI**: Dependency injection setup for the application
 - **Theme**: Application-wide styling and theming
 
