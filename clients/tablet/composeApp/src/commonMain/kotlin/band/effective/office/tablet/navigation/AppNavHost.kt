@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.RoomInfo
@@ -81,7 +82,7 @@ fun AppNavHost(startRoomConfigured: Boolean) {
                         )
 
                         is MainNavEvent.OpenBookingEditor -> navController.navigate(
-                            BookingEditorRoute(event.event, event.room)
+                            BookingFlowRoute(event.event, event.room)
                         )
                     }
                 },
@@ -101,40 +102,43 @@ fun AppNavHost(startRoomConfigured: Boolean) {
             }
         }
 
-        dialog<BookingEditorRoute>(typeMap = ModalNav.eventTypeMap, dialogProperties = ModalNav.dialogProperties) { entry ->
-            val route = entry.toRoute<BookingEditorRoute>()
-            val viewModel = koinViewModel<BookingEditorViewModel> {
-                parametersOf(route.event, route.room)
+        navigation<BookingFlowRoute>(
+            startDestination = BookingEditorRoute,
+            typeMap = ModalNav.eventTypeMap,
+        ) {
+            dialog<BookingEditorRoute>(dialogProperties = ModalNav.dialogProperties) {
+                val flowEntry = remember(it) { navController.getBackStackEntry<BookingFlowRoute>() }
+                val route = flowEntry.toRoute<BookingFlowRoute>()
+                val viewModel = koinViewModel<BookingEditorViewModel>(viewModelStoreOwner = flowEntry) {
+                    parametersOf(route.event, route.room)
+                }
+                DialogBackgroundDim(onDismiss = { navController.popBackStack() }) {
+                    BookingEditor(
+                        viewModel = viewModel,
+                        onClose = { navController.popBackStack() },
+                        onOpenDateTimePicker = { navController.navigate(DateTimePickerRoute) },
+                    )
+                }
             }
-            DialogBackgroundDim(onDismiss = { navController.popBackStack() }) {
-                BookingEditor(
-                    viewModel = viewModel,
-                    onClose = { navController.popBackStack() },
-                    onOpenDateTimePicker = { navController.navigate(DateTimePickerRoute) },
-                )
-            }
-        }
 
-        // Date/time picker: its own dialog window, pushed on top of the booking editor. It shares the
-        // BookingEditorRoute entry's ViewModel (and its dateTimePickerComponent), so the picked date
-        // flows straight back into the editor's state — no nav-result plumbing.
-        dialog<DateTimePickerRoute>(dialogProperties = ModalNav.dialogProperties) {
-            val editorEntry = remember { navController.getBackStackEntry<BookingEditorRoute>() }
-            val viewModel = koinViewModel<BookingEditorViewModel>(viewModelStoreOwner = editorEntry)
-            val component = viewModel.dateTimePickerComponent
-            val pickerState by component.state.collectAsState()
-            val close: () -> Unit = {
-                component.sendIntent(DateTimePickerComponent.Intent.CloseModal)
-                navController.popBackStack()
-            }
-            DialogBackgroundDim(onDismiss = close) {
-                DateTimePicker(
-                    currentDate = pickerState.currentDate,
-                    onCloseRequest = close,
-                    onChangeDate = { component.sendIntent(DateTimePickerComponent.Intent.OnChangeDate(it)) },
-                    onChangeTime = { component.sendIntent(DateTimePickerComponent.Intent.OnChangeTime(it)) },
-                    enableDateButton = pickerState.isEnabledButton,
-                )
+            dialog<DateTimePickerRoute>(dialogProperties = ModalNav.dialogProperties) {
+                val flowEntry = remember(it) { navController.getBackStackEntry<BookingFlowRoute>() }
+                val viewModel = koinViewModel<BookingEditorViewModel>(viewModelStoreOwner = flowEntry)
+                val component = viewModel.dateTimePickerComponent
+                val pickerState by component.state.collectAsState()
+                val close: () -> Unit = {
+                    component.sendIntent(DateTimePickerComponent.Intent.CloseModal)
+                    navController.popBackStack()
+                }
+                DialogBackgroundDim(onDismiss = close) {
+                    DateTimePicker(
+                        currentDate = pickerState.currentDate,
+                        onCloseRequest = close,
+                        onChangeDate = { component.sendIntent(DateTimePickerComponent.Intent.OnChangeDate(it)) },
+                        onChangeTime = { component.sendIntent(DateTimePickerComponent.Intent.OnChangeTime(it)) },
+                        enableDateButton = pickerState.isEnabledButton,
+                    )
+                }
             }
         }
 

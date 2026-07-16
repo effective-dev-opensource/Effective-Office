@@ -24,9 +24,18 @@ object MainRoute
 @Serializable
 data class FreeRoomRoute(val event: EventInfo, val roomName: String)
 
-/** Modal: create/edit a booking. */
+/**
+ * Nested navigation graph for the booking-editor flow. Carries the runtime payload so the graph
+ * entry can own the shared `BookingEditorViewModel`; both the editor and the date/time picker
+ * resolve that same ViewModel from this graph entry (see AppNavHost), so the picked date flows back
+ * through shared state without nav-result plumbing.
+ */
 @Serializable
-data class BookingEditorRoute(val event: EventInfo, val room: String)
+data class BookingFlowRoute(val event: EventInfo, val room: String)
+
+/** Modal: create/edit a booking — start destination of [BookingFlowRoute]. */
+@Serializable
+object BookingEditorRoute
 
 /** Modal: quick booking of the nearest available room. */
 @Serializable
@@ -37,9 +46,9 @@ data class FastBookingRoute(
 )
 
 /**
- * Date/time picker for the booking editor. Carries no payload: it is pushed on top of
- * [BookingEditorRoute] and shares that entry's `BookingEditorViewModel` (and its
- * `dateTimePickerComponent`), so the picked date flows back through the shared state.
+ * Date/time picker for the booking editor. Carries no payload: it lives inside [BookingFlowRoute]
+ * and shares the graph entry's `BookingEditorViewModel` (and its `dateTimePickerComponent`), so the
+ * picked date flows back through the shared state.
  */
 @Serializable
 object DateTimePickerRoute
