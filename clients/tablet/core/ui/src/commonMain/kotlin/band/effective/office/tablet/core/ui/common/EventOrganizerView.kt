@@ -66,6 +66,7 @@ import band.effective.office.tablet.core.ui.selectbox_organizer_title
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h8
 import band.effective.office.tablet.core.ui.platform.ForcedLandscape
+import band.effective.office.tablet.core.ui.platform.ScaledUiDensity
 import band.effective.office.tablet.core.ui.res.painterResource
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
@@ -200,51 +201,55 @@ fun EventOrganizerView(
                 // разворот в альбом применяем здесь заново (как у модалок в DialogBackgroundDim).
                 Box(modifier = Modifier.fillMaxSize()) {
                     ForcedLandscape {
-                        var listSize by remember { mutableStateOf(IntSize.Zero) }
-                        // positionInWindow() отдаёт координаты НЕповёрнутой раскладки содержимого,
-                        // а не физического окна; поворот — эффект отрисовки, координаты он не
-                        // трогает, поэтому внутри повёрнутого попапа их можно брать как есть.
-                        val anchor = textFieldCoords?.positionInWindow()?.let {
-                            IntOffset(it.x.roundToInt(), it.y.roundToInt())
-                        } ?: IntOffset.Zero
+                        // Своя сцена — значит и системная плотность, масштаб приводим заново.
+                        ScaledUiDensity(modifier = Modifier.fillMaxSize()) {
+                            var listSize by remember { mutableStateOf(IntSize.Zero) }
+                            // positionInWindow() отдаёт координаты НЕповёрнутой раскладки
+                            // содержимого, а не физического окна; поворот — эффект отрисовки,
+                            // координаты он не трогает, поэтому берём их как есть.
+                            val anchor = textFieldCoords?.positionInWindow()?.let {
+                                IntOffset(it.x.roundToInt(), it.y.roundToInt())
+                            } ?: IntOffset.Zero
 
-                        Column(
-                            modifier = Modifier
-                                .offset {
-                                    // Список раскрывается вверх от поля, с небольшим зазором.
-                                    IntOffset(
-                                        x = anchor.x,
-                                        y = (anchor.y - listSize.height - LIST_GAP_PX).coerceAtLeast(0),
+                            Column(
+                                modifier = Modifier
+                                    .offset {
+                                        // Список раскрывается вверх от поля, с небольшим зазором.
+                                        IntOffset(
+                                            x = anchor.x,
+                                            y = (anchor.y - listSize.height - LIST_GAP_PX)
+                                                .coerceAtLeast(0),
+                                        )
+                                    }
+                                    .onSizeChanged { listSize = it }
+                                    .width(with(density) { mTextFieldSize.width.toDp() })
+                                    .heightIn(max = 150.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(
+                                        LocalCustomColorsPalette.current.elevationBackground,
+                                        RoundedCornerShape(8.dp)
                                     )
+                                    .border(3.dp, Color.DarkGray, RoundedCornerShape(8.dp))
+                                    .verticalScroll(rememberScrollState())
+                            ) {
+                                selectOrganizers.forEach { organizer ->
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                onSelectItem(organizer)
+                                                focusRequester.freeFocus()
+                                                focusManager.clearFocus()
+                                                onExpandedChange()
+                                            }
+                                            .padding(16.dp),
+                                    ) {
+                                        Text(
+                                            text = organizer,
+                                        )
+                                    }
+                                    HorizontalDivider()
                                 }
-                                .onSizeChanged { listSize = it }
-                                .width(with(density) { mTextFieldSize.width.toDp() })
-                                .heightIn(max = 150.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(
-                                    LocalCustomColorsPalette.current.elevationBackground,
-                                    RoundedCornerShape(8.dp)
-                                )
-                                .border(3.dp, Color.DarkGray, RoundedCornerShape(8.dp))
-                                .verticalScroll(rememberScrollState())
-                        ) {
-                            selectOrganizers.forEach { organizer ->
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            onSelectItem(organizer)
-                                            focusRequester.freeFocus()
-                                            focusManager.clearFocus()
-                                            onExpandedChange()
-                                        }
-                                        .padding(16.dp),
-                                ) {
-                                    Text(
-                                        text = organizer,
-                                    )
-                                }
-                                HorizontalDivider()
                             }
                         }
                     }

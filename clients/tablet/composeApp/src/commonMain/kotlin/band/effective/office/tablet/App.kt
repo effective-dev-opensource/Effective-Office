@@ -18,6 +18,7 @@ import band.effective.office.tablet.components.VersionOverlay
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.ResourceDisposerUseCase
 import band.effective.office.tablet.core.ui.platform.ForcedLandscape
+import band.effective.office.tablet.core.ui.platform.ScaledUiDensity
 import band.effective.office.tablet.core.ui.theme.AppTheme
 import band.effective.office.tablet.navigation.AppNavHost
 import band.effective.office.tablet.platform.statusBarInset
@@ -45,8 +46,13 @@ fun AppRoot() {
                             .padding(top = statusBarInset)
                             .systemBarsPadding()
                     ) {
-                        AppNavHost(startRoomConfigured = startRoomConfigured)
+                        ScaledUiDensity(modifier = Modifier.fillMaxSize()) {
+                            AppNavHost(startRoomConfigured = startRoomConfigured)
+                        }
                     }
+                    // Оверлей намеренно СНАРУЖИ ScaledUiDensity: он печатает системную плотность
+                    // и размер окна, и подмена плотности не должна на них влиять. По той же
+                    // причине снаружи остаётся statusBarInset — он меряется в системных dp.
                     VersionOverlay()
                 }
             }

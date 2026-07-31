@@ -13,14 +13,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import band.effective.office.tablet.BuildKonfig
 import androidx.compose.foundation.layout.BoxScope
+import band.effective.office.tablet.core.ui.platform.ScaledUiDensity
+import band.effective.office.tablet.core.ui.platform.UiScaleDiagnostics
 import kotlin.math.roundToInt
 
 /**
- * Версия сборки, а рядом — метрики экрана: каким система отдала окно (`win`, px) и какие
- * плотность и масштаб шрифта она выставила (`d`, `fs`).
+ * Версия сборки, а рядом — метрики экрана: каким система отдала окно (`win`, px), какие
+ * плотность и масштаб шрифта она выставила (`d`, `fs`) и во что их превратил
+ * [ScaledUiDensity] (`ui` + фактические px содержимого).
  *
  * На Авроре это единственный способ увидеть, что именно приехало от системы: подобрать
  * вёрстку под чужое устройство, гадая про масштаб, не выйдет.
+ *
+ * Оверлей должен вызываться СНАРУЖИ [ScaledUiDensity] — иначе `d`/`fs` показывали бы уже
+ * подменённые значения вместо системных, ради которых строка и добавлена.
  */
 @Composable
 fun BoxScope.VersionOverlay(
@@ -29,12 +35,18 @@ fun BoxScope.VersionOverlay(
 ) {
     val density = LocalDensity.current
     val windowSize = LocalWindowInfo.current.containerSize
+    val appliedDensity = UiScaleDiagnostics.appliedDensity
+    val contentPx = UiScaleDiagnostics.contentPx
 
     val diagnostics = buildString {
         append(text)
         append(" · win ").append(windowSize.width).append('x').append(windowSize.height)
         append(" · d ").append(density.density.twoDecimals())
         append(" fs ").append(density.fontScale.twoDecimals())
+        if (appliedDensity != null) {
+            append(" · ui ").append(appliedDensity.twoDecimals())
+            append(' ').append(contentPx.width).append('x').append(contentPx.height)
+        }
     }
 
     Text(

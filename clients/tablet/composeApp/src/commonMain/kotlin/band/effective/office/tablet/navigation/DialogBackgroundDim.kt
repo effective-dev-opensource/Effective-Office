@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import band.effective.office.tablet.core.ui.platform.ForcedLandscape
+import band.effective.office.tablet.core.ui.platform.ScaledUiDensity
 
 /**
  * Full-screen dim (matching the pre-navigation-swap Decompose overlay of `Color.Black` at 0.9 alpha)
@@ -44,7 +45,11 @@ fun DialogBackgroundDim(
                     onClick = {},
                 ),
             ) {
-                content()
+                // Окно модалки — отдельная сцена с системной плотностью, поэтому масштаб
+                // приводим и здесь, иначе модалка была бы крупнее остального UI.
+                ScaledUiDensity {
+                    content()
+                }
             }
         }
     }
