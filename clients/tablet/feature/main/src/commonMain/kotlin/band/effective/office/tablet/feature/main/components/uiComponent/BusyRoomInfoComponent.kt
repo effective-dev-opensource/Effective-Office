@@ -104,6 +104,11 @@ fun BusyRoomInfoComponent(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colorButton
                     ),
+                    // Тень Material поверх собственной обводки читается как вторая рамка.
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 0.dp,
+                        pressedElevation = 0.dp,
+                    ),
                     interactionSource = interactionSource,
                     onClick = onButtonClick
                 ) {

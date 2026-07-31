@@ -47,6 +47,7 @@ fun RoomInfoLeftPanel(
         modifier = Modifier
             .fillMaxHeight()
             .fillMaxWidth(0.6f)
+            .background(color = MaterialTheme.colorScheme.background)
     ) {
         LazyColumn(
             modifier = Modifier
@@ -76,8 +77,9 @@ fun RoomInfoLeftPanel(
                 // проглатывает исключение и откатывает кадр, так что падение выглядит как
                 // «экран просто не переключился».
                 val safeIndex = indexSelectRoom.coerceIn(0, (roomList.size - 1).coerceAtLeast(0))
+                // Подложка тут была шире скруглённой карточки и подрезала слоты под ней;
+                // фон теперь красит внешний Box.
                 RoomInfoComponent(
-                    modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
                     room = roomList[safeIndex],
                     onOpenFreeRoomModalRequest = { onCancelEventRequest() },
                     timeToNextEvent = timeToNextEvent,

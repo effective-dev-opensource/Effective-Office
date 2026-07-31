@@ -144,7 +144,9 @@ fun AppTheme(
             colorScheme = colorScheme,
             typography = typography,
             content = {
-                Surface(content = content)
+                // Без явного цвета Surface берёт colorScheme.surface — он светлее фона
+                // страницы, и вокруг карточки комнаты появляется рамка.
+                Surface(color = colorScheme.background, content = content)
             }
         )
     }
