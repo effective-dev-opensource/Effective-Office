@@ -26,6 +26,7 @@ import band.effective.office.tablet.core.ui.theme.AppTheme
 import band.effective.office.tablet.feature.main.domain.CurrentTimeHolder
 import band.effective.office.tablet.feature.main.domain.CurrentTimeTicker
 import band.effective.office.tablet.navigation.AppNavHost
+import band.effective.office.tablet.platform.showDiagnosticsOverlay
 import band.effective.office.tablet.platform.statusBarInset
 import org.koin.compose.koinInject
 
@@ -65,7 +66,7 @@ fun AppRoot() {
                                 AppNavHost(startRoomConfigured = startRoomConfigured)
                             }
                         }
-                        VersionOverlay()
+                        if (showDiagnosticsOverlay) VersionOverlay()
                     }
                 }
             }
