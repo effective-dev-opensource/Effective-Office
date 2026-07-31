@@ -81,6 +81,10 @@ class BookingEditorViewModel(
 
     init {
         loadOrganizers()
+        // Prime the validation flags from the event we were opened with: without this the busy /
+        // past / closing-time checks only ever ran in response to an edit, so an existing booking
+        // opened and left alone had no idea whether it could be saved.
+        updateEventDetails()
     }
 
     private fun requestClose() {
@@ -191,10 +195,6 @@ class BookingEditorViewModel(
                 isInputError = isOrganizerIncorrect,
             )
         }
-        updateButtonState(
-            inputError = isOrganizerIncorrect,
-            busyEvent = isBusyEvent
-        )
     }
 
     /**
@@ -223,16 +223,6 @@ class BookingEditorViewModel(
     }
 
     /**
-     * Updates the button state based on validation
-     */
-    private fun updateButtonState(
-        inputError: Boolean,
-        busyEvent: Boolean
-    ) = mutableState.update {
-        it.copy(enableUpdateButton = !inputError && !busyEvent && !it.isTimeInPastError)
-    }
-
-    /**
      * Updates the event date
      */
     private fun updateEventDate(newDate: LocalDateTime) = coroutineScope.launch {
@@ -257,15 +247,9 @@ class BookingEditorViewModel(
                 newOrganizer = selectOrganizer,
                 busyEvents = busyEvents,
                 isTimeInPast = isTimeInPast,
+                isFinishTimeExceeded = isFinishTimeExceeded,
                 canIncrementDuration = canIncrementDuration
             )
-
-            if (selectOrganizer != Organizer.default) {
-                updateButtonState(
-                    inputError = isInputError,
-                    busyEvent = busyEvents.isNotEmpty() || isFinishTimeExceeded
-                )
-            }
         }
     }
 
@@ -304,12 +288,8 @@ class BookingEditorViewModel(
                 newOrganizer = resolvedOrganizer,
                 busyEvents = busyEvents,
                 isTimeInPast = isTimeInPast,
+                isFinishTimeExceeded = isFinishTimeExceeded,
                 canIncrementDuration = canIncrementDuration
-            )
-
-            updateButtonState(
-                inputError = !organizers.contains(resolvedOrganizer),
-                busyEvent = busyEvents.isNotEmpty() || isFinishTimeExceeded
             )
         }
     }
@@ -365,6 +345,7 @@ class BookingEditorViewModel(
         newOrganizer: Organizer,
         busyEvents: List<EventInfo>,
         isTimeInPast: Boolean,
+        isFinishTimeExceeded: Boolean,
         canIncrementDuration: Boolean
     ) {
         val updatedEvent = createEventInfo(
@@ -382,7 +363,13 @@ class BookingEditorViewModel(
                 event = updatedEvent,
                 isBusyEvent = busyEvents.isNotEmpty(),
                 isTimeInPastError = isTimeInPast,
-                canIncrementDuration = canIncrementDuration
+                isFinishTimeExceeded = isFinishTimeExceeded,
+                canIncrementDuration = canIncrementDuration,
+                // Any edit invalidates a previous failure — otherwise the button keeps reading
+                // "Произошла ошибка" for the rest of the editor's life.
+                isErrorUpdate = false,
+                isErrorCreate = false,
+                isErrorDelete = false,
             )
         }
     }
@@ -438,12 +425,9 @@ class BookingEditorViewModel(
             it.copy(
                 selectOrganizer = organizer,
                 inputText = organizer.fullName,
+                isInputError = false,
             )
         }
-        updateButtonState(
-            inputError = false,
-            busyEvent = state.value.isBusyEvent,
-        )
     }
 
     /**
