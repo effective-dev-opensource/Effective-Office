@@ -129,7 +129,8 @@ and iOS already had, plus two package squats.
 | Locale | `getCurrentLanguageCode` | hardcoded `"ru"` | not read from the system |
 | Current time | `TimeReceiver` | coroutine ticking once a minute | time/zone changes noticed late |
 | Settings | `SettingsStore` | in-memory map | does not survive a restart |
-| Date/time pickers | `DatePickerView` / `TimePickerView` | Material3 | — |
+| Date picker | `DatePickerView` | own month grid | Material3's is unusable, see below |
+| Time picker | `TimePickerView` | Material3 | — |
 | Logging | `Napier` | package squat + `fflush` | — |
 | `@Preview` | `org.jetbrains.compose.ui.tooling.preview.Preview` | package squat | annotation is inert |
 | Push notifications | — | none | no room updates by push |
@@ -209,12 +210,33 @@ fork ships `ru.auroraos.kmp:ak-shared-preferences`, which is the intended replac
 
 ### Date and time pickers
 
-calf publishes no linux artifacts, so `DatePickerView` and `TimePickerView` are implemented
-directly on Material3 `DatePicker` / `rememberDatePickerState` and `TimePicker` /
-`rememberTimePickerState`. That is not a downgrade — calf draws the same Material3 widgets under
-the hood on Android. The colours are mapped onto `LocalCustomColorsPalette` so they match the
-rest of the app, and the time picker uses `TimePickerLayoutType.Vertical` with `is24Hour` taken
-from `DateDisplayMapper`.
+calf publishes no linux artifacts, so both pickers are implemented here. The two halves ended up
+in very different places.
+
+**Time** is Material3 `TimePicker` / `rememberTimePickerState`, and that is not a downgrade — calf
+draws the same Material3 widget under the hood on Android. The colours are mapped onto
+`LocalCustomColorsPalette`, and it uses `TimePickerLayoutType.Vertical` with `is24Hour` taken from
+`DateDisplayMapper` — passing `is24Hour` explicitly matters, because the default would fall back
+to `PlatformDateFormat.is24HourFormat()`.
+
+**Date** cannot use Material3 at all. The fork ships
+`androidx.compose.material3.internal.PlatformDateFormat` as a stub carrying `// @todo feature linux`:
+`firstDayOfWeek = 0`, `weekdayNames = emptyList()`, `formatWithSkeleton` returning `""`. Material3's
+`WeekDays` then walks `firstDayOfWeek - 1 until weekdayNames.size`, which is `-1 until 0` and
+indexes an empty list — an exception on the very first frame, swallowed by the fork, presenting as
+the dialog hanging and then dying. Fixing just the index would not help either: the month headline
+would still be empty and the day grid still shifted by one.
+
+So `DatePickerView.linux.kt` is a hand-written 6×7 month grid. The layout maths is
+`CalendarGrid.kt` in `shared:core/linuxMain` — always six rows padded with nulls, so the dialog
+does not change height when you page months — and the Russian month and weekday names are in
+`RuCalendarNames.kt` next to it. Note there are two month lists there and they are not
+interchangeable: formatting a date needs the genitive ("25 ноября"), a calendar header needs the
+nominative ("Ноябрь 2026").
+
+Deliberately no `LazyVerticalGrid` and no `FlowRow` — both are `SubcomposeLayout`, which this
+dialog avoids on purpose. No year picker either (the backend serves a 14-day window, month arrows
+are plenty) and no restriction on past days, which Material3's picker did not impose either.
 
 ### Logging
 

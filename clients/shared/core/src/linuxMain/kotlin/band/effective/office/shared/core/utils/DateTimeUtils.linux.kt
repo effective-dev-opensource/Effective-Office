@@ -32,7 +32,7 @@ actual fun LocalDateTime.toLocalisedString(pattern: String): String {
 }
 
 private fun LocalDateTime.render(directive: String): String = when (directive) {
-    "MMMM" -> MONTHS_RU[monthNumber - 1]
+    "MMMM" -> MONTHS_RU_GENITIVE[monthNumber - 1]
     "MMM" -> MONTHS_EN_SHORT[monthNumber - 1]
     "MM" -> monthNumber.pad()
     "M" -> monthNumber.toString()
@@ -69,12 +69,6 @@ private val DIRECTIVES = listOf(
     "mm", "m",
     "ss", "s",
     "a",
-)
-
-/** Genitive case, so that "25 ноября" reads correctly. */
-private val MONTHS_RU = listOf(
-    "января", "февраля", "марта", "апреля", "мая", "июня",
-    "июля", "августа", "сентября", "октября", "ноября", "декабря",
 )
 
 private val MONTHS_EN_SHORT = listOf(
