@@ -43,6 +43,8 @@ import kotlinx.datetime.toLocalDateTime
 const val DURATION_INCREMENT_MINUTES = 30
 const val DELETE_SUCCESS_DELAY = 2000L
 
+private const val ORGANIZER_TAG = "OrganizerPicker"
+
 class BookingEditorViewModel(
     private val organizersInfoUseCase: OrganizersInfoUseCase,
     private val checkBookingUseCase: CheckBookingUseCase,
@@ -139,6 +141,7 @@ class BookingEditorViewModel(
      */
     private fun loadOrganizers() = coroutineScope.launch {
         val organizers = organizersInfoUseCase().unbox(errorHandler = { emptyList() })
+        Napier.i(tag = ORGANIZER_TAG) { "loaded organizers: ${organizers.size}" }
         mutableState.update {
             it.copy(
                 organizers = organizers,

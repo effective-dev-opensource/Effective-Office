@@ -33,7 +33,7 @@ import band.effective.office.tablet.core.ui.theme.undefineStateColor
 import band.effective.office.tablet.core.ui.tv
 import band.effective.office.tablet.feature.main.tv_property
 import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.painterResource
+import band.effective.office.tablet.core.ui.res.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

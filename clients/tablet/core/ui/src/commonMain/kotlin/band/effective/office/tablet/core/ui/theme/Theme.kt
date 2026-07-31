@@ -144,7 +144,7 @@ fun AppTheme(
             colorScheme = colorScheme,
             typography = typography,
             content = {
-                Surface(content = content)
+                Surface(color = colorScheme.background, content = content)
             }
         )
     }

@@ -9,7 +9,7 @@ buildscript {
 }
 plugins {
     alias(libs.plugins.multiplatform).apply(false)
-    alias(libs.plugins.compose).apply(false)
+    id("org.jetbrains.compose").apply(false)
     alias(libs.plugins.android.application).apply(false)
     //id("org.jetbrains.kotlin.plugin.serialization").apply(false)
 //    alias(libs.plugins.buildConfig).apply(false)
@@ -20,6 +20,12 @@ allprojects {
     version = property("version").toString()
 
     repositories {
+        java.util.Properties().apply {
+            val file = rootProject.file("local.properties")
+            if (file.exists()) file.inputStream().use { load(it) }
+        }.getProperty("auroraMavenPath")?.let {
+            maven(url = rootProject.file(it).canonicalFile.toURI())
+        }
         mavenCentral()
         google()
         mavenCentral()

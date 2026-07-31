@@ -1,4 +1,4 @@
-package band.effective.office.shared.core.utils
+package band.effective.office.tv.core.ui.utils
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.lifecycle.Lifecycle

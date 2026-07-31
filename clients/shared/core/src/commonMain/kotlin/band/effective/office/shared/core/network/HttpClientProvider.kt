@@ -14,15 +14,13 @@ import kotlinx.serialization.json.Json
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.qualifier.Qualifier
-import org.koin.core.qualifier.named
 
 /**
  * HTTP client provider that creates a configured HttpClient instance
  * 
  * Usage: Add to Koin module:
  * ```
- * single(named("ApiUrl")) { "https://api.example.com" }
- * single(named("ApiKey")) { "your-api-key" }
+ * single { ApiConfig(url = "https://api.example.com", key = "your-api-key") }
  * single { HttpClientProvider }
  * ```
  */
@@ -38,7 +36,7 @@ object HttpClientProvider : KoinComponent {
             install(HttpTimeout) {
                 requestTimeoutMillis = 40_000L    // 60s
                 connectTimeoutMillis = 40_000L    // 30s
-                socketTimeoutMillis  = 40_000L    // 60s (соответствует read timeout)
+                socketTimeoutMillis  = 40_000L    // 60s (matches the read timeout)
             }
             install(ContentNegotiation) {
                 json(Json {
@@ -48,13 +46,12 @@ object HttpClientProvider : KoinComponent {
                 })
             }
 
-            val apiKey = getOrNull<String>(named("ApiKey"))
-            val apiUrl = getOrNull<String>(named("ApiUrl"))
+            val apiConfig = getOrNull<ApiConfig>()
 
-            if (apiKey != null && apiUrl != null) {
+            if (apiConfig != null) {
                 install(DefaultRequest) {
-                    headers.append(HttpHeaders.Authorization, "Bearer $apiKey")
-                    url(apiUrl)
+                    headers.append(HttpHeaders.Authorization, "Bearer ${apiConfig.key}")
+                    url(apiConfig.url)
                 }
             }
 

@@ -120,6 +120,19 @@ cd clients/tablet/composeApp/build/xcode-frameworks
 xcodebuild -project ComposeApp.xcodeproj -scheme ComposeApp -configuration Release
 ```
 
+## Aurora OS build variant
+
+The tablet also builds for Aurora OS from the same modules: `-PbuildVariant=aurora` switches
+the build over to the Aurora fork of Compose and includes only the tablet modules. The upstream
+build files are untouched, so Android and iOS are unaffected.
+
+```
+./gradlew -PbuildVariant=aurora :clients:tablet:composeApp:runReleaseOnDevice
+```
+
+Setup, commands, how the variant is wired together and what is still missing: see
+[AURORA.md](AURORA.md).
+
 ## Architecture
 
 ### Tablet Application Architecture

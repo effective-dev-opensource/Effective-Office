@@ -23,7 +23,7 @@ import band.effective.office.tablet.core.ui.exit
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h5
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
+import band.effective.office.tablet.core.ui.res.vectorResource
 
 
 @Composable

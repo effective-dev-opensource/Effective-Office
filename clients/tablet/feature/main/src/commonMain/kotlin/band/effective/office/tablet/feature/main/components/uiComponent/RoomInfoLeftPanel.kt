@@ -47,6 +47,7 @@ fun RoomInfoLeftPanel(
         modifier = Modifier
             .fillMaxHeight()
             .fillMaxWidth(0.6f)
+            .background(color = MaterialTheme.colorScheme.background)
     ) {
         LazyColumn(
             modifier = Modifier
@@ -71,9 +72,9 @@ fun RoomInfoLeftPanel(
             }
 
             stickyHeader {
+                val safeIndex = indexSelectRoom.coerceIn(0, (roomList.size - 1).coerceAtLeast(0))
                 RoomInfoComponent(
-                    modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
-                    room = roomList[indexSelectRoom],
+                    room = roomList[safeIndex],
                     onOpenFreeRoomModalRequest = { onCancelEventRequest() },
                     timeToNextEvent = timeToNextEvent,
                     isError = isDisconnect,

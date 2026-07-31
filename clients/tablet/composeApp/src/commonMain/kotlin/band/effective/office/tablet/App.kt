@@ -3,6 +3,7 @@ package band.effective.office.tablet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -16,8 +17,11 @@ import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import band.effective.office.tablet.components.VersionOverlay
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.ResourceDisposerUseCase
+import band.effective.office.tablet.core.ui.platform.ForcedLandscape
+import band.effective.office.tablet.core.ui.platform.ScaledUiDensity
 import band.effective.office.tablet.core.ui.theme.AppTheme
 import band.effective.office.tablet.navigation.AppNavHost
+import band.effective.office.tablet.platform.statusBarInset
 import org.koin.compose.koinInject
 
 @Composable
@@ -26,22 +30,27 @@ fun AppRoot() {
 
     CompositionLocalProvider(LocalViewModelStoreOwner provides rootViewModelStoreOwner) {
         AppTheme {
-            Box(modifier = Modifier.fillMaxSize()) {
-                val resourceDisposerUseCase = koinInject<ResourceDisposerUseCase>()
-                val checkSettingsUseCase = koinInject<CheckSettingsUseCase>()
+            ForcedLandscape {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    val resourceDisposerUseCase = koinInject<ResourceDisposerUseCase>()
+                    val checkSettingsUseCase = koinInject<CheckSettingsUseCase>()
 
-                LaunchedEffect(Unit) { resourceDisposerUseCase() }
+                    LaunchedEffect(Unit) { resourceDisposerUseCase() }
 
-                val startRoomConfigured = remember { checkSettingsUseCase().isNotEmpty() }
-                Box(
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.background)
-                        .fillMaxSize()
-                        .systemBarsPadding()
-                ) {
-                    AppNavHost(startRoomConfigured = startRoomConfigured)
+                    val startRoomConfigured = remember { checkSettingsUseCase().isNotEmpty() }
+                    Box(
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.background)
+                            .fillMaxSize()
+                            .padding(top = statusBarInset)
+                            .systemBarsPadding()
+                    ) {
+                        ScaledUiDensity(modifier = Modifier.fillMaxSize()) {
+                            AppNavHost(startRoomConfigured = startRoomConfigured)
+                        }
+                    }
+                    VersionOverlay()
                 }
-                VersionOverlay()
             }
         }
     }

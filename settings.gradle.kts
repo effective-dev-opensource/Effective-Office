@@ -3,14 +3,35 @@ rootProject.name = "effective-office"
 pluginManagement {
     includeBuild("build-logic")
     repositories {
+        val forkPath = java.util.Properties().apply {
+            val file = rootDir.resolve("local.properties")
+            if (file.exists()) file.inputStream().use { load(it) }
+        }.getProperty("auroraMavenPath")
+        if (forkPath != null) maven(url = rootDir.resolve(forkPath).canonicalFile.toURI()) else mavenLocal()
         google()
         gradlePluginPortal()
         mavenCentral()
+    }
+
+    plugins {
+        if (providers.gradleProperty("buildVariant").orNull == "aurora") {
+            id("org.jetbrains.compose") version "0.0.4-aurora"
+            id("ru.auroraos.kmp.aurora-build") version "0.0.1"
+            id("ru.auroraos.kmp.aurora-devices") version "0.0.1"
+            id("com.codingfeline.buildkonfig") version "0.18.0-aurora"
+        } else {
+            id("org.jetbrains.compose") version "1.10.2"
+        }
     }
 }
 
 dependencyResolutionManagement {
     repositories {
+        val forkPath = java.util.Properties().apply {
+            val file = rootDir.resolve("local.properties")
+            if (file.exists()) file.inputStream().use { load(it) }
+        }.getProperty("auroraMavenPath")
+        if (forkPath != null) maven(url = rootDir.resolve(forkPath).canonicalFile.toURI()) else mavenLocal()
         google()
         mavenCentral()
         maven(url = "https://maven.pkg.jetbrains.space/public/p/compose/dev")
@@ -24,6 +45,27 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention").version("0.10.0")
 }
 
+val isAuroraVariant = providers.gradleProperty("buildVariant").orNull == "aurora"
+
+if (isAuroraVariant) {
+    val auroraModules = listOf(
+        "clients:shared:core",
+        "clients:tablet:composeApp",
+        "clients:tablet:core:ui",
+        "clients:tablet:core:domain",
+        "clients:tablet:core:data",
+        "clients:tablet:feature:main",
+        "clients:tablet:feature:settings",
+        "clients:tablet:feature:bookingEditor",
+        "clients:tablet:feature:fastBooking",
+        "clients:tablet:feature:slot",
+    )
+    include(auroraModules)
+
+    project(":clients:tablet:feature:fastBooking").projectDir = file("clients/tablet/feature/fastbooking")
+
+    auroraModules.forEach { project(":$it").buildFileName = "build.aurora.gradle.kts" }
+} else {
 
 include(":backend")
 include(
@@ -81,3 +123,5 @@ include(
 
     "clients:smsrouter:app",
 )
+
+}

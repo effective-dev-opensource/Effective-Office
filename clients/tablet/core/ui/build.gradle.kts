@@ -7,6 +7,7 @@ kotlin {
         commonMain.dependencies {
             api(project(":clients:shared:core"))
             api(libs.kotlinx.datetime)
+            implementation(libs.napier)
         }
     }
 }

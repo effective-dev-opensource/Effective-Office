@@ -40,7 +40,7 @@ import band.effective.office.tablet.core.ui.theme.h6
 import band.effective.office.tablet.core.ui.theme.h8
 import kotlin.time.ExperimentalTime
 import kotlinx.datetime.LocalDateTime
-import org.jetbrains.compose.resources.painterResource
+import band.effective.office.tablet.core.ui.res.painterResource
 import org.jetbrains.compose.resources.stringResource
 import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
 
@@ -168,7 +168,7 @@ private fun RowScope.SelectedDate(
     }
 }
 
-// Удлинение SlideDirection для удобства
+// A convenience extension on SlideDirection
 private fun AnimatedContentTransitionScope.SlideDirection.opposite(): AnimatedContentTransitionScope.SlideDirection {
     return when (this) {
         AnimatedContentTransitionScope.SlideDirection.Left -> AnimatedContentTransitionScope.SlideDirection.Right

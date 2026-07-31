@@ -104,6 +104,10 @@ fun BusyRoomInfoComponent(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colorButton
                     ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 0.dp,
+                        pressedElevation = 0.dp,
+                    ),
                     interactionSource = interactionSource,
                     onClick = onButtonClick
                 ) {

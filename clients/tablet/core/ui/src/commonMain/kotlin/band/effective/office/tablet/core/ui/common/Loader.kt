@@ -23,7 +23,7 @@ import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.loader_element
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.painterResource
+import band.effective.office.tablet.core.ui.res.painterResource
 
 /**
  * A custom loader component that animates a series of elements
