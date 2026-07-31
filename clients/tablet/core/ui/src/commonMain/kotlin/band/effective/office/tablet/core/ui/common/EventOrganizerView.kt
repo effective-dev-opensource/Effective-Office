@@ -38,6 +38,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.utf16CodePoint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -61,7 +65,10 @@ import band.effective.office.tablet.core.ui.selectbox_organizer_title
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h8
 import band.effective.office.tablet.core.ui.res.painterResource
+import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
+
+private const val ORGANIZER_TAG = "OrganizerPicker"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -125,7 +132,15 @@ fun EventOrganizerView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextField(
-                modifier = Modifier.onFocusChanged(
+                modifier = Modifier.onPreviewKeyEvent { keyEvent ->
+                    // Форк отдаёт ввод maliit обычными key-событиями (scene.sendKeyEvent), а текст
+                    // вставляется, только если в событии есть codePoint. Смотрим, что доходит.
+                    Napier.i(tag = ORGANIZER_TAG) {
+                        "key event: type=${keyEvent.type} key=${keyEvent.key.keyCode} " +
+                            "codePoint=${keyEvent.utf16CodePoint}"
+                    }
+                    false
+                }.onFocusChanged(
                     onFocusChanged = {
                         if (it.isFocused) {
                             onExpandedChange()

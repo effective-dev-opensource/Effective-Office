@@ -8,6 +8,10 @@ package io.github.aakira.napier
 
 enum class LogLevel { VERBOSE, DEBUG, INFO, WARNING, ERROR, ASSERT }
 
+// Под journald (и вообще под пайпом) stdout буферизуется целиком, поэтому строки,
+// напечатанные перед падением, не доезжают. Сбрасываем после каждой.
+internal expect fun flushLog()
+
 open class Antilog {
     open fun log(priority: LogLevel, tag: String?, throwable: Throwable?, message: String?) {
         println(buildString {
@@ -16,6 +20,7 @@ open class Antilog {
             if (message != null) append(": $message")
             if (throwable != null) append(" | ${throwable.stackTraceToString()}")
         })
+        flushLog()
     }
 }
 
