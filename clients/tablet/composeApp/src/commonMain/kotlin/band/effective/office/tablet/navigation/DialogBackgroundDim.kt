@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import band.effective.office.tablet.core.ui.platform.ForcedLandscape
 
 /**
  * Full-screen dim (matching the pre-navigation-swap Decompose overlay of `Color.Black` at 0.9 alpha)
@@ -22,25 +23,29 @@ fun DialogBackgroundDim(
     onDismiss: () -> Unit,
     content: @Composable () -> Unit,
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.9f))
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onDismiss,
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
+    // `dialog<>`-окно форка рендерится отдельной сценой, поворот корня до него не доходит,
+    // поэтому применяем его здесь заново (на Android/iOS ForcedLandscape — no-op).
+    ForcedLandscape {
         Box(
-            modifier = Modifier.clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = {},
-            ),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.9f))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onDismiss,
+                ),
+            contentAlignment = Alignment.Center,
         ) {
-            content()
+            Box(
+                modifier = Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = {},
+                ),
+            ) {
+                content()
+            }
         }
     }
 }

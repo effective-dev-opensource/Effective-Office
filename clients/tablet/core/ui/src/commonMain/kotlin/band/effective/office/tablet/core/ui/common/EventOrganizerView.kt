@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -64,11 +65,16 @@ import band.effective.office.tablet.core.ui.selectbox_organizer_error
 import band.effective.office.tablet.core.ui.selectbox_organizer_title
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h8
+import band.effective.office.tablet.core.ui.platform.ForcedLandscape
 import band.effective.office.tablet.core.ui.res.painterResource
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.roundToInt
 
 private const val ORGANIZER_TAG = "OrganizerPicker"
+
+// Зазор между полем и раскрытым списком, в px (px не зависят от подменённой плотности).
+private const val LIST_GAP_PX = 8
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,22 +96,16 @@ fun EventOrganizerView(
     var textFieldCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val density = LocalDensity.current
 
-    val popupPositionProvider = remember(textFieldCoords) {
+    // Попап занимает всё окно и сам разворачивается в альбом (см. ниже): его слой живёт в
+    // неповёрнутом окне форка, поэтому положение списка внутри считаем сами.
+    val fullWindowPositionProvider = remember {
         object : PopupPositionProvider {
             override fun calculatePosition(
                 anchorBounds: IntRect,
                 windowSize: IntSize,
                 layoutDirection: LayoutDirection,
                 popupContentSize: IntSize
-            ): IntOffset {
-                return if (textFieldCoords != null) {
-                    val anchorTop = textFieldCoords!!.positionInWindow().y.toInt()
-                    val y = anchorTop - popupContentSize.height
-                    IntOffset(anchorBounds.left, y.coerceAtLeast(0) - 60)
-                } else {
-                    IntOffset.Zero
-                }
-            }
+            ): IntOffset = IntOffset.Zero
         }
     }
     Column(modifier = modifier) {
@@ -190,38 +190,63 @@ fun EventOrganizerView(
         }
         if (expanded) {
             Popup(
-                popupPositionProvider = popupPositionProvider,
+                popupPositionProvider = fullWindowPositionProvider,
                 onDismissRequest = { },
             ) {
-                Column(
-                    modifier = Modifier
-                        .width(with(density) { mTextFieldSize.width.toDp() })
-                        .heightIn(max = 150.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(
-                            LocalCustomColorsPalette.current.elevationBackground,
-                            RoundedCornerShape(8.dp)
-                        )
-                        .border(3.dp, Color.DarkGray, RoundedCornerShape(8.dp))
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    selectOrganizers.forEach { organizer ->
-                        Box(
+                // Окно попапа по умолчанию размером с содержимое, а список мы двигаем сами
+                // через offset — поэтому слой растягиваем на всё окно, иначе сдвинутый список
+                // окажется за границами своего же окна и его обрежет.
+                // Слой попапа — ещё и отдельная сцена в неповёрнутом окне форка, поэтому
+                // разворот в альбом применяем здесь заново (как у модалок в DialogBackgroundDim).
+                Box(modifier = Modifier.fillMaxSize()) {
+                    ForcedLandscape {
+                        var listSize by remember { mutableStateOf(IntSize.Zero) }
+                        // positionInWindow() отдаёт координаты НЕповёрнутой раскладки содержимого,
+                        // а не физического окна; поворот — эффект отрисовки, координаты он не
+                        // трогает, поэтому внутри повёрнутого попапа их можно брать как есть.
+                        val anchor = textFieldCoords?.positionInWindow()?.let {
+                            IntOffset(it.x.roundToInt(), it.y.roundToInt())
+                        } ?: IntOffset.Zero
+
+                        Column(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onSelectItem(organizer)
-                                    focusRequester.freeFocus()
-                                    focusManager.clearFocus()
-                                    onExpandedChange()
+                                .offset {
+                                    // Список раскрывается вверх от поля, с небольшим зазором.
+                                    IntOffset(
+                                        x = anchor.x,
+                                        y = (anchor.y - listSize.height - LIST_GAP_PX).coerceAtLeast(0),
+                                    )
                                 }
-                                .padding(16.dp),
+                                .onSizeChanged { listSize = it }
+                                .width(with(density) { mTextFieldSize.width.toDp() })
+                                .heightIn(max = 150.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(
+                                    LocalCustomColorsPalette.current.elevationBackground,
+                                    RoundedCornerShape(8.dp)
+                                )
+                                .border(3.dp, Color.DarkGray, RoundedCornerShape(8.dp))
+                                .verticalScroll(rememberScrollState())
                         ) {
-                            Text(
-                                text = organizer,
-                            )
+                            selectOrganizers.forEach { organizer ->
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            onSelectItem(organizer)
+                                            focusRequester.freeFocus()
+                                            focusManager.clearFocus()
+                                            onExpandedChange()
+                                        }
+                                        .padding(16.dp),
+                                ) {
+                                    Text(
+                                        text = organizer,
+                                    )
+                                }
+                                HorizontalDivider()
+                            }
                         }
-                        HorizontalDivider()
                     }
                 }
             }
