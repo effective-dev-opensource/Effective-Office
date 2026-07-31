@@ -3,6 +3,7 @@ package band.effective.office.tablet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -19,6 +20,7 @@ import band.effective.office.tablet.core.domain.useCase.ResourceDisposerUseCase
 import band.effective.office.tablet.core.ui.platform.ForcedLandscape
 import band.effective.office.tablet.core.ui.theme.AppTheme
 import band.effective.office.tablet.navigation.AppNavHost
+import band.effective.office.tablet.platform.statusBarInset
 import org.koin.compose.koinInject
 
 @Composable
@@ -37,8 +39,10 @@ fun AppRoot() {
                     val startRoomConfigured = remember { checkSettingsUseCase().isNotEmpty() }
                     Box(
                         modifier = Modifier
+                            // Фон красим ДО отступа, чтобы полоса под статус-баром была тёмной.
                             .background(MaterialTheme.colorScheme.background)
                             .fillMaxSize()
+                            .padding(top = statusBarInset)
                             .systemBarsPadding()
                     ) {
                         AppNavHost(startRoomConfigured = startRoomConfigured)
