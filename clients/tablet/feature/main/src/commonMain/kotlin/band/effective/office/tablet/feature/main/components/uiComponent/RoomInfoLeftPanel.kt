@@ -71,9 +71,14 @@ fun RoomInfoLeftPanel(
             }
 
             stickyHeader {
+                // indexSelectRoom бывает -1, пока сохранённая переговорка ещё не нашлась в списке,
+                // и roomList[-1] роняет composable. На Авроре это особенно неприятно: форк молча
+                // проглатывает исключение и откатывает кадр, так что падение выглядит как
+                // «экран просто не переключился».
+                val safeIndex = indexSelectRoom.coerceIn(0, (roomList.size - 1).coerceAtLeast(0))
                 RoomInfoComponent(
                     modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
-                    room = roomList[indexSelectRoom],
+                    room = roomList[safeIndex],
                     onOpenFreeRoomModalRequest = { onCancelEventRequest() },
                     timeToNextEvent = timeToNextEvent,
                     isError = isDisconnect,
