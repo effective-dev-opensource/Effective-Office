@@ -15,8 +15,11 @@ import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import band.effective.office.tablet.components.VersionOverlay
+import band.effective.office.tablet.core.domain.manager.DateResetManager
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.ResourceDisposerUseCase
+import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
+import band.effective.office.tablet.core.ui.inactivity.InactivityTracking
 import band.effective.office.tablet.core.ui.platform.ForcedLandscape
 import band.effective.office.tablet.core.ui.platform.ScaledUiDensity
 import band.effective.office.tablet.core.ui.theme.AppTheme
@@ -32,31 +35,38 @@ fun AppRoot() {
 
     CompositionLocalProvider(LocalViewModelStoreOwner provides rootViewModelStoreOwner) {
         AppTheme {
-            ForcedLandscape {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    val resourceDisposerUseCase = koinInject<ResourceDisposerUseCase>()
-                    val checkSettingsUseCase = koinInject<CheckSettingsUseCase>()
+            // Outside the rotation on purpose: the tracker only observes, coordinates are
+            // irrelevant to it, and out here it covers the whole physical window.
+            InactivityTracker(modifier = Modifier.fillMaxSize()) {
+                ForcedLandscape {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        val resourceDisposerUseCase = koinInject<ResourceDisposerUseCase>()
+                        val checkSettingsUseCase = koinInject<CheckSettingsUseCase>()
 
-                    LaunchedEffect(Unit) { resourceDisposerUseCase() }
-                    // AppRoot is the one root shared by setContent, ComposeUIViewController and
-                    // the linux application {} — the clock is started here so every platform gets it.
-                    LaunchedEffect(Unit) {
-                        CurrentTimeTicker().start(this, CurrentTimeHolder::updateTime)
-                    }
-
-                    val startRoomConfigured = remember { checkSettingsUseCase().isNotEmpty() }
-                    Box(
-                        modifier = Modifier
-                            .background(MaterialTheme.colorScheme.background)
-                            .fillMaxSize()
-                            .padding(top = statusBarInset)
-                            .systemBarsPadding()
-                    ) {
-                        ScaledUiDensity(modifier = Modifier.fillMaxSize()) {
-                            AppNavHost(startRoomConfigured = startRoomConfigured)
+                        LaunchedEffect(Unit) { resourceDisposerUseCase() }
+                        // AppRoot is the one root shared by setContent, ComposeUIViewController and
+                        // the linux application {} — so the app-wide timers are started here.
+                        LaunchedEffect(Unit) {
+                            CurrentTimeTicker().start(this, CurrentTimeHolder::updateTime)
                         }
+                        LaunchedEffect(Unit) {
+                            InactivityTracking.start { DateResetManager.resetDate() }
+                        }
+
+                        val startRoomConfigured = remember { checkSettingsUseCase().isNotEmpty() }
+                        Box(
+                            modifier = Modifier
+                                .background(MaterialTheme.colorScheme.background)
+                                .fillMaxSize()
+                                .padding(top = statusBarInset)
+                                .systemBarsPadding()
+                        ) {
+                            ScaledUiDensity(modifier = Modifier.fillMaxSize()) {
+                                AppNavHost(startRoomConfigured = startRoomConfigured)
+                            }
+                        }
+                        VersionOverlay()
                     }
-                    VersionOverlay()
                 }
             }
         }

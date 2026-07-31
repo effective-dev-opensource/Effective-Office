@@ -67,6 +67,7 @@ import band.effective.office.tablet.core.ui.selectbox_organizer_error
 import band.effective.office.tablet.core.ui.selectbox_organizer_title
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h8
+import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
 import band.effective.office.tablet.core.ui.platform.ForcedLandscape
 import band.effective.office.tablet.core.ui.platform.ScaledUiDensity
 import band.effective.office.tablet.core.ui.platform.popupIsSeparateScene
@@ -276,7 +277,11 @@ private fun AnchoredOrganizerList(
         popupPositionProvider = popupPositionProvider,
         onDismissRequest = { },
     ) {
-        content()
+        // A popup is a window of its own here too, so it needs its own inactivity tracker. No
+        // fillMaxSize: this layer is sized to its content.
+        InactivityTracker {
+            content()
+        }
     }
 }
 
@@ -307,8 +312,9 @@ private fun FullWindowOrganizerList(
         // ourselves with offset — so the layer is stretched to fill the window, or the
         // offset list would fall outside its own window and be clipped.
         // The popup layer is also a separate scene in the fork's unrotated window, so the
-        // rotation is re-applied here (same as for modals in DialogBackgroundDim).
-        Box(modifier = Modifier.fillMaxSize()) {
+        // rotation and the inactivity tracker are re-applied here (same as for modals in
+        // DialogBackgroundDim).
+        InactivityTracker(modifier = Modifier.fillMaxSize()) {
             ForcedLandscape {
                 // Its own scene means the system density too, so re-apply the scale.
                 ScaledUiDensity(modifier = Modifier.fillMaxSize()) {
