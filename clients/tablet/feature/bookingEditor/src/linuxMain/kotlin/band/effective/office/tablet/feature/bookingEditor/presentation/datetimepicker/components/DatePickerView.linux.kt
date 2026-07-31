@@ -1,0 +1,69 @@
+package band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.components
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
+import band.effective.office.shared.core.utils.asInstant
+import band.effective.office.shared.core.utils.asLocalDateTime
+import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+
+// calf под linux нет — на Авроре берём Material3 напрямую (на android/ios calf под
+// капотом рисует его же).
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+actual fun DatePickerView(
+    modifier: Modifier,
+    currentDate: LocalDateTime,
+    onChangeDate: (LocalDate) -> Unit,
+) {
+    val state = rememberDatePickerState(
+        initialSelectedDateMillis = currentDate.asInstant.toEpochMilliseconds(),
+    )
+
+    LaunchedEffect(state.selectedDateMillis) {
+        val selectedDate = state.selectedDateMillis?.let { millis ->
+            Instant.fromEpochMilliseconds(millis).asLocalDateTime.date
+        }
+
+        selectedDate?.let {
+            onChangeDate(LocalDate(it.year, it.month, it.dayOfMonth))
+        }
+    }
+
+    val palette = LocalCustomColorsPalette.current
+    val accent = MaterialTheme.colorScheme.primary
+    val onAccent = MaterialTheme.colorScheme.onPrimary
+
+    Column {
+        DatePicker(
+            state = state,
+            modifier = modifier,
+            colors = DatePickerDefaults.colors(
+                containerColor = palette.elevationBackground,
+                titleContentColor = palette.primaryTextAndIcon,
+                headlineContentColor = palette.primaryTextAndIcon,
+                weekdayContentColor = palette.secondaryTextAndIcon,
+                subheadContentColor = palette.primaryTextAndIcon,
+                navigationContentColor = accent,
+                yearContentColor = palette.primaryTextAndIcon,
+                currentYearContentColor = accent,
+                selectedYearContentColor = onAccent,
+                selectedYearContainerColor = accent,
+                dayContentColor = palette.primaryTextAndIcon,
+                selectedDayContentColor = onAccent,
+                selectedDayContainerColor = accent,
+                todayContentColor = accent,
+                todayDateBorderColor = accent,
+            ),
+        )
+    }
+}
