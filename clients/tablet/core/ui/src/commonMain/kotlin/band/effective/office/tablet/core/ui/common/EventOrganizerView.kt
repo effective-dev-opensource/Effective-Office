@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -51,6 +52,7 @@ import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -67,6 +69,7 @@ import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h8
 import band.effective.office.tablet.core.ui.platform.ForcedLandscape
 import band.effective.office.tablet.core.ui.platform.ScaledUiDensity
+import band.effective.office.tablet.core.ui.platform.popupIsSeparateScene
 import band.effective.office.tablet.core.ui.res.painterResource
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
@@ -97,18 +100,6 @@ fun EventOrganizerView(
     var textFieldCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val density = LocalDensity.current
 
-    // The popup covers the whole window and rotates to landscape itself (see below): its layer
-    // lives in the fork's unrotated window, so the list is positioned by hand inside it.
-    val fullWindowPositionProvider = remember {
-        object : PopupPositionProvider {
-            override fun calculatePosition(
-                anchorBounds: IntRect,
-                windowSize: IntSize,
-                layoutDirection: LayoutDirection,
-                popupContentSize: IntSize
-            ): IntOffset = IntOffset.Zero
-        }
-    }
     Column(modifier = modifier) {
         Text(
             text = stringResource(Res.string.selectbox_organizer_title),
@@ -133,21 +124,15 @@ fun EventOrganizerView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextField(
-                modifier = Modifier.onPreviewKeyEvent { keyEvent ->
-                    // The fork delivers maliit input as ordinary key events (scene.sendKeyEvent),
-                    // and text is only inserted when the event carries a codePoint. Log what arrives.
-                    Napier.i(tag = ORGANIZER_TAG) {
-                        "key event: type=${keyEvent.type} key=${keyEvent.key.keyCode} " +
-                            "codePoint=${keyEvent.utf16CodePoint}"
-                    }
-                    false
-                }.onFocusChanged(
-                    onFocusChanged = {
-                        if (it.isFocused) {
-                            onExpandedChange()
+                modifier = Modifier
+                    .then(if (popupIsSeparateScene) Modifier.logKeyEvents() else Modifier)
+                    .onFocusChanged(
+                        onFocusChanged = {
+                            if (it.isFocused) {
+                                onExpandedChange()
+                            }
                         }
-                    }
-                ).onSizeChanged({ mTextFieldSize = it.toSize() })
+                    ).onSizeChanged({ mTextFieldSize = it.toSize() })
                     .focusRequester(focusRequester)
                     .fillMaxWidth(0.8f)
                     .onGloballyPositioned { textFieldCoords = it },
@@ -190,73 +175,178 @@ fun EventOrganizerView(
             )
         }
         if (expanded) {
-            Popup(
-                popupPositionProvider = fullWindowPositionProvider,
-                onDismissRequest = { },
-            ) {
-                // A popup window is sized to its content by default, and we move the list
-                // ourselves with offset — so the layer is stretched to fill the window, or the
-                // offset list would fall outside its own window and be clipped.
-                // The popup layer is also a separate scene in the fork's unrotated window, so the
-                // rotation is re-applied here (same as for modals in DialogBackgroundDim).
-                Box(modifier = Modifier.fillMaxSize()) {
-                    ForcedLandscape {
-                        // Its own scene means the system density too, so re-apply the scale.
-                        ScaledUiDensity(modifier = Modifier.fillMaxSize()) {
-                            var listSize by remember { mutableStateOf(IntSize.Zero) }
-                            // positionInWindow() reports coordinates in the UNROTATED content
-                            // layout, not in the physical window; the rotation is a drawing effect
-                            // and does not touch them, so they are used as-is.
-                            val anchor = textFieldCoords?.positionInWindow()?.let {
-                                IntOffset(it.x.roundToInt(), it.y.roundToInt())
-                            } ?: IntOffset.Zero
+            val listBody: @Composable (Modifier) -> Unit = { listModifier ->
+                OrganizerListBody(
+                    modifier = listModifier,
+                    width = with(density) { mTextFieldSize.width.toDp() },
+                    selectOrganizers = selectOrganizers,
+                    onSelectItem = onSelectItem,
+                    onExpandedChange = onExpandedChange,
+                    focusRequester = focusRequester,
+                    focusManager = focusManager,
+                )
+            }
 
-                            Column(
-                                modifier = Modifier
-                                    .offset {
-                                        // The list opens upward from the field, with a small gap.
-                                        IntOffset(
-                                            x = anchor.x,
-                                            y = (anchor.y - listSize.height - LIST_GAP_PX)
-                                                .coerceAtLeast(0),
-                                        )
-                                    }
-                                    .onSizeChanged { listSize = it }
-                                    .width(with(density) { mTextFieldSize.width.toDp() })
-                                    .heightIn(max = 150.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(
-                                        LocalCustomColorsPalette.current.elevationBackground,
-                                        RoundedCornerShape(8.dp)
-                                    )
-                                    .border(3.dp, Color.DarkGray, RoundedCornerShape(8.dp))
-                                    .verticalScroll(rememberScrollState())
-                            ) {
-                                selectOrganizers.forEach { organizer ->
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                onSelectItem(organizer)
-                                                focusRequester.freeFocus()
-                                                focusManager.clearFocus()
-                                                onExpandedChange()
-                                            }
-                                            .padding(16.dp),
-                                    ) {
-                                        Text(
-                                            text = organizer,
-                                        )
-                                    }
-                                    HorizontalDivider()
-                                }
-                            }
-                        }
-                    }
-                }
+            if (popupIsSeparateScene) {
+                FullWindowOrganizerList(textFieldCoords = textFieldCoords, content = listBody)
+            } else {
+                AnchoredOrganizerList(textFieldCoords = textFieldCoords) { listBody(Modifier) }
             }
         }
     }
 
 
+}
+
+/**
+ * The list itself. Identical on every platform — only how it is placed inside the popup differs,
+ * which is what [modifier] carries.
+ */
+@Composable
+private fun OrganizerListBody(
+    modifier: Modifier,
+    width: Dp,
+    selectOrganizers: List<String>,
+    onSelectItem: (String) -> Unit,
+    onExpandedChange: () -> Unit,
+    focusRequester: FocusRequester,
+    focusManager: FocusManager,
+) {
+    Column(
+        modifier = modifier
+            .width(width)
+            .heightIn(max = 150.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(
+                LocalCustomColorsPalette.current.elevationBackground,
+                RoundedCornerShape(8.dp)
+            )
+            .border(3.dp, Color.DarkGray, RoundedCornerShape(8.dp))
+            .verticalScroll(rememberScrollState())
+    ) {
+        selectOrganizers.forEach { organizer ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        onSelectItem(organizer)
+                        focusRequester.freeFocus()
+                        focusManager.clearFocus()
+                        onExpandedChange()
+                    }
+                    .padding(16.dp),
+            ) {
+                Text(
+                    text = organizer,
+                )
+            }
+            HorizontalDivider()
+        }
+    }
+}
+
+/**
+ * Android and iOS: the popup lives in the same scene as the field, so it is placed by an ordinary
+ * position provider anchored to the field and opening upward.
+ */
+@Composable
+private fun AnchoredOrganizerList(
+    textFieldCoords: LayoutCoordinates?,
+    content: @Composable () -> Unit,
+) {
+    val popupPositionProvider = remember(textFieldCoords) {
+        object : PopupPositionProvider {
+            override fun calculatePosition(
+                anchorBounds: IntRect,
+                windowSize: IntSize,
+                layoutDirection: LayoutDirection,
+                popupContentSize: IntSize
+            ): IntOffset {
+                return if (textFieldCoords != null) {
+                    val anchorTop = textFieldCoords.positionInWindow().y.toInt()
+                    val y = anchorTop - popupContentSize.height
+                    IntOffset(anchorBounds.left, y.coerceAtLeast(0) - 60)
+                } else {
+                    IntOffset.Zero
+                }
+            }
+        }
+    }
+    Popup(
+        popupPositionProvider = popupPositionProvider,
+        onDismissRequest = { },
+    ) {
+        content()
+    }
+}
+
+/**
+ * Aurora: the popup is a scene of its own in the fork's untouched window, so the position provider
+ * cannot anchor against the content layout and the list is placed by hand instead.
+ */
+@Composable
+private fun FullWindowOrganizerList(
+    textFieldCoords: LayoutCoordinates?,
+    content: @Composable (Modifier) -> Unit,
+) {
+    val fullWindowPositionProvider = remember {
+        object : PopupPositionProvider {
+            override fun calculatePosition(
+                anchorBounds: IntRect,
+                windowSize: IntSize,
+                layoutDirection: LayoutDirection,
+                popupContentSize: IntSize
+            ): IntOffset = IntOffset.Zero
+        }
+    }
+    Popup(
+        popupPositionProvider = fullWindowPositionProvider,
+        onDismissRequest = { },
+    ) {
+        // A popup window is sized to its content by default, and we move the list
+        // ourselves with offset — so the layer is stretched to fill the window, or the
+        // offset list would fall outside its own window and be clipped.
+        // The popup layer is also a separate scene in the fork's unrotated window, so the
+        // rotation is re-applied here (same as for modals in DialogBackgroundDim).
+        Box(modifier = Modifier.fillMaxSize()) {
+            ForcedLandscape {
+                // Its own scene means the system density too, so re-apply the scale.
+                ScaledUiDensity(modifier = Modifier.fillMaxSize()) {
+                    var listSize by remember { mutableStateOf(IntSize.Zero) }
+                    // positionInWindow() reports coordinates in the UNROTATED content
+                    // layout, not in the physical window; the rotation is a drawing effect
+                    // and does not touch them, so they are used as-is.
+                    val anchor = textFieldCoords?.positionInWindow()?.let {
+                        IntOffset(it.x.roundToInt(), it.y.roundToInt())
+                    } ?: IntOffset.Zero
+
+                    content(
+                        Modifier
+                            .offset {
+                                // The list opens upward from the field, with a small gap.
+                                IntOffset(
+                                    x = anchor.x,
+                                    y = (anchor.y - listSize.height - LIST_GAP_PX)
+                                        .coerceAtLeast(0),
+                                )
+                            }
+                            .onSizeChanged { listSize = it }
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Diagnostics for maliit input on Aurora: the fork delivers it as ordinary key events
+ * (scene.sendKeyEvent), and text is only inserted when the event carries a codePoint. Whether the
+ * field actually types is still unverified, so the instrument stays — but only where it is needed.
+ */
+private fun Modifier.logKeyEvents(): Modifier = onPreviewKeyEvent { keyEvent ->
+    Napier.i(tag = ORGANIZER_TAG) {
+        "key event: type=${keyEvent.type} key=${keyEvent.key.keyCode} " +
+            "codePoint=${keyEvent.utf16CodePoint}"
+    }
+    false
 }
