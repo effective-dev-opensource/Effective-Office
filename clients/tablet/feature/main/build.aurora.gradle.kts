@@ -11,6 +11,11 @@ kotlin {
     linuxX64()
 
     sourceSets {
+        commonMain {
+            // @Preview из compose-ui-tooling под linux не публикуется — заглушка.
+            kotlin.srcDir("src/previewStub/kotlin")
+        }
+
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)

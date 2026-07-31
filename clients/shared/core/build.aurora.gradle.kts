@@ -10,6 +10,11 @@ kotlin {
     linuxX64()
 
     sourceSets {
+        commonMain {
+            // Napier не публикует linux-таргеты — занимаем его пакет заглушкой.
+            kotlin.srcDir("src/napierStub/kotlin")
+        }
+
         commonMain.dependencies {
             implementation(libs.bundles.aurora.koin)
             implementation(libs.kotlin.coroutines.core)
