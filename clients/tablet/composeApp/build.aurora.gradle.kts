@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlinx.serialization)
     id("com.codingfeline.buildkonfig")
     id("ru.auroraos.kmp.aurora-build")
+    id("ru.auroraos.kmp.aurora-devices")
 }
 
 kotlin {
@@ -63,6 +64,53 @@ kotlin {
     }
 }
 
+// AGP под Аврору не подключён, поэтому gradleLocalProperties() недоступен — читаем сами.
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+
+auroraBuild {
+    rpm {
+        id.set("band.effective.office.tablet")
+        name.set("Effective Office")
+        description.set("Meeting room tablet built with KMP for Aurora OS")
+        version.set("1.0.1")
+        permissions.set(listOf("Internet"))
+        // Экранная клавиатура Авроры.
+        libs3rdParty.set(listOf("maliit-glib"))
+        icons.set(projectDir.toPath().resolve("icons"))
+        // Свойства `resources` у плагина нет — ресурсы приходят через
+        // compose.resources.customDirectory (ниже), плагин пакует preparedResources этого модуля.
+    }
+}
+
+// IP Aurora-устройства для деплоя по SSH. Приоритет: -P -> local.properties -> дефолт.
+val auroraDeviceIp: String = (project.findProperty("AURORA_DEVICE_IP") as? String)
+    ?: localProperties.getProperty("AURORA_DEVICE_IP")
+    ?: "192.168.0.22"
+
+auroraDevices {
+    devices {
+        // Без имени → устройство `device`, таск деплоя = runReleaseOnDevice.
+        create {
+            host.set(auroraDeviceIp)
+            user.set("defaultuser")
+            port.set(22)
+            sshKey.set(File(System.getProperty("user.home")).resolve(".ssh/qtc_id").toPath())
+        }
+    }
+    packages {
+        create("release") {
+            targets.set(listOf("aarch64", "x86_64"))
+            directory.set(
+                layout.buildDirectory.dir("rpm/release/{target}/RPMS/{target}").get().asFile.toPath(),
+            )
+            mask.set("""(?!.*debug).*\.rpm""")
+        }
+    }
+}
+
 // Аврора пакует ресурсы ПЛОСКО и без пакета: <qualifier>/<file> становится <qualifier>_<file>,
 // поэтому Res любого модуля находит файл по одному лишь имени (из-за этого имена строковых
 // файлов разведены по модулям). Здесь собираем composeResources всех модулей планшета в один
@@ -95,12 +143,6 @@ compose.resources {
     )
 }
 
-// AGP под Аврору не подключён, поэтому gradleLocalProperties() недоступен — читаем сами.
-val localProperties = Properties().apply {
-    val file = rootProject.file("local.properties")
-    if (file.exists()) file.inputStream().use { load(it) }
-}
-
 buildkonfig {
     packageName = "band.effective.office.tablet"
     exposeObjectWithName = "BuildKonfig"
@@ -114,3 +156,5 @@ buildkonfig {
         buildConfigField(FieldSpec.Type.STRING, "API_KEY", localProperties.getProperty("apiKey"))
     }
 }
+
+apply(from = "aurora-tasks.gradle.kts")
