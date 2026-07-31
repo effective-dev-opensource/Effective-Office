@@ -6,19 +6,39 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import band.effective.office.tablet.BuildKonfig
 import androidx.compose.foundation.layout.BoxScope
+import kotlin.math.roundToInt
 
+/**
+ * Версия сборки, а рядом — метрики экрана: каким система отдала окно (`win`, px) и какие
+ * плотность и масштаб шрифта она выставила (`d`, `fs`).
+ *
+ * На Авроре это единственный способ увидеть, что именно приехало от системы: подобрать
+ * вёрстку под чужое устройство, гадая про масштаб, не выйдет.
+ */
 @Composable
 fun BoxScope.VersionOverlay(
     modifier: Modifier = Modifier,
     text: String = "v${BuildKonfig.VERSION_NAME}",
 ) {
+    val density = LocalDensity.current
+    val windowSize = LocalWindowInfo.current.containerSize
+
+    val diagnostics = buildString {
+        append(text)
+        append(" · win ").append(windowSize.width).append('x').append(windowSize.height)
+        append(" · d ").append(density.density.twoDecimals())
+        append(" fs ").append(density.fontScale.twoDecimals())
+    }
+
     Text(
-        text = text,
+        text = diagnostics,
         style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp),
         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.35f),
         textAlign = TextAlign.Start,
@@ -29,5 +49,11 @@ fun BoxScope.VersionOverlay(
                 bottom = 10.dp
             )
     )
+}
+
+// String.format в общем коде нет, а Float.toString дал бы «1.4666667».
+private fun Float.twoDecimals(): String {
+    val hundredths = (this * 100).roundToInt()
+    return "${hundredths / 100}.${(hundredths % 100).toString().padStart(2, '0')}"
 }
 
