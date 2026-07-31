@@ -1,4 +1,3 @@
-// См. clients/shared/core/build.aurora.gradle.kts — почему без convention-плагинов.
 plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.kotlin.compose)

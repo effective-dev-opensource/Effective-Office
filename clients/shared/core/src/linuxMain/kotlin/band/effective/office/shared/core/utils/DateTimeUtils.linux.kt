@@ -5,15 +5,15 @@ import kotlinx.datetime.LocalDateTime
 /**
  * Aurora-specific implementation of toLocalisedString.
  *
- * Ни java.time, ни NSDateFormatter под linux нет, а kotlinx-datetime `byUnicodePattern`
- * отказывается разбирать locale-зависимые директивы («The directive 'MMMM' is
- * locale-dependent, but locales are not supported in Kotlin»), поэтому формат
- * раскрываем сами. Делегировать в общий `toFormattedString` нельзя — он падает, а форк
- * молча проглатывает исключение из composable и откатывает кадр, так что выглядит это
- * как «экран не отрисовался».
+ * There is neither java.time nor NSDateFormatter on linux, and kotlinx-datetime's
+ * `byUnicodePattern` refuses locale-dependent directives ("The directive 'MMMM' is
+ * locale-dependent, but locales are not supported in Kotlin"), so the pattern is expanded
+ * here. Delegating to the common `toFormattedString` is not an option — it throws, and the
+ * fork swallows an exception thrown from a composable and rolls the frame back, so it looks
+ * like the screen simply failed to render.
  *
- * Поддержаны те директивы, что реально приходят из DateDisplayMapper:
- * `d MMMM, HH:mm` / `d MMMM` / `HH:mm` (ru) и `MMM d h:mm a` / `MMM d` / `h:mm a` (en).
+ * Covers the directives DateDisplayMapper actually produces:
+ * `d MMMM, HH:mm` / `d MMMM` / `HH:mm` (ru) and `MMM d h:mm a` / `MMM d` / `h:mm a` (en).
  */
 actual fun LocalDateTime.toLocalisedString(pattern: String): String {
     val result = StringBuilder(pattern.length)
@@ -59,7 +59,7 @@ private fun LocalDateTime.hour12(): Int = when (val h = hour % 12) {
 
 private fun Int.pad(): String = toString().padStart(2, '0')
 
-/** Порядок важен: длинные директивы должны проверяться раньше своих префиксов. */
+/** Order matters: longer directives have to be matched before their own prefixes. */
 private val DIRECTIVES = listOf(
     "MMMM", "MMM", "MM", "M",
     "yyyy", "yy",
@@ -71,7 +71,7 @@ private val DIRECTIVES = listOf(
     "a",
 )
 
-/** Родительный падеж — формат «25 ноября». */
+/** Genitive case, so that "25 ноября" reads correctly. */
 private val MONTHS_RU = listOf(
     "января", "февраля", "марта", "апреля", "мая", "июня",
     "июля", "августа", "сентября", "октября", "ноября", "декабря",

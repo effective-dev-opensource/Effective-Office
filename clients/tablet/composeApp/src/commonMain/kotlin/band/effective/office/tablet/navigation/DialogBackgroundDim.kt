@@ -24,8 +24,6 @@ fun DialogBackgroundDim(
     onDismiss: () -> Unit,
     content: @Composable () -> Unit,
 ) {
-    // `dialog<>`-окно форка рендерится отдельной сценой, поворот корня до него не доходит,
-    // поэтому применяем его здесь заново (на Android/iOS ForcedLandscape — no-op).
     ForcedLandscape {
         Box(
             modifier = Modifier
@@ -45,8 +43,6 @@ fun DialogBackgroundDim(
                     onClick = {},
                 ),
             ) {
-                // Окно модалки — отдельная сцена с системной плотностью, поэтому масштаб
-                // приводим и здесь, иначе модалка была бы крупнее остального UI.
                 ScaledUiDensity {
                     content()
                 }

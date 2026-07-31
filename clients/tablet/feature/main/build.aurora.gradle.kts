@@ -1,4 +1,3 @@
-// См. clients/shared/core/build.aurora.gradle.kts — почему без convention-плагинов.
 plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.kotlin.compose)
@@ -12,7 +11,6 @@ kotlin {
 
     sourceSets {
         commonMain {
-            // @Preview из compose-ui-tooling под linux не публикуется — заглушка.
             kotlin.srcDir("src/previewStub/kotlin")
         }
 

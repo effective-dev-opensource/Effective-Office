@@ -1,5 +1,3 @@
-// См. clients/shared/core/build.aurora.gradle.kts — почему без convention-плагинов.
-// Coil сюда намеренно не подключается: под Аврору картинок из сети планшет не грузит.
 plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.kotlin.compose)
@@ -16,7 +14,6 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.components.resources)
-            // Нужен для Painter/ImageVector в linux-реализации фасада ресурсов.
             implementation(compose.ui)
 
             api(project(":clients:shared:core"))

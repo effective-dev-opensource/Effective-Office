@@ -35,7 +35,7 @@ open class SelectRoomUseCase(
         val now = clock.now()
         val minGap = minDuration.minutes
 
-        // Если нет событий и нет текущего — можно прямо сейчас
+        // No events at all and nothing running — free right now
         if (currentEvent == null && eventList.isEmpty()) return now
 
         val firstStart = eventList.firstOrNull()?.startTime?.toInstant(timeZone)
@@ -43,14 +43,14 @@ open class SelectRoomUseCase(
 
         var nearest = currentEnd ?: now
 
-        // Если между окончанием текущего и первым событием есть слот
+        // A slot between the end of the current event and the first upcoming one
         if (currentEnd != null && firstStart != null &&
             currentEnd + minGap < firstStart
         ) {
             return currentEnd
         }
 
-        // Перебираем список событий и ищем окно между ними
+        // Walk the event list looking for a gap between consecutive events
         for (i in 0 until eventList.lastIndex) {
             val end = eventList[i].finishTime.toInstant(timeZone)
             val nextStart = eventList[i + 1].startTime.toInstant(timeZone)

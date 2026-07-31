@@ -40,7 +40,6 @@ fun AppRoot() {
                     val startRoomConfigured = remember { checkSettingsUseCase().isNotEmpty() }
                     Box(
                         modifier = Modifier
-                            // Фон красим ДО отступа, чтобы полоса под статус-баром была тёмной.
                             .background(MaterialTheme.colorScheme.background)
                             .fillMaxSize()
                             .padding(top = statusBarInset)
@@ -50,9 +49,6 @@ fun AppRoot() {
                             AppNavHost(startRoomConfigured = startRoomConfigured)
                         }
                     }
-                    // Оверлей намеренно СНАРУЖИ ScaledUiDensity: он печатает системную плотность
-                    // и размер окна, и подмена плотности не должна на них влиять. По той же
-                    // причине снаружи остаётся statusBarInset — он меряется в системных dp.
                     VersionOverlay()
                 }
             }

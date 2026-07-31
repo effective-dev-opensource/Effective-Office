@@ -1,5 +1,3 @@
-// См. clients/shared/core/build.aurora.gradle.kts — почему без convention-плагинов.
-// Блока compose.resources здесь нет и в upstream-файле: пакет Res остаётся дефолтным.
 plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.kotlin.compose)

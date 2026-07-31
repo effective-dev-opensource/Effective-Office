@@ -16,8 +16,8 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 
-// calf под linux нет — на Авроре берём Material3 напрямую (на android/ios calf под
-// капотом рисует его же).
+// calf has no linux target — on Aurora we use Material3 directly (on android/ios calf draws
+// the same widget underneath).
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 actual fun DatePickerView(

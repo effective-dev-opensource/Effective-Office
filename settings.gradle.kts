@@ -1,12 +1,5 @@
 rootProject.name = "effective-office"
 
-// pluginManagement и plugins компилируются отдельно от тела скрипта и не видят его объявлений,
-// поэтому и чтение local.properties, и проверка варианта сборки дублируются внутри блоков.
-//
-// Локальный maven-форк под Аврору лежит вне git; путь к нему задаётся в local.properties ключом
-// auroraMavenPath (относительно корня репозитория). Он же дублируется в корневом build.gradle.kts:
-// репозитории проекта перебивают заданные здесь.
-
 pluginManagement {
     includeBuild("build-logic")
     repositories {
@@ -20,8 +13,6 @@ pluginManagement {
         mavenCentral()
     }
 
-    // Версия плагина Compose биндится ТОЛЬКО здесь, по варианту сборки: build-файлы пишут
-    // `id("org.jetbrains.compose")` без версии. Аврора берёт форк и плагины сборки/деплоя.
     plugins {
         if (providers.gradleProperty("buildVariant").orNull == "aurora") {
             id("org.jetbrains.compose") version "0.0.4-aurora"
@@ -54,14 +45,9 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention").version("0.10.0")
 }
 
-/** Вариант сборки: upstream (Android/iOS) по умолчанию, `-PbuildVariant=aurora` — планшет под Аврору. */
 val isAuroraVariant = providers.gradleProperty("buildVariant").orNull == "aurora"
 
-
 if (isAuroraVariant) {
-    // Под Аврору собирается только планшет. backend, tv и smsrouter тянут AGP и upstream
-    // Compose через build-logic — в одной инвокации с форком 0.0.4-aurora они не уживаются,
-    // поэтому просто не конфигурируем их.
     val auroraModules = listOf(
         "clients:shared:core",
         "clients:tablet:composeApp",
@@ -76,12 +62,8 @@ if (isAuroraVariant) {
     )
     include(auroraModules)
 
-    // Каталог на диске — fastbooking, путь проекта — fastBooking (как в upstream-списке ниже).
-    // Задаём projectDir явно, чтобы не полагаться на регистронезависимую ФС.
     project(":clients:tablet:feature:fastBooking").projectDir = file("clients/tablet/feature/fastbooking")
 
-    // Каждый модуль под Аврору собирается по своему build-файлу: linux-таргеты, зависимости
-    // форка, linuxMain. Upstream-файлы при этом не трогаются.
     auroraModules.forEach { project(":$it").buildFileName = "build.aurora.gradle.kts" }
 } else {
 

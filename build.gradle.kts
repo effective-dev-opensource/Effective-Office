@@ -9,7 +9,6 @@ buildscript {
 }
 plugins {
     alias(libs.plugins.multiplatform).apply(false)
-    // Без версии: её биндит settings.gradle.kts по варианту сборки (upstream 1.10.2 / форк 0.0.4-aurora).
     id("org.jetbrains.compose").apply(false)
     alias(libs.plugins.android.application).apply(false)
     //id("org.jetbrains.kotlin.plugin.serialization").apply(false)
@@ -21,8 +20,6 @@ allprojects {
     version = property("version").toString()
 
     repositories {
-        // Репозитории проекта перебивают заданные в settings.gradle.kts (режим PREFER_PROJECT),
-        // поэтому локальный maven-форк под Аврору дублируем и здесь.
         java.util.Properties().apply {
             val file = rootProject.file("local.properties")
             if (file.exists()) file.inputStream().use { load(it) }

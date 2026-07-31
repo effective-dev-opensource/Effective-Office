@@ -14,8 +14,8 @@ import kotlin.time.Clock
 /**
  * Aurora implementation of TimeReceiver.
  *
- * Ни системных броадкастов о смене времени (Android), ни NSTimer (iOS) здесь нет,
- * поэтому просто тикаем раз в минуту из корутины.
+ * There is no system broadcast for time changes (Android) and no NSTimer (iOS) here, so this
+ * just ticks once a minute from a coroutine.
  */
 actual class TimeReceiver {
     actual val currentTime: StateFlow<LocalDateTime> = CurrentTimeHolder.currentTime

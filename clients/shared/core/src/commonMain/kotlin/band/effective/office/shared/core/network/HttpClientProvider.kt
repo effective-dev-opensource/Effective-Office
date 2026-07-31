@@ -36,7 +36,7 @@ object HttpClientProvider : KoinComponent {
             install(HttpTimeout) {
                 requestTimeoutMillis = 40_000L    // 60s
                 connectTimeoutMillis = 40_000L    // 30s
-                socketTimeoutMillis  = 40_000L    // 60s (соответствует read timeout)
+                socketTimeoutMillis  = 40_000L    // 60s (matches the read timeout)
             }
             install(ContentNegotiation) {
                 json(Json {

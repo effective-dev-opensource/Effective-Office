@@ -2,7 +2,7 @@ package band.effective.office.tv.feature.stories.domain.model
 
 /**
  * Domain model for Duolingo users.
- * Note: photo подтягивается из teammates.
+ * Note: photo is pulled from teammates.
  */
 data class DuolingoUser(
     val username: String,

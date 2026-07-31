@@ -15,16 +15,17 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.min
 
 /**
- * Приводит dp-пространство содержимого к [uiScaleBaseline] по короткой стороне: подменяет
- * [LocalDensity] на `доступные_px_короткой_стороны / uiScaleBaseline`. Тогда вёрстка в dp
- * занимает одну и ту же долю экрана независимо от того, какой масштаб отдала система.
- * Там, где масштабирование выключено (Android/iOS) — no-op.
+ * Normalises the content's dp space to [uiScaleBaseline] by the short side: substitutes
+ * [LocalDensity] with `available_short_side_px / uiScaleBaseline`. A layout written in dp then
+ * occupies the same fraction of the screen whatever scale the system handed over. Where scaling
+ * is off (Android, iOS) this is a no-op.
  *
- * `fontScale` фиксируем в 1: системный масштаб шрифта иначе умножался бы на наш и уводил
- * текст от вёрстки.
+ * `fontScale` is pinned to 1: otherwise the system font scale would multiply on top of ours and
+ * drift the text away from the layout.
  *
- * Размер берём из собственных constraints, а не из `LocalWindowInfo.containerSize`, чтобы
- * учитывать уже вычтенные отступы (статус-бар) и одинаково работать в окне модалки.
+ * The size comes from our own constraints rather than `LocalWindowInfo.containerSize`, so that
+ * already-subtracted padding (the status bar) is accounted for and a dialog window behaves the
+ * same way.
  */
 @Composable
 fun ScaledUiDensity(
@@ -55,9 +56,9 @@ fun ScaledUiDensity(
 }
 
 /**
- * Что [ScaledUiDensity] реально посчитал — только для отладочной строки в оверлее.
- * Читать это надо СНАРУЖИ [ScaledUiDensity], иначе выводились бы уже подменённые значения,
- * а не системные.
+ * What [ScaledUiDensity] actually computed — for the debug line in the overlay only.
+ * It has to be read OUTSIDE [ScaledUiDensity], or the values reported would be the substituted
+ * ones rather than the system's.
  */
 object UiScaleDiagnostics {
     var appliedDensity by mutableStateOf<Float?>(null)

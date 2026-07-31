@@ -141,8 +141,6 @@ class BookingEditorViewModel(
      */
     private fun loadOrganizers() = coroutineScope.launch {
         val organizers = organizersInfoUseCase().unbox(errorHandler = { emptyList() })
-        // Пустой список организаторов — первый симптом того, что клиент API собрался с чужим
-        // конфигом (см. ApiConfig), поэтому счётчик печатаем всегда.
         Napier.i(tag = ORGANIZER_TAG) { "loaded organizers: ${organizers.size}" }
         mutableState.update {
             it.copy(

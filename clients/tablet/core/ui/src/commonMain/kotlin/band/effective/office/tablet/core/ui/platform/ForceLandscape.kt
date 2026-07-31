@@ -1,11 +1,11 @@
 package band.effective.office.tablet.core.ui.platform
 
 /**
- * Планшет — альбомный киоск, но у аврорского окна нет обработки ориентации, и на портретном
- * экране весь UI (он свёрстан горизонтально) сплющивается. На Авроре форсим альбомную
- * отрисовку поворотом содержимого; на Android/iOS ориентацию отдаём системе.
+ * The tablet is a landscape-locked kiosk, but the Aurora window has no orientation handling and
+ * on a portrait screen the whole UI — laid out horizontally — gets squashed. On Aurora we force
+ * landscape by rotating the content; on Android and iOS orientation is left to the system.
  *
- * Сам поворот применяется, только если окно РЕАЛЬНО портретное (см. [ForcedLandscape]),
- * поэтому на альбомном экране флаг ничего не ломает.
+ * The rotation itself only happens when the window really is portrait (see [ForcedLandscape]),
+ * so the flag breaks nothing on a landscape screen.
  */
 expect val forceLandscape: Boolean

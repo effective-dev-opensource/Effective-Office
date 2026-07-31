@@ -1,5 +1,3 @@
-// См. clients/shared/core/build.aurora.gradle.kts — почему без convention-плагинов.
-// multiplatform-settings под linux нет, поэтому SettingsStore получает свой linux-actual.
 plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.kotlinx.serialization)

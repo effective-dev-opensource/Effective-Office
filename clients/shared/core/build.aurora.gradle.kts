@@ -1,5 +1,3 @@
-// Aurora-вариант модуля. Convention-плагины из build-logic здесь не используются: они тянут
-// AGP и upstream Compose, которые в одной инвокации с форком не уживаются.
 plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.kotlinx.serialization)
@@ -11,7 +9,6 @@ kotlin {
 
     sourceSets {
         commonMain {
-            // Napier не публикует linux-таргеты — занимаем его пакет заглушкой.
             kotlin.srcDir("src/napierStub/kotlin")
         }
 

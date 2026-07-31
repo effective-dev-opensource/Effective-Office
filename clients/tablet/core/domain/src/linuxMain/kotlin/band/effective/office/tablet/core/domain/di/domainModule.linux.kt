@@ -5,10 +5,10 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 /**
- * multiplatform-settings под linux не публикуется, поэтому настройки пока живут в памяти
- * процесса: выбранная переговорка не переживает перезапуск приложения.
+ * multiplatform-settings publishes no linux target, so settings live in process memory for
+ * now: the selected meeting room does not survive a restart.
  *
- * TODO: заменить на `ru.auroraos.kmp:ak-shared-preferences` — он есть в форке.
+ * TODO: replace with `ru.auroraos.kmp:ak-shared-preferences`, which the fork ships.
  */
 actual fun settingsStoreModule(): Module = module {
     single<SettingsStore> {

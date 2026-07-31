@@ -168,7 +168,7 @@ private fun RowScope.SelectedDate(
     }
 }
 
-// Удлинение SlideDirection для удобства
+// A convenience extension on SlideDirection
 private fun AnimatedContentTransitionScope.SlideDirection.opposite(): AnimatedContentTransitionScope.SlideDirection {
     return when (this) {
         AnimatedContentTransitionScope.SlideDirection.Left -> AnimatedContentTransitionScope.SlideDirection.Right

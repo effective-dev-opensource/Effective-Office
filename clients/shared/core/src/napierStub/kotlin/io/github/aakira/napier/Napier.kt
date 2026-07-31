@@ -1,15 +1,15 @@
 package io.github.aakira.napier
 
-// Napier не публикует linux-таргеты, поэтому под Аврору занимаем его пакет заглушкой:
-// вызывающий код остаётся без изменений, логи уходят в stdout. Подключается только
-// aurora-вариантом (kotlin.srcDir в build.aurora.gradle.kts) и только здесь — в одном
-// модуле, иначе получим дублирующиеся символы в klib. До планшетных модулей доходит
-// транзитивно: core/domain и core/ui делают api(project(":clients:shared:core")).
+// Napier publishes no linux targets, so on Aurora we squat its package with a stub: callers
+// stay untouched and the logs go to stdout. Wired in by the aurora variant only (kotlin.srcDir
+// in build.aurora.gradle.kts) and only here — in a single module, or the klib link ends up with
+// duplicate symbols. The tablet modules get it transitively: core/domain and core/ui declare
+// api(project(":clients:shared:core")).
 
 enum class LogLevel { VERBOSE, DEBUG, INFO, WARNING, ERROR, ASSERT }
 
-// Под journald (и вообще под пайпом) stdout буферизуется целиком, поэтому строки,
-// напечатанные перед падением, не доезжают. Сбрасываем после каждой.
+// Under journald (and under a pipe in general) stdout is fully buffered, so lines printed
+// right before a crash never make it out. Flush after every one.
 internal expect fun flushLog()
 
 open class Antilog {

@@ -3,14 +3,14 @@ package band.effective.office.tablet.core.ui.platform
 import androidx.compose.ui.unit.Dp
 
 /**
- * Эталонная короткая сторона окна в dp, к которой [ScaledUiDensity] приводит UI.
+ * The reference short side of the window, in dp, that [ScaledUiDensity] normalises the UI to.
  *
- * Плотность Compose-сцены на Авроре задать нельзя: форк создаёт сцену как
- * `ComposeScene(density = Density(ru.auroraos.kmp.window.contentScale.toFloat()))`, а
- * `contentScale` приходит от системы вместе с окном. Поэтому dp-пространство фиксируем сами:
- * 800 dp по короткой стороне — это привычный 10" планшет (эталонный Android-планшет даёт ровно
- * столько же: 2560x1600 при плотности 2.0).
+ * The Compose scene density cannot be set on Aurora: the fork creates the scene as
+ * `ComposeScene(density = Density(ru.auroraos.kmp.window.contentScale.toFloat()))`, and
+ * `contentScale` arrives from the system together with the window. So the dp space is fixed
+ * here instead: 800 dp on the short side is a familiar 10" tablet (the reference Android tablet
+ * reports exactly the same — 2560x1600 at density 2.0).
  *
- * На Android/iOS плотность даёт система, масштабирование выключено ([Dp] == 0).
+ * On Android and iOS the system provides the density and scaling is off ([Dp] == 0).
  */
 expect val uiScaleBaseline: Dp

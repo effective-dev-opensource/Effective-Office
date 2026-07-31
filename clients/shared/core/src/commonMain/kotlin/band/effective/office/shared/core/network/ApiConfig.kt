@@ -1,18 +1,19 @@
 package band.effective.office.shared.core.network
 
 /**
- * Адрес и ключ API одним типом.
+ * The API url and key as a single type.
  *
- * Держать их двумя `String` под квалификаторами `named("ApiUrl")` / `named("ApiKey")` нельзя:
- * koin держит стек параметров текущего графа создания и подставляет их **по типу**, игнорируя
- * квалификатор. Клиенты API создаются лениво, в конструкторе (`HttpClientProvider.create()`),
- * поэтому важно, какой граф доберётся до них первым. Если первым оказывается граф с
- * параметром-строкой (`parametersOf(event, roomName)` у BookingEditor), то вместо url и ключа
- * приезжает имя переговорки — запрос уходит на `http://localhost/` с `Authorization: Bearer Sync`,
- * а список организаторов приходит пустым. И это лотерея порядка инициализации: какой граф первым
- * доберётся до клиента, такой конфиг и закешируется в синглтоне навсегда.
+ * They cannot be kept as two `String`s under `named("ApiUrl")` / `named("ApiKey")` qualifiers:
+ * koin keeps the parameters of the graph currently being created on a stack and matches them
+ * **by type**, ignoring qualifiers. The api clients build their client lazily, in the
+ * constructor (`HttpClientProvider.create()`), so it matters which graph reaches them first.
+ * When that is a graph carrying a String parameter (`parametersOf(event, roomName)` in the
+ * booking editor), the room name arrives instead of the url and the key: the request goes to
+ * `http://localhost/` with `Authorization: Bearer Sync` and the organizer list comes back
+ * empty. It is a lottery of initialization order, too — whichever graph gets there first has
+ * its config cached in the singleton for the rest of the process.
  *
- * Отдельный тип с параметрами графов не пересекается.
+ * A dedicated type cannot collide with the parameters of any graph.
  */
 data class ApiConfig(
     val url: String,

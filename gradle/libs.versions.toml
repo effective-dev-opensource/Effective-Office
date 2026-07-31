@@ -91,13 +91,9 @@ googleServices = "4.4.3"
 notion-ver = "1.11.1"
 
 ## Aurora
-# Форки под Аврору, резолвятся из локального maven (auroraMavenPath в local.properties).
-# Версия плагина Compose (0.0.4-aurora) задаётся в settings.gradle.kts, а не здесь: сами
-# compose-библиотеки приходят DSL-аксессорами `compose.*` от плагина форка.
 aurora-koin = "4.2.0-aurora"
 aurora-ktor = "3.4.2-aurora"
 aurora-datetime = "0.7.1-aurora"
-# Sentinel-версия форка androidx-lifecycle/navigation.
 aurora-lifecycle = "9999.0.0-SNAPSHOT"
 aurora-ak = "0.0.1"
 
@@ -296,5 +292,4 @@ ktor-client = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-clie
 
 # Aurora
 aurora-koin = ["aurora-koin-core", "aurora-koin-compose", "aurora-koin-compose-viewmodel", "aurora-koin-compose-viewmodel-navigation"]
-# curl намеренно вне бандла: движок нужен только в linuxMain.
 aurora-ktor-client = ["aurora-ktor-client-core", "aurora-ktor-client-content-negotiation", "aurora-ktor-client-serialization", "aurora-ktor-serialization-json", "aurora-ktor-client-logging"]

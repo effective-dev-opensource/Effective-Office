@@ -1,9 +1,9 @@
 package org.jetbrains.compose.ui.tooling.preview
 
-// compose-ui-tooling-preview под linux не публикуется, а @Preview стоит в общем коде
-// feature/main. Занимаем пакет аннотацией-заглушкой: подключается только aurora-вариантом
-// (kotlin.srcDir в build.aurora.gradle.kts), импорты вызывающего кода не меняются.
-// Набор параметров обязан покрывать все места вызова, иначе модуль не соберётся.
+// compose-ui-tooling-preview publishes no linux target, and @Preview is used in feature/main's
+// common code. We squat the package with a stub annotation: wired in by the aurora variant only
+// (kotlin.srcDir in build.aurora.gradle.kts), callers' imports stay untouched.
+// The parameter set has to cover every call site or the module will not compile.
 
 @Target(
     AnnotationTarget.ANNOTATION_CLASS,

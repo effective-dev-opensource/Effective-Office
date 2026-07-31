@@ -11,13 +11,13 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalDensity
 
 /**
- * Разворачивает содержимое в альбом, если окно пришло портретным и [forceLandscape] включён:
- * бокс альбомного размера (H×W) центрируем и поворачиваем на 90° вокруг его центра — габарит
- * после поворота получается ровно W×H и точно закрывает экран. На альбомном окне и на
- * Android/iOS — no-op.
+ * Rotates the content to landscape when the window arrived portrait and [forceLandscape] is on:
+ * a landscape-sized box (H×W) is centred and rotated 90° about its own centre, so its footprint
+ * after the rotation is exactly W×H and covers the screen. A no-op on a landscape window and on
+ * Android and iOS.
  *
- * Оборачивать нужно КАЖДЫЙ слой: `Popup` и `dialog<>` форка рендерятся отдельными сценами в
- * неповёрнутом окне, и от корня до них ничего не доходит.
+ * EVERY layer has to be wrapped: the fork renders `Popup` and `dialog<>` as separate scenes in
+ * the untouched window, and nothing applied at the root reaches them.
  */
 @Composable
 fun ForcedLandscape(content: @Composable () -> Unit) {

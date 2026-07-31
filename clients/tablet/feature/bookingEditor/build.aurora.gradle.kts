@@ -1,5 +1,3 @@
-// См. clients/shared/core/build.aurora.gradle.kts — почему без convention-плагинов.
-// Calf под linux не публикуется, поэтому пикеры даты/времени получают linux-actual на Material3.
 plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.kotlin.compose)

@@ -74,7 +74,7 @@ import kotlin.math.roundToInt
 
 private const val ORGANIZER_TAG = "OrganizerPicker"
 
-// Зазор между полем и раскрытым списком, в px (px не зависят от подменённой плотности).
+// Gap between the field and the expanded list, in px (px do not depend on a substituted density).
 private const val LIST_GAP_PX = 8
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,8 +97,8 @@ fun EventOrganizerView(
     var textFieldCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val density = LocalDensity.current
 
-    // Попап занимает всё окно и сам разворачивается в альбом (см. ниже): его слой живёт в
-    // неповёрнутом окне форка, поэтому положение списка внутри считаем сами.
+    // The popup covers the whole window and rotates to landscape itself (see below): its layer
+    // lives in the fork's unrotated window, so the list is positioned by hand inside it.
     val fullWindowPositionProvider = remember {
         object : PopupPositionProvider {
             override fun calculatePosition(
@@ -134,8 +134,8 @@ fun EventOrganizerView(
         ) {
             TextField(
                 modifier = Modifier.onPreviewKeyEvent { keyEvent ->
-                    // Форк отдаёт ввод maliit обычными key-событиями (scene.sendKeyEvent), а текст
-                    // вставляется, только если в событии есть codePoint. Смотрим, что доходит.
+                    // The fork delivers maliit input as ordinary key events (scene.sendKeyEvent),
+                    // and text is only inserted when the event carries a codePoint. Log what arrives.
                     Napier.i(tag = ORGANIZER_TAG) {
                         "key event: type=${keyEvent.type} key=${keyEvent.key.keyCode} " +
                             "codePoint=${keyEvent.utf16CodePoint}"
@@ -194,19 +194,19 @@ fun EventOrganizerView(
                 popupPositionProvider = fullWindowPositionProvider,
                 onDismissRequest = { },
             ) {
-                // Окно попапа по умолчанию размером с содержимое, а список мы двигаем сами
-                // через offset — поэтому слой растягиваем на всё окно, иначе сдвинутый список
-                // окажется за границами своего же окна и его обрежет.
-                // Слой попапа — ещё и отдельная сцена в неповёрнутом окне форка, поэтому
-                // разворот в альбом применяем здесь заново (как у модалок в DialogBackgroundDim).
+                // A popup window is sized to its content by default, and we move the list
+                // ourselves with offset — so the layer is stretched to fill the window, or the
+                // offset list would fall outside its own window and be clipped.
+                // The popup layer is also a separate scene in the fork's unrotated window, so the
+                // rotation is re-applied here (same as for modals in DialogBackgroundDim).
                 Box(modifier = Modifier.fillMaxSize()) {
                     ForcedLandscape {
-                        // Своя сцена — значит и системная плотность, масштаб приводим заново.
+                        // Its own scene means the system density too, so re-apply the scale.
                         ScaledUiDensity(modifier = Modifier.fillMaxSize()) {
                             var listSize by remember { mutableStateOf(IntSize.Zero) }
-                            // positionInWindow() отдаёт координаты НЕповёрнутой раскладки
-                            // содержимого, а не физического окна; поворот — эффект отрисовки,
-                            // координаты он не трогает, поэтому берём их как есть.
+                            // positionInWindow() reports coordinates in the UNROTATED content
+                            // layout, not in the physical window; the rotation is a drawing effect
+                            // and does not touch them, so they are used as-is.
                             val anchor = textFieldCoords?.positionInWindow()?.let {
                                 IntOffset(it.x.roundToInt(), it.y.roundToInt())
                             } ?: IntOffset.Zero
@@ -214,7 +214,7 @@ fun EventOrganizerView(
                             Column(
                                 modifier = Modifier
                                     .offset {
-                                        // Список раскрывается вверх от поля, с небольшим зазором.
+                                        // The list opens upward from the field, with a small gap.
                                         IntOffset(
                                             x = anchor.x,
                                             y = (anchor.y - listSize.height - LIST_GAP_PX)

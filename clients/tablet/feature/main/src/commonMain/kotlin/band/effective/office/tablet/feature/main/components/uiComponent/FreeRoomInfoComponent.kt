@@ -80,7 +80,7 @@ fun FreeRoomInfoComponent(
     }
 }
 
-// untilOrErrorText: нормальный случай — есть следующее событие и осталось время
+// untilOrErrorText: the normal case — there is a next event and time is left
 @Preview(widthDp = 700, heightDp = 300, locale = "ru")
 @Composable
 private fun PreviewFreeRoomInfoComponent_WithNextEvent() {
@@ -105,7 +105,7 @@ private fun PreviewFreeRoomInfoComponent_WithNextEvent() {
     }
 }
 
-// untilOrErrorText: нормальный случай — есть следующее событие, timeToFinish = 0 (время не отображается)
+// untilOrErrorText: the normal case — there is a next event, timeToFinish = 0 (no time shown)
 @Preview(widthDp = 700, heightDp = 300, locale = "ru")
 @Composable
 private fun PreviewFreeRoomInfoComponent_WithNextEventNoTimeToFinish() {
@@ -130,7 +130,7 @@ private fun PreviewFreeRoomInfoComponent_WithNextEventNoTimeToFinish() {
     }
 }
 
-// untilOrErrorText: startTime == null — нет следующего мероприятия
+// untilOrErrorText: startTime == null — there is no next event
 @Preview(widthDp = 700, heightDp = 300, locale = "ru")
 @Composable
 private fun PreviewFreeRoomInfoComponent_NoNextEvent() {
@@ -148,7 +148,7 @@ private fun PreviewFreeRoomInfoComponent_NoNextEvent() {
     }
 }
 
-// untilOrErrorText: isError == true — свободна сейчас (ошибка загрузки)
+// untilOrErrorText: isError == true — free now (loading failed)
 @Preview(widthDp = 700, heightDp = 300, locale = "ru")
 @Composable
 private fun PreviewFreeRoomInfoComponent_Error() {
