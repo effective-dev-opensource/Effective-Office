@@ -24,7 +24,7 @@ import band.effective.office.tablet.core.ui.select_other_room
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h2
 import band.effective.office.tablet.core.ui.theme.h4
-import org.jetbrains.compose.resources.painterResource
+import band.effective.office.tablet.core.ui.res.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

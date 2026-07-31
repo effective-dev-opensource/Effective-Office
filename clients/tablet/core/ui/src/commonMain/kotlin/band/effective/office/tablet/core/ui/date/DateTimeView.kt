@@ -40,7 +40,7 @@ import band.effective.office.tablet.core.ui.theme.h6
 import band.effective.office.tablet.core.ui.theme.h8
 import kotlin.time.ExperimentalTime
 import kotlinx.datetime.LocalDateTime
-import org.jetbrains.compose.resources.painterResource
+import band.effective.office.tablet.core.ui.res.painterResource
 import org.jetbrains.compose.resources.stringResource
 import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
 

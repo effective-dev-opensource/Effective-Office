@@ -25,7 +25,7 @@ import band.effective.office.tablet.core.ui.connection_lost
 import band.effective.office.tablet.core.ui.not_wifi
 import band.effective.office.tablet.core.ui.theme.disconnectColor
 import band.effective.office.tablet.core.ui.theme.h6
-import org.jetbrains.compose.resources.painterResource
+import band.effective.office.tablet.core.ui.res.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

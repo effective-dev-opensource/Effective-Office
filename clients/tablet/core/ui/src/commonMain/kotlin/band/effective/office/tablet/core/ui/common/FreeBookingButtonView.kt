@@ -19,7 +19,7 @@ import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.cross
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h6_button
-import org.jetbrains.compose.resources.vectorResource
+import band.effective.office.tablet.core.ui.res.vectorResource
 
 @Composable
 fun FreeBookingButtonView(

@@ -60,7 +60,7 @@ import band.effective.office.tablet.core.ui.selectbox_organizer_error
 import band.effective.office.tablet.core.ui.selectbox_organizer_title
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h8
-import org.jetbrains.compose.resources.painterResource
+import band.effective.office.tablet.core.ui.res.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
