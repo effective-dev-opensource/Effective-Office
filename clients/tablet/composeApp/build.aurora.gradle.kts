@@ -8,11 +8,25 @@ plugins {
     id("org.jetbrains.compose")
     alias(libs.plugins.kotlinx.serialization)
     id("com.codingfeline.buildkonfig")
+    id("ru.auroraos.kmp.aurora-build")
 }
 
 kotlin {
-    linuxArm64()
-    linuxX64()
+    listOf(
+        linuxArm64(),
+        linuxX64(),
+    ).forEach { target ->
+        target.binaries {
+            executable {
+                entryPoint = "band.effective.office.tablet.main"
+                // Обязателен -Xoverride-konan-properties, иначе линковка против sysroot падает.
+                freeCompilerArgs += auroraBuild.freeCompilerArgs(target.name)
+                // cmpLinkerOpts сам добавляет Qt5Core/maliit/skiko/wayland/EGL/dbus,
+                // Qt5Network (нужен ktor-curl) передаём явно.
+                linkerOpts.addAll(auroraBuild.cmpLinkerOpts(target.name, "Qt5Network"))
+            }
+        }
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -47,6 +61,38 @@ kotlin {
     sourceSets.all {
         languageSettings.optIn("kotlin.time.ExperimentalTime")
     }
+}
+
+// Аврора пакует ресурсы ПЛОСКО и без пакета: <qualifier>/<file> становится <qualifier>_<file>,
+// поэтому Res любого модуля находит файл по одному лишь имени (из-за этого имена строковых
+// файлов разведены по модулям). Здесь собираем composeResources всех модулей планшета в один
+// каталог: aurora-build пакует preparedResources только своего модуля, зависимости он не видит.
+val auroraResourceModules = listOf(
+    "clients/tablet/core/ui",
+    "clients/tablet/feature/main",
+    "clients/tablet/feature/settings",
+    "clients/tablet/feature/bookingEditor",
+    "clients/tablet/feature/fastbooking",
+    "clients/tablet/feature/slot",
+)
+
+val stageAuroraResources by tasks.registering(Copy::class) {
+    description = "Собирает composeResources всех модулей планшета в один каталог для упаковки в RPM."
+    duplicatesStrategy = DuplicatesStrategy.FAIL
+    into(layout.buildDirectory.dir("auroraComposeResources"))
+    from(layout.projectDirectory.dir("src/commonMain/composeResources"))
+    auroraResourceModules.forEach { module ->
+        from(rootProject.layout.projectDirectory.dir("$module/src/commonMain/composeResources"))
+    }
+}
+
+compose.resources {
+    // Res-классы генерируют core/ui и feature/*, здесь только упаковка.
+    generateResClass = never
+    customDirectory(
+        sourceSetName = "commonMain",
+        directoryProvider = stageAuroraResources.map { layout.buildDirectory.dir("auroraComposeResources").get() },
+    )
 }
 
 // AGP под Аврору не подключён, поэтому gradleLocalProperties() недоступен — читаем сами.
