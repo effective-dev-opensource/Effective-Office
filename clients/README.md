@@ -120,6 +120,112 @@ cd clients/tablet/composeApp/build/xcode-frameworks
 xcodebuild -project ComposeApp.xcodeproj -scheme ComposeApp -configuration Release
 ```
 
+## Aurora OS build variant
+
+The tablet also builds for Aurora OS. It is the same modules, not a fork of the app:
+`-PbuildVariant=aurora` switches `settings.gradle.kts` over to the Aurora fork of Compose,
+includes only the tablet modules, and points every one of them at its own
+`build.aurora.gradle.kts` (linux targets, fork dependencies). The upstream build files are
+never touched, so Android and iOS builds are unaffected.
+
+### Setup
+
+`local.properties` needs, on top of the usual `api.url.debug` / `api.url.release` / `apiKey`:
+
+- `auroraMavenPath` — path (relative to the repo root) to the local maven fork holding the
+  Aurora Compose plugin and libraries. It lives outside git.
+- `AURORA_DEVICE_IP` — the device to deploy to over SSH. Can also be passed as
+  `-PAURORA_DEVICE_IP=…`, which wins.
+
+Packaging and deploy additionally need Docker (the Aurora build tools image) and an SSH key
+at `~/.ssh/qtc_id`.
+
+### Commands
+
+```
+# fastest loop — no Docker needed
+./gradlew -PbuildVariant=aurora :clients:tablet:composeApp:compileKotlinLinuxX64
+
+# build and sign the rpm
+./gradlew -PbuildVariant=aurora :clients:tablet:composeApp:buildReleasePipeline
+
+# build, install and launch on the device
+./gradlew -PbuildVariant=aurora :clients:tablet:composeApp:runReleaseOnDevice
+```
+
+Logs come out through journald on the device: `ssh defaultuser@<ip> journalctl -f`.
+
+### Aurora-specific pieces
+
+Each of these exists for a reason that cost at least one round of on-device debugging.
+
+- **An exception thrown from a composable is swallowed by the fork.** The frame is rolled
+  back, the screen does not change and nothing appears in the log. It reads as "navigation
+  did not work". Two separate bugs presented this way: date formatting and a `-1` room index.
+- **The Aurora binary is a release binary,** so `Platform.isDebugBinary` is false. Napier is
+  therefore installed directly from `Main.kt` rather than through `LoggerInitializer`, and
+  note that the same flag selects `API_URL_RELEASE` — an Aurora build talks to the release
+  backend unless you change that.
+- **stdout is fully buffered under journald,** so the Napier stub flushes after every line.
+  Without it the lines printed just before a crash are lost.
+- **Date formatting is hand-rolled** (`DateTimeUtils.linux.kt`). kotlinx-datetime's
+  `byUnicodePattern` rejects locale-dependent directives such as `MMMM` on Kotlin/Native.
+- **Drawables go through a polyfill** in `core:ui/res`. The fork's loader renders SVG only
+  and crashes on Android vector XML with "Can't wrap nullptr", so the linux actual resolves
+  the bytes itself and dispatches on the byte signature, parsing vector XML with a vendored
+  AOSP parser. Android and iOS delegate straight back to compose-resources.
+- **Resources are packaged flat,** `<qualifier>/<file>` becomes `<qualifier>_<file>` with no
+  package namespace, so any module's `Res` finds a file by name alone. Hence the per-module
+  strings file names (`strings_main.xml`, `strings_settings.xml`, …) and the
+  `stageAuroraResources` task that collects every tablet module's `composeResources` into one
+  directory — `aurora-build` only packages its own module's.
+- **Every popup and dialog is its own scene, in the untouched window.** Nothing applied at
+  the root reaches them, so `ForcedLandscape` and `ScaledUiDensity` are re-applied in
+  `DialogBackgroundDim` and in the organizer popup. The popup's position provider returns
+  `0,0` and the list is placed by hand.
+- **The window arrives portrait** on every device seen so far, so `ForcedLandscape` rotates
+  everywhere; it is not a phone-only path. What does differ between devices is where the
+  organizer list ends up — next to the field on the tablet, off to the side on the dev
+  phone — and that is not explained yet.
+- **The UI scale is fixed by the app.** The fork builds its scene as
+  `ComposeScene(density = Density(window.contentScale))` and `contentScale` comes from the
+  system, so `ScaledUiDensity` normalises the dp space to a baseline short side instead.
+
+#### Choosing the UI scale baseline
+
+Measured with the overlay (`win`/`d`/`fs`/`ui`):
+
+| device | window px | system density | dp space |
+|---|---|---|---|
+| Quadro T (Aurora) | 1200x2000, rotated to 2000x1200 | 1.80 | 1111x667 |
+| reference Android tablet | 1920x1200 | 1.75 | 1097x686 |
+| Android emulator (tablet profile) | 2560x1600 | 2.00 | 1280x800 |
+
+The two real devices differ by about 3%, not the 20–30% the first screenshots suggested —
+those compared different builds, and the fork draws text wider than Android does (most
+likely a different fallback font for Cyrillic). So the baseline is not correcting a density
+mismatch; it buys room for wider text.
+
+Three candidates, with what each costs:
+
+- **`800.dp` — what is in the code.** Aurora lays out in 1333x800 dp, ~15% more room than the
+  Android reference; the wrapping is gone, verified on the device. Price: everything is ~15%
+  smaller than drawn.
+- **`686.dp`** — exact parity with the reference tablet. The UI is the size it was designed
+  at, but the wrapping comes back and has to be fixed in the texts and layout.
+- **`~740.dp`** — the middle, ~8% smaller than the reference. Untested.
+
+### Not covered yet
+
+- **Keyboard input.** The fork delivers maliit input as ordinary key events and fills
+  `codePoint` only for `Char` events; whether the field actually types is unverified. The key
+  events are logged under the `OrganizerPicker` tag.
+- **Settings live in memory** — multiplatform-settings has no linux target, so the selected
+  room does not survive a restart. `ru.auroraos.kmp:ak-shared-preferences` exists in the fork
+  and is the intended replacement.
+- **No FCM,** so room updates do not arrive by push.
+- **No kiosk mode** — the Android device-admin/lock-task path has no Aurora equivalent here.
+
 ## Architecture
 
 ### Tablet Application Architecture
