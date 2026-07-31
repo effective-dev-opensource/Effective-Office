@@ -323,16 +323,20 @@ compared different builds, and the fork draws text wider than Android does (most
 different fallback font for Cyrillic). So the baseline is not correcting a density mismatch; it
 buys room for wider text.
 
-Three candidates, with what each costs:
+**The baseline is `686.dp`, and the parity it gives is exact rather than approximate.** Both real
+devices are **1200 px on the short side** — the Quadro's window is 1200x2000, the Android reference
+1920x1200 — so 1200/686 = 1.7493 against Android's own 1.75. The two lay out identically, in dp and
+in pixels. The ~3% in the table above is the gap between the devices' *system* densities, which is
+not what the app ends up using.
 
-- **`800.dp` — what is in the code.** Aurora lays out in 1333x800 dp, ~15% more room than the
-  Android reference; the wrapping is gone, verified on the device. Price: everything is ~15%
-  smaller than drawn.
-- **`686.dp`** — exact parity with the reference tablet. The UI is the size it was designed at,
-  but the wrapping comes back and has to be fixed in the texts and layout.
-- **`~740.dp`** — the middle, ~8% smaller than the reference. Untested.
+The alternative was **`800.dp`**, which is what the code carried first: it lays Aurora out in
+1333x800 dp, ~15% more room than the reference, which hides the fact that the fork draws Cyrillic
+wider — at the price of everything being ~15% smaller than it was drawn. Parity is the better
+default; the wrapping that 800 was hiding has to be fixed in the texts and layout instead.
 
-The metrics overlay and `ScaledUiDensity` are scaffolding: once the baseline is settled, the
+Two caveats on the current number. It has not been looked at on the Quadro since the change — the
+arithmetic is solid, what it does to the wrapping is not verified. And the metrics overlay and
+`ScaledUiDensity` are still scaffolding: once someone has confirmed the layout on the device, the
 debug line should come out.
 
 ## Gotchas
@@ -365,5 +369,6 @@ Each of these cost at least one round of on-device debugging.
   but they are not the application's icons and need replacing.
 - **The dropdown position differs between devices** — next to the field on the tablet, off to the
   side on the dev phone. Unexplained.
-- **The scale baseline has not been re-checked** on the target tablet since the number was
-  chosen — see the baseline section.
+- **The scale baseline has not been looked at on the target tablet** since it was moved to 686 dp
+  for parity. The arithmetic is exact; whether the text wrapping that 800 dp was hiding is
+  acceptable is unverified. See the baseline section.
