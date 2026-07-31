@@ -20,6 +20,8 @@ import band.effective.office.tablet.core.domain.useCase.ResourceDisposerUseCase
 import band.effective.office.tablet.core.ui.platform.ForcedLandscape
 import band.effective.office.tablet.core.ui.platform.ScaledUiDensity
 import band.effective.office.tablet.core.ui.theme.AppTheme
+import band.effective.office.tablet.feature.main.domain.CurrentTimeHolder
+import band.effective.office.tablet.feature.main.domain.CurrentTimeTicker
 import band.effective.office.tablet.navigation.AppNavHost
 import band.effective.office.tablet.platform.statusBarInset
 import org.koin.compose.koinInject
@@ -36,6 +38,11 @@ fun AppRoot() {
                     val checkSettingsUseCase = koinInject<CheckSettingsUseCase>()
 
                     LaunchedEffect(Unit) { resourceDisposerUseCase() }
+                    // AppRoot is the one root shared by setContent, ComposeUIViewController and
+                    // the linux application {} — the clock is started here so every platform gets it.
+                    LaunchedEffect(Unit) {
+                        CurrentTimeTicker().start(this, CurrentTimeHolder::updateTime)
+                    }
 
                     val startRoomConfigured = remember { checkSettingsUseCase().isNotEmpty() }
                     Box(
