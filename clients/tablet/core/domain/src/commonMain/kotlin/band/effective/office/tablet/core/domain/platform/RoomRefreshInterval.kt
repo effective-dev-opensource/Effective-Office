@@ -9,8 +9,9 @@ import kotlin.time.Duration
  * service in `androidMain`. iOS and Aurora therefore have to poll, or a booking made from a laptop
  * never reaches them at all.
  *
- * Android polls too at the moment, which is **temporary** — see the comment on its actual. Push
- * makes polling unnecessary there, but only for as long as the push actually arrives; when it does
- * not, nothing else notices, and the screen stays wrong until the app is restarted.
+ * Android stays on push alone and polls not at all. Worth knowing what that costs: if a push fails
+ * to arrive, nothing else notices — the room list is served from the cache, and the cache is only
+ * refreshed by a push — so the screen stays wrong until the app is restarted. A low-frequency
+ * backstop here would close that off.
  */
 expect val roomRefreshInterval: Duration?

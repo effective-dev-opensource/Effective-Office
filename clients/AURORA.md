@@ -292,10 +292,11 @@ after startup at all.
 iOS turned out to need the same thing for the same reason — there is no Firebase in `iosMain`
 either, so `Collector.emit` is never called there.
 
-**Android polls too right now, and that is temporary.** Android does have real push; the interval
-is set as a backstop while the Aurora work is under test, because a push that fails to arrive
-leaves the screen wrong silently and indefinitely — it was caught exactly that way during testing.
-Revert it to `null` once push delivery is confirmed end to end.
+Android stays on push alone. Worth knowing what that costs, because it was seen during testing: the
+emulator showed a slot as free for an hour after another client had booked it, and the backend had
+the booking the whole time. A push that does not arrive is indistinguishable from nothing having
+changed — the screen stays wrong until the app is restarted, which on a wall-mounted tablet can be
+weeks. A deliberately low-frequency backstop here would close that off.
 
 ## Layout: orientation, insets and scale
 
@@ -395,9 +396,7 @@ Each of these cost at least one round of on-device debugging.
   locale through Qt; wiring it up and localising the dates belong together.
 - **The time ticker is naive** — one coroutine tick a minute, so clock and timezone changes are
   noticed late.
-- **No FCM,** so room updates arrive by polling once a minute rather than by push. Separately,
-  **Android is polling temporarily** as a backstop and should go back to `null` — see the push
-  section.
+- **No FCM,** so room updates arrive by polling once a minute rather than by push.
 - **No kiosk mode** — there is no Aurora equivalent of the Android device-admin / lock-task path.
 - **The icons are wrong.** `clients/tablet/composeApp/icons` holds four PNGs of the right sizes,
   but they are not the application's icons and need replacing.
