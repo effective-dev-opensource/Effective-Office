@@ -3,6 +3,10 @@ package band.effective.office.tablet.core.ui.platform
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+actual val forceLandscape: Boolean = true
+
+actual val popupIsSeparateScene: Boolean = true
+
 /**
  * Parity with the reference Android tablet, and it happens to be exact.
  *
