@@ -1,6 +1,8 @@
 package band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -85,18 +88,37 @@ fun DateTimePicker(
         // in here — re-apply them, the same way EventOrganizerView does for its popup layer.
         InactivityTracker(modifier = Modifier.fillMaxSize()) {
             ForcedLandscape {
+                // Dismiss-on-tap-outside by hand, the way ModalHost does it: those wrappers make the
+                // dialog's content fill the window, so there is no area left for the platform's own
+                // dismissOnClickOutside to detect. Transparent, not dimmed — the modal host under
+                // this window already draws the dim. The inner Box absorbs taps on the card so they
+                // do not reach the dismissing one.
                 ScaledUiDensity(modifier = Modifier.fillMaxSize()) {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = onCloseRequest,
+                            ),
                         contentAlignment = Alignment.Center,
                     ) {
-                        DateTimePickerBody(
-                            currentDate = currentDate,
-                            onCloseRequest = onCloseRequest,
-                            onChangeDate = onChangeDate,
-                            onChangeTime = onChangeTime,
-                            enableDateButton = enableDateButton,
-                        )
+                        Box(
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = {},
+                            ),
+                        ) {
+                            DateTimePickerBody(
+                                currentDate = currentDate,
+                                onCloseRequest = onCloseRequest,
+                                onChangeDate = onChangeDate,
+                                onChangeTime = onChangeTime,
+                                enableDateButton = enableDateButton,
+                            )
+                        }
                     }
                 }
             }
