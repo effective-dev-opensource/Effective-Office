@@ -53,6 +53,10 @@ import kotlinx.datetime.toLocalDateTime
  * Deliberately no LazyVerticalGrid and no FlowRow: both are SubcomposeLayout, which this dialog
  * avoids on purpose (see DateTimePicker). A fixed 6x7 of Columns and Rows needs nothing beyond
  * compose.foundation.
+ *
+ * `monthNumber` is used rather than `month.number` even though the compiler calls it deprecated:
+ * the Aurora variant builds against the fork's own kotlinx-datetime (`0.7.1-aurora`), which has no
+ * `Month.number`. Following the deprecation warning here breaks the linux build.
  */
 @Composable
 actual fun DatePickerView(
