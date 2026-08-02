@@ -136,7 +136,7 @@ and iOS already had, plus two package squats.
 | Drawables | `core.ui.res.painterResource` / `vectorResource` | own loader + vendored vector XML parser | SVG ignores `tint` |
 | Date formatting | `LocalDateTime.toLocalisedString` | hand-rolled pattern expansion | month names hardcoded |
 | Locale | `getCurrentLanguageCode` | hardcoded `"ru"` | not read from the system |
-| Current time | `TimeReceiver` | coroutine ticking once a minute | time/zone changes noticed late |
+| Current time | `TimeReceiver` | coroutine ticking once a minute, aligned to `:00` | time/zone changes noticed late |
 | Settings | `SettingsStore` | in-memory map | does not survive a restart |
 | Date picker | `DatePickerView` | own month grid | Material3's is unusable, see below |
 | Time picker | `TimePickerView` | Material3 | — |
@@ -201,13 +201,22 @@ means an English build would still print Russian months.
 
 ### Current time
 
-`TimeReceiver` on Android is a `BroadcastReceiver` for system time changes; on iOS it is an
-`NSTimer` on the main run loop. On linux there is neither, so the actual simply launches a
-coroutine on `Dispatchers.Default` that sleeps 60 seconds and pushes
-`Clock.System.now()` into `CurrentTimeHolder`, forever.
+`TimeReceiver` is an `expect class` with one implementation per platform, because each system has
+its own way of waking an app once a minute and using it is what keeps a wall-mounted tablet off the
+battery. Android registers a `BroadcastReceiver` for `ACTION_TIME_TICK` (the system's own minute
+cadence, so no timer at all) plus `ACTION_TIME_CHANGED` and `ACTION_TIMEZONE_CHANGED`; iOS puts an
+`NSTimer` on the main run loop and observes `NSSystemClockDidChange`. On linux there is neither, so
+the actual launches a coroutine on `Dispatchers.Default` — `CurrentTimeTicker`, which sleeps to the
+next whole minute and pushes `Clock.System.now()` into `CurrentTimeHolder`, forever.
 
-The practical difference: a manual clock change or a timezone switch is not observed, it is only
-picked up at the next tick. For a wall-mounted room tablet that is acceptable; it is still a
+The instance comes from Koin: `timeReceiverModule()` is an expect module in the shape of
+`settingsStoreModule()`, because only Android's implementation needs a `Context` and only Android's
+graph has one. `AppRoot` starts and stops it, which is the one root all three platforms share — an
+earlier version constructed it in `AppActivity` alone, and the clock silently never moved on iOS or
+Aurora.
+
+The practical difference on linux: a manual clock change or a timezone switch is not observed, it is
+only picked up at the next tick. For a wall-mounted room tablet that is acceptable; it is still a
 polyfill and not an equivalent.
 
 ### Settings
@@ -396,8 +405,9 @@ Each of these cost at least one round of on-device debugging.
   section; `ru.auroraos.kmp:ak-shared-preferences` is the intended fix.
 - **The locale is hardcoded** to `ru`, and with it the month names. Aurora exposes the system
   locale through Qt; wiring it up and localising the dates belong together.
-- **The time ticker is naive** — one coroutine tick a minute, so clock and timezone changes are
-  noticed late.
+- **The time ticker is naive on Aurora** — one coroutine tick a minute (aligned to `:00`, so the
+  displayed minute flips with the wall clock), but clock and timezone changes are still noticed
+  only at the next tick. Android and iOS are woken by the system and see them at once.
 - **No FCM,** so room updates arrive by polling once a minute rather than by push.
 - **No kiosk mode** — there is no Aurora equivalent of the Android device-admin / lock-task path.
 - **The icons are wrong.** `clients/tablet/composeApp/icons` holds four PNGs of the right sizes,
