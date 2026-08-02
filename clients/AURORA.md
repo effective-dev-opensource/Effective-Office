@@ -30,7 +30,16 @@ Packaging and deploy additionally need Docker (the Aurora build tools image) and
 ./gradlew -PbuildVariant=aurora :clients:tablet:composeApp:runReleaseOnDevice
 ```
 
-Logs leave the device through journald: `ssh defaultuser@<ip> journalctl -f`.
+Logs leave the device through journald, but **`ssh defaultuser@<ip> journalctl -f` does not work** —
+`defaultuser` is not in the `systemd-journal` group, so it answers "No journal files were opened due
+to insufficient permissions". There is no `sudo` on the device either. Three ways that do work:
+
+- **the output of the deploy task itself.** `runReleaseOnDevice` streams the app's stdout back, and
+  that is usually all you want: one log per run, which lines up with one test scenario per run.
+- `ssh -t defaultuser@<ip> "devel-su journalctl -f"` — a continuous log across runs. The `-t` is
+  required, or `devel-su` cannot prompt for the developer password.
+- one-time `ssh -t defaultuser@<ip> "devel-su usermod -a -G systemd-journal defaultuser"`, after
+  which the plain command above works.
 
 ## How the build variant is wired
 
@@ -367,12 +376,19 @@ Each of these cost at least one round of on-device debugging.
 - **stdout is fully buffered under journald,** hence the flush after every log line.
 - **The window arrives portrait** on every device seen so far, so `ForcedLandscape` rotates
   everywhere; it is not a phone-only path.
+- **The system's own gestures stay in the portrait window,** because `ForcedLandscape` is a
+  `rotate(90f)` — a drawing effect that never touches the window's geometry. Confirmed on a
+  TrustPhone T1: holding the phone sideways so the content reads horizontally, the close gesture
+  fires from the physical *side* edge and swiping up from the bottom does nothing. Nothing in the
+  app can move those zones; it needs real window orientation from the fork
+  (`ru.auroraos.kmp.window`).
+- **Keyboard input works** — verified on a TrustPhone T1: the organizer field types from the maliit
+  keyboard and the list filters as you go. The fork delivers the input as ordinary key events and
+  fills `codePoint` only for `Char` events; they are logged under the `OrganizerPicker` tag if this
+  ever needs looking at again.
 
 ## Not finished yet
 
-- **Keyboard input.** The fork delivers maliit input as ordinary key events and fills `codePoint`
-  only for `Char` events; whether the field actually types is unverified. The key events are
-  logged under the `OrganizerPicker` tag.
 - **Settings live in memory** — the selected room does not survive a restart. See the settings
   section; `ru.auroraos.kmp:ak-shared-preferences` is the intended fix.
 - **The locale is hardcoded** to `ru`, and with it the month names. Aurora exposes the system
