@@ -100,10 +100,16 @@ class DateTimePickerComponent(
         startDate: LocalDateTime,
         finishDate: LocalDateTime
     ) {
+        // busyEvents already keeps only the events that overlap the candidate slot, so all that is
+        // left is to drop the booking being edited — it is allowed to overlap itself. Match it by
+        // id, the way BookingEditorViewModel.checkForBusyEvents does: comparing start times instead
+        // both hid someone else's booking that happened to start at the same minute and blocked
+        // moving your own booking onto free time that merely touched its old slot. A blank id means
+        // a booking that does not exist yet, so there is nothing to exclude.
         val busyEvents: List<EventInfo> = checkBookingUseCase.busyEvents(
             event = event.copy(startTime = startDate, finishTime = finishDate),
             room = room
-        ).filter { it.startTime != startDate }
+        ).filter { busy -> event.id.isBlank() || busy.id != event.id }
 
         val isEnabled = busyEvents.isEmpty()
         mutableState.update { it.copy(isEnabledButton = isEnabled) }
