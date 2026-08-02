@@ -16,7 +16,7 @@ import androidx.compose.ui.platform.LocalDensity
  * after the rotation is exactly W×H and covers the screen. A no-op on a landscape window and on
  * Android and iOS.
  *
- * EVERY layer has to be wrapped: the fork renders `Popup` and `dialog<>` as separate scenes in
+ * EVERY layer has to be wrapped: the fork renders `Popup` and `Dialog` as separate scenes in
  * the untouched window, and nothing applied at the root reaches them.
  */
 @Composable

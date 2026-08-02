@@ -38,10 +38,11 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * Main composable for the Fast Booking feature.
  * Displays different views based on [FastBookingModal] in the current state.
- * Hosted as a `dialog<>` destination — the surrounding dialog window is provided by the NavHost.
+ * Hosted as a state-driven overlay in the main composition — the scrim around it comes from
+ * `ModalHost`, not from a dialog window of its own.
  *
  * @param viewModel manages the fast-booking state and logic
- * @param onClose called when the flow requests to close (pops the dialog destination)
+ * @param onClose called when the flow requests to close (clears the active modal)
  */
 @Composable
 fun FastBooking(

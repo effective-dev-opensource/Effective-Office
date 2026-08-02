@@ -18,7 +18,7 @@ import androidx.compose.ui.input.pointer.pointerInput
  *   this wrapper would see nothing.
  * - **Nothing is consumed.** No `consume()` on the changes, and `onPreviewKeyEvent` returns false —
  *   this is an observer, and the moment it starts swallowing input it becomes a bug.
- * - **One instance per scene layer.** A `Popup` and a `dialog<>` are separate windows on Android
+ * - **One instance per scene layer.** A `Popup` and a `Dialog` are separate windows on Android
  *   and separate scenes in the Aurora fork, so neither sees a wrapper installed at the root. The
  *   layers are the same three that already re-apply `ForcedLandscape` and `ScaledUiDensity`.
  *

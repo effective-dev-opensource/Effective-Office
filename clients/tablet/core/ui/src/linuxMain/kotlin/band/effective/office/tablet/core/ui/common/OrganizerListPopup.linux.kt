@@ -52,8 +52,8 @@ internal actual fun OrganizerListPopup(
         // ourselves with offset — so the layer is stretched to fill the window, or the
         // offset list would fall outside its own window and be clipped.
         // The popup layer is also a separate scene in the fork's unrotated window, so the
-        // rotation and the inactivity tracker are re-applied here (same as for modals in
-        // DialogBackgroundDim).
+        // rotation and the inactivity tracker are re-applied here (same as for the date/time
+        // picker's own Dialog).
         InactivityTracker(modifier = Modifier.fillMaxSize()) {
             ForcedLandscape {
                 // Its own scene means the system density too, so re-apply the scale.
