@@ -1,5 +1,9 @@
 package band.effective.office.tablet.platform
 
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.isDebug
+
+actual val statusBarInset: Dp = 0.dp
 
 actual val showDiagnosticsOverlay: Boolean = isDebug
