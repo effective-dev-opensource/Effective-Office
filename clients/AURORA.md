@@ -133,7 +133,7 @@ and iOS already had, plus two package squats.
 | Time picker | `TimePickerView` | Material3 | — |
 | Logging | `Napier` | package squat + `fflush` | — |
 | `@Preview` | `org.jetbrains.compose.ui.tooling.preview.Preview` | package squat | annotation is inert |
-| Push notifications | — | none | no room updates by push |
+| Push notifications | — | none — polling instead | see below |
 
 ### Drawables: the resource facade and the vector XML parser
 
@@ -267,10 +267,26 @@ Two more details make it actually usable on a device:
 file only. It carries every parameter the call sites use (`widthDp`, `heightDp`, `locale`, …) or
 the module would not compile; the annotation itself does nothing.
 
-### Push notifications
+### Push notifications, and the polling that replaces them
 
-There is no FCM on Aurora and no substitute wired up, so the room list is never updated by push —
-only by the app's own polling.
+There is no FCM on Aurora and no substitute wired up, so nothing is ever pushed here.
+
+Polling covers it instead: `roomRefreshInterval` in `core:domain/platform` is a minute on linux and
+drives `PeriodicRoomRefreshUseCase`, which calls `RefreshDataUseCase` on a timer. That is enough on
+its own — the refresh writes into the local repository's buffer, and the main screen is already
+subscribed to it, so the existing chain carries the update the rest of the way.
+
+Note that `UpdateUseCase`, which also ticks, is **not** this: it only asks the screen to reload, and
+the reload is served from the cache. Before the polling was added, Aurora never re-read the server
+after startup at all.
+
+iOS turned out to need the same thing for the same reason — there is no Firebase in `iosMain`
+either, so `Collector.emit` is never called there.
+
+**Android polls too right now, and that is temporary.** Android does have real push; the interval
+is set as a backstop while the Aurora work is under test, because a push that fails to arrive
+leaves the screen wrong silently and indefinitely — it was caught exactly that way during testing.
+Revert it to `null` once push delivery is confirmed end to end.
 
 ## Layout: orientation, insets and scale
 
@@ -363,7 +379,9 @@ Each of these cost at least one round of on-device debugging.
   locale through Qt; wiring it up and localising the dates belong together.
 - **The time ticker is naive** — one coroutine tick a minute, so clock and timezone changes are
   noticed late.
-- **No FCM,** so room updates never arrive by push.
+- **No FCM,** so room updates arrive by polling once a minute rather than by push. Separately,
+  **Android is polling temporarily** as a backstop and should go back to `null` — see the push
+  section.
 - **No kiosk mode** — there is no Aurora equivalent of the Android device-admin / lock-task path.
 - **The icons are wrong.** `clients/tablet/composeApp/icons` holds four PNGs of the right sizes,
   but they are not the application's icons and need replacing.
