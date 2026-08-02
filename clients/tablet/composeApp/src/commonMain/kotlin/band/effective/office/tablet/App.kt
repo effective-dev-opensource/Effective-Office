@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -23,11 +24,10 @@ import band.effective.office.tablet.core.ui.inactivity.InactivityTracking
 import band.effective.office.tablet.core.ui.platform.ForcedLandscape
 import band.effective.office.tablet.core.ui.platform.ScaledUiDensity
 import band.effective.office.tablet.core.ui.theme.AppTheme
-import band.effective.office.tablet.feature.main.domain.CurrentTimeHolder
-import band.effective.office.tablet.feature.main.domain.CurrentTimeTicker
 import band.effective.office.tablet.navigation.AppNavHost
 import band.effective.office.tablet.platform.showDiagnosticsOverlay
 import band.effective.office.tablet.platform.statusBarInset
+import band.effective.office.tablet.time.TimeReceiver
 import org.koin.compose.koinInject
 
 @Composable
@@ -47,8 +47,10 @@ fun AppRoot() {
                         LaunchedEffect(Unit) { resourceDisposerUseCase() }
                         // AppRoot is the one root shared by setContent, ComposeUIViewController and
                         // the linux application {} — so the app-wide timers are started here.
-                        LaunchedEffect(Unit) {
-                            CurrentTimeTicker().start(this, CurrentTimeHolder::updateTime)
+                        val timeReceiver = koinInject<TimeReceiver>()
+                        DisposableEffect(Unit) {
+                            timeReceiver.start()
+                            onDispose { timeReceiver.stop() }
                         }
                         LaunchedEffect(Unit) {
                             InactivityTracking.start { DateResetManager.resetDate() }

@@ -11,48 +11,50 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 /**
- * Android-only: reacts to the clock or the time zone being changed under the app, so the screen
- * does not keep showing the old time until the next tick.
+ * Android: the system already sends a broadcast on every whole minute, so there is no timer here
+ * at all — the cheapest of the three implementations, and aligned to :00 for free.
  *
- * The ordinary once-a-minute cadence is not handled here — that is
- * [band.effective.office.tablet.feature.main.domain.CurrentTimeTicker], which runs on every
- * platform. ACTION_TIME_TICK is therefore deliberately not subscribed to: it would only duplicate
- * the ticker.
+ * - `ACTION_TIME_TICK` is the minute cadence. It cannot be declared in the manifest; a receiver
+ *   registered at runtime is the only way to get it.
+ * - `ACTION_TIME_CHANGED` and `ACTION_TIMEZONE_CHANGED` cover the clock or the zone being moved
+ *   under the app, so the screen does not keep showing the old time until the next tick.
+ *
+ * The context is the application context (see `androidContext(applicationContext)` in `App`), not
+ * an activity — the receiver outlives any single activity and would otherwise leak one.
  */
-class TimeReceiver(private val context: Context) {
+actual class TimeReceiver(private val context: Context) {
+
+    private var registered = false
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
-                Intent.ACTION_TIME_CHANGED, Intent.ACTION_TIMEZONE_CHANGED -> {
+                Intent.ACTION_TIME_TICK,
+                Intent.ACTION_TIME_CHANGED,
+                Intent.ACTION_TIMEZONE_CHANGED -> {
                     CurrentTimeHolder.updateTime(getCurrentTime())
                 }
             }
         }
     }
 
-    /**
-     * Registers the broadcast receiver to listen for time-related broadcasts.
-     */
-    fun register() {
+    actual fun start() {
+        if (registered) return
         val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_TIME_TICK)
             addAction(Intent.ACTION_TIME_CHANGED)
             addAction(Intent.ACTION_TIMEZONE_CHANGED)
         }
         context.registerReceiver(receiver, filter)
+        registered = true
     }
 
-    /**
-     * Unregisters the broadcast receiver.
-     */
-    fun unregister() {
+    actual fun stop() {
+        if (!registered) return
         context.unregisterReceiver(receiver)
+        registered = false
     }
 
-    /**
-     * Gets the current time as a LocalDateTime.
-     */
-    private fun getCurrentTime(): LocalDateTime {
-        return Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-    }
+    private fun getCurrentTime(): LocalDateTime =
+        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
 }
