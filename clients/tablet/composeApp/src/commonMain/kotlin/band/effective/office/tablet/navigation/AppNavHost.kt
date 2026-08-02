@@ -141,13 +141,16 @@ private sealed interface ActiveModal {
  * taps on the content are absorbed.
  *
  * No rotation/density/inactivity wrappers here, unlike the `dialog<>` hosting this replaced: an
- * overlay is part of the main scene, so the ones `AppRoot` installs already cover it.
+ * overlay is part of the main scene, so the ones `AppRoot` installs already cover it. The back
+ * gesture, on the other hand, has to be caught here — see [ModalBackHandler].
  */
 @Composable
 private fun ModalHost(
     onDismiss: () -> Unit,
     content: @Composable () -> Unit,
 ) {
+    ModalBackHandler(onBack = onDismiss)
+
     val storeOwner = remember {
         object : ViewModelStoreOwner {
             override val viewModelStore: ViewModelStore = ViewModelStore()
