@@ -305,13 +305,15 @@ a no-op on Android and iOS.
 
 | API | What it does | Where it is applied |
 |---|---|---|
-| `ForcedLandscape` | rotates content to landscape when the window arrives portrait | root, `DialogBackgroundDim`, organizer popup |
+| `ForcedLandscape` | rotates content to landscape when the window arrives portrait | root, date/time picker `Dialog`, organizer popup |
 | `ScaledUiDensity` | normalises the dp space to `uiScaleBaseline` by the short side | same three |
 | `statusBarInset` | padding for Aurora's status bar | root, **inside** the rotated content |
 
-**Why three layers and not just the root.** The fork renders `Popup` and `dialog<>` as separate
+**Why three layers and not just the root.** The fork renders `Popup` and `Dialog` as separate
 scenes, in the untouched window and with the system density. Nothing applied at the root reaches
-them, so both wrappers are re-applied in every layer.
+them, so both wrappers are re-applied in every layer. The modals themselves no longer need a layer:
+they are state-driven overlays in the main scene (the date/time picker's own `Dialog` is the only
+dialog window left — see AppNavHost for why).
 
 **Why the popup is positioned by hand.** Its position provider returns `0,0`, the layer is
 stretched to fill the window, and the list itself is moved with `offset`. The stretching is not
