@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +23,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import band.effective.office.tablet.core.domain.model.EventInfo
+import band.effective.office.tablet.core.ui.inactivity.InactivityTracking
 import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditor
 import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditorViewModel
 import band.effective.office.tablet.feature.fastBooking.presentation.FastBooking
@@ -54,6 +56,15 @@ fun AppNavHost(startRoomConfigured: Boolean) {
     val navController = rememberNavController()
     var activeModal by remember { mutableStateOf<ActiveModal?>(null) }
     val startDestination: Any = if (startRoomConfigured) MainRoute else SettingsRoute
+
+    // The tablet returns to the room it was set up with when nobody has touched it for a minute.
+    // The modal has to go with it: it addresses the room it was opened for, so leaving it up would
+    // put "Book B" over a screen that has already gone back to A — and the next person books the
+    // wrong room. Closing the overlay takes the date/time picker with it, since that lives inside
+    // the booking editor's composition.
+    LaunchedEffect(Unit) {
+        InactivityTracking.timeouts.collect { activeModal = null }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(navController = navController, startDestination = startDestination) {

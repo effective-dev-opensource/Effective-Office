@@ -6,6 +6,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 /**
  * Process-wide inactivity countdown, driven by the UI through [onUserInteraction].
@@ -19,6 +23,21 @@ object InactivityTracking {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
+    private val _timeouts = MutableSharedFlow<Unit>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+
+    /**
+     * Fires once the tablet has sat untouched for the timeout.
+     *
+     * A flow rather than the single callback it used to be, because more than one layer has to
+     * react to the same tick: the main screen goes back to the room the tablet was set up with,
+     * and a modal open on top of it has to close. Without the second one the modal stays, still
+     * addressing the room it was opened for, over a screen that has already moved on.
+     */
+    val timeouts: SharedFlow<Unit> = _timeouts.asSharedFlow()
+
     private var timer: InactivityTimer? = null
     private var job: Job? = null
 
@@ -26,9 +45,10 @@ object InactivityTracking {
      * Starts (or restarts) tracking. Idempotent: calling it again replaces the previous countdown
      * rather than stacking a second one, so a recreated composition does not double-fire.
      */
-    fun start(timeout: Duration = DEFAULT_TIMEOUT, onTimeout: () -> Unit) {
+    fun start(timeout: Duration = DEFAULT_TIMEOUT) {
         stop()
-        timer = InactivityTimer(timeout, onTimeout).also { job = it.start(scope) }
+        timer = InactivityTimer(timeout) { _timeouts.tryEmit(Unit) }
+            .also { job = it.start(scope) }
     }
 
     fun stop() {

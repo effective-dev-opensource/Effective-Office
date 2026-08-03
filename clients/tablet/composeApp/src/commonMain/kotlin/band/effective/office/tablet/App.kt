@@ -53,7 +53,8 @@ fun AppRoot() {
                             onDispose { timeReceiver.stop() }
                         }
                         LaunchedEffect(Unit) {
-                            InactivityTracking.start { DateResetManager.resetDate() }
+                            InactivityTracking.start()
+                            InactivityTracking.timeouts.collect { DateResetManager.resetDate() }
                         }
 
                         val startRoomConfigured = remember { checkSettingsUseCase().isNotEmpty() }
