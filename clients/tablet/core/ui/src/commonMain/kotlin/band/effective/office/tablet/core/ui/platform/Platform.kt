@@ -33,9 +33,10 @@ expect val popupIsSeparateScene: Boolean
  *
  * The Compose scene density cannot be set on Aurora: the fork creates the scene as
  * `ComposeScene(density = Density(ru.auroraos.kmp.window.contentScale.toFloat()))`, and
- * `contentScale` arrives from the system together with the window. So the dp space is fixed
- * here instead: 800 dp on the short side is a familiar 10" tablet (the reference Android tablet
- * reports exactly the same — 2560x1600 at density 2.0).
+ * `contentScale` arrives from the system together with the window. So the dp space is fixed here
+ * instead, at the number that lays Aurora out like the reference Android tablet — the two devices
+ * are both 1200 px on the short side, so the baseline is derived from that rather than picked for
+ * a familiar screen size. The arithmetic is in the linux actual and in AURORA.md.
  *
  * On Android and iOS the system provides the density and scaling is off ([Dp] == 0).
  */
