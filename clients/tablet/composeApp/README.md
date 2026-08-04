@@ -27,6 +27,7 @@ composeApp/
 ## Key Components
 - **AppRoot**: Main application composable that provides the root `ViewModelStoreOwner`, theme, and `AppNavHost`
 - **AppNavHost**: Compose Navigation graph (`NavHost`/`NavController`) with type-safe routes; only the two full-screen `composable<>` destinations (Settings/Main). The modals (FreeRoom/BookingEditor/FastBooking) are state-driven overlays hosted by `ModalHost` alongside the graph, not destinations — calf's native iOS pickers do not receive touches inside a Compose dialog window
+- **ModalHost**: the dim behind a modal overlay, its own `ViewModelStoreOwner`, the back gesture, and the shift that keeps the field being typed into clear of the on-screen keyboard
 - **DI**: Dependency injection setup for the application
 - **Theme**: Application-wide styling and theming
 

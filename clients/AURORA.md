@@ -309,7 +309,7 @@ weeks. A deliberately low-frequency backstop here would close that off.
 
 ## Layout: orientation, insets and scale
 
-Three declarations in `core:ui/platform` and `composeApp/platform` are switched by a flag and are
+The declarations in `core:ui/platform` and `composeApp/platform` are switched by a flag and are
 a no-op on Android and iOS.
 
 | API | What it does | Where it is applied |
@@ -317,6 +317,13 @@ a no-op on Android and iOS.
 | `ForcedLandscape` | rotates content to landscape when the window arrives portrait | root, date/time picker `Dialog`, organizer popup |
 | `ScaledUiDensity` | normalises the dp space to `uiScaleBaseline` by the short side | same three |
 | `statusBarInset` | padding for Aurora's status bar | root, **inside** the rotated content |
+| `softKeyboardOverlapPx` | how much of the content the keyboard covers | `ModalHost`, to keep the focused field visible |
+
+**The keyboard is the one that is still zero on Aurora.** Android reads the ime inset, iOS answers
+zero because the system has already shortened the scene, and the fork reports no keyboard insets at
+all — so a modal here does not move when maliit opens and the field being typed into can end up
+underneath it. The maliit session does carry the height (`Keyboard.listenState`), which is what
+would have to be picked up; see `Platform.linux.kt`.
 
 **Why three layers and not just the root.** The fork renders `Popup` and `Dialog` as separate
 scenes, in the untouched window and with the system density. Nothing applied at the root reaches
