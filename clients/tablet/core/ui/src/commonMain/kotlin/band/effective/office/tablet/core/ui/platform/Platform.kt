@@ -52,9 +52,9 @@ expect val uiScaleBaseline: Dp
  *   the content is already padded away from — hence the subtraction in the actual.
  * - **iOS** shortens the Compose scene to the area above the keyboard before anything of ours runs.
  *   Nothing is covered any more — the room is simply gone — so the answer is zero.
- * - **Aurora** answers zero as well, but for a different reason: the fork reports no keyboard insets
- *   at all. Its maliit session does know the height, and wiring that up is what would make the
- *   modal move there too.
+ * - **Aurora** covers the content the way Android does, but nothing tells the app about it — the
+ *   fork reports no keyboard insets at all. The height is taken from the maliit session instead,
+ *   which has to be asked rather than listened to; the linux actual says why.
  */
 @Composable
 expect fun softKeyboardOverlapPx(): Int

@@ -319,11 +319,25 @@ a no-op on Android and iOS.
 | `statusBarInset` | padding for Aurora's status bar | root, **inside** the rotated content |
 | `softKeyboardOverlapPx` | how much of the content the keyboard covers | `ModalHost`, to keep the focused field visible |
 
-**The keyboard is the one that is still zero on Aurora.** Android reads the ime inset, iOS answers
-zero because the system has already shortened the scene, and the fork reports no keyboard insets at
-all — so a modal here does not move when maliit opens and the field being typed into can end up
-underneath it. The maliit session does carry the height (`Keyboard.listenState`), which is what
-would have to be picked up; see `Platform.linux.kt`.
+**The keyboard is the one Aurora has to work out for itself.** Android reads the ime inset, iOS
+answers zero because the system has already shortened the scene, and the fork reports no keyboard
+insets at all — so the height comes from the maliit session directly, `Keyboard.height()` on a
+100 ms poll while a modal is on screen.
+
+It is polled rather than subscribed to because the events are unusable: `Keyboard.listenState`
+fires when the keyboard opens, but that event carries `height = 0` — maliit sends the size in a
+follow-up event which never reaches the app. Polling is the sturdier half anyway. There is no
+subscription to lose (the fork drops its listeners in `onWindowPause()` and never restores them —
+the same defect behind the organizer-input freeze); the answer grows as the keyboard slides in, so
+the modal follows it instead of jumping; and a keyboard swiped away behind the app's back, which
+the fork does not report either, reads as closed on the next tick.
+
+**This is aimed at the tablet, and only the tablet.** On the Quadro T the keyboard comes up along
+the bottom of the content, exactly where the shared `ModalHost` geometry expects it. On the dev
+phone it comes up along the right-hand side instead, where a vertical shift does nothing — the same
+device split as the dropdown that lands next to the field on the tablet and off to the side on the
+phone, and probably the same cause: the phone's window really is portrait and rotated by
+`ForcedLandscape`, while the tablet's is not.
 
 **Why three layers and not just the root.** The fork renders `Popup` and `Dialog` as separate
 scenes, in the untouched window and with the system density. Nothing applied at the root reaches

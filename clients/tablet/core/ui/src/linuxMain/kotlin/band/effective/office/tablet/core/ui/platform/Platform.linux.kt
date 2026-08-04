@@ -1,8 +1,12 @@
 package band.effective.office.tablet.core.ui.platform
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import ru.auroraos.kmp.keyboard.maliit.Keyboard
 
 actual val forceLandscape: Boolean = true
 
@@ -17,7 +21,35 @@ actual val popupIsSeparateScene: Boolean = true
  */
 actual val uiScaleBaseline: Dp = 686.dp
 
-// The fork reports no keyboard insets, so nothing here knows the keyboard is up and the modal stays
-// where it is. The maliit session does carry the height; picking it up is what would change this.
+/** How often the maliit session is asked how tall its keyboard is. */
+private const val KEYBOARD_POLL_MS = 100L
+
+/**
+ * The fork reports no keyboard insets, so the height is taken from the maliit session itself —
+ * asked for, not listened to.
+ *
+ * `Keyboard.listenState` does fire when the keyboard opens, but the state event carries
+ * `height = 0`: maliit sends the size in a follow-up event, and that one never reaches the app.
+ * `Keyboard.height()` answers correctly at any moment, so it is polled instead. Polling also
+ * happens to be the sturdier of the two here — there is no subscription to lose, and the fork
+ * drops its listeners on `onWindowPause()` without ever restoring them.
+ *
+ * The poll only runs while whoever reads this is on screen, which is the modal host, so nothing
+ * ticks on the main screen. It stays on the composition's dispatcher (the main thread) on purpose:
+ * the maliit binding is a Qt object and Qt objects are bound to the thread they were made on.
+ *
+ * Two things fall out of asking rather than being told, both wanted: the keyboard slides in over
+ * several frames and the answer grows with it, so the modal follows it up rather than jumping; and
+ * a keyboard swiped away behind the app's back — a real gesture on Aurora, and one the fork does
+ * not report — shows up as closed on the next tick and the modal comes back down.
+ */
 @Composable
-actual fun softKeyboardOverlapPx(): Int = 0
+actual fun softKeyboardOverlapPx(): Int {
+    val overlap by produceState(0) {
+        while (true) {
+            value = if (Keyboard.isOpen()) Keyboard.height().toInt() else 0
+            delay(KEYBOARD_POLL_MS)
+        }
+    }
+    return overlap
+}
