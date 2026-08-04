@@ -27,6 +27,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -59,10 +62,12 @@ import band.effective.office.tablet.core.ui.selectbox_organizer_error
 import band.effective.office.tablet.core.ui.selectbox_organizer_title
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h8
+import band.effective.office.tablet.core.ui.platform.LocalFocusedFieldBottom
 import band.effective.office.tablet.core.ui.platform.popupIsSeparateScene
 import band.effective.office.tablet.core.ui.res.painterResource
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.roundToInt
 
 private const val ORGANIZER_TAG = "OrganizerPicker"
 
@@ -86,6 +91,17 @@ fun EventOrganizerView(
     var textFieldCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val density = LocalDensity.current
 
+    // Tell whoever hosts this screen where the field's bottom edge is while it is being typed into,
+    // so it can keep it clear of the keyboard. Written from the layout callback rather than an
+    // effect: the edge moves when the platform resizes the scene under the keyboard, and a value
+    // cached off a coordinates reference would keep reporting where the field used to be. Cleared
+    // on focus loss and on the way out, or a stale edge would keep the host shifted.
+    var isFocused by remember { mutableStateOf(false) }
+    val focusedFieldBottom = LocalFocusedFieldBottom.current
+    DisposableEffect(focusedFieldBottom) {
+        onDispose { focusedFieldBottom?.value = null }
+    }
+
     Column(modifier = modifier) {
         Text(
             text = stringResource(Res.string.selectbox_organizer_title),
@@ -102,6 +118,11 @@ fun EventOrganizerView(
                     // This value is used to assign to
                     // the DropDown the same width
                     mTextFieldSize = coordinates.size.toSize()
+                    if (isFocused) {
+                        focusedFieldBottom?.value =
+                            (coordinates.positionInWindow().y + coordinates.size.height)
+                                .roundToInt()
+                    }
                 }
                 .clip(RoundedCornerShape(15.dp))
                 .background(color = LocalCustomColorsPalette.current.elevationBackground)
@@ -114,8 +135,11 @@ fun EventOrganizerView(
                     .then(if (popupIsSeparateScene) Modifier.logKeyEvents() else Modifier)
                     .onFocusChanged(
                         onFocusChanged = {
+                            isFocused = it.isFocused
                             if (it.isFocused) {
                                 onExpandedChange()
+                            } else {
+                                focusedFieldBottom?.value = null
                             }
                         }
                     ).onSizeChanged({ mTextFieldSize = it.toSize() })
