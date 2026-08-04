@@ -431,8 +431,6 @@ Each of these cost at least one round of on-device debugging.
   only at the next tick. Android and iOS are woken by the system and see them at once.
 - **No FCM,** so room updates arrive by polling once a minute rather than by push.
 - **No kiosk mode** — there is no Aurora equivalent of the Android device-admin / lock-task path.
-- **The icons are wrong.** `clients/tablet/composeApp/icons` holds four PNGs of the right sizes,
-  but they are not the application's icons and need replacing.
 - **The dropdown position differs between devices** — next to the field on the tablet, off to the
   side on the dev phone. Unexplained.
 - **The scale baseline has not been looked at on the target tablet** since it was moved to 686 dp
