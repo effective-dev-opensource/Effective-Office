@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.delay
 import ru.auroraos.kmp.keyboard.maliit.Keyboard
 
@@ -23,6 +24,12 @@ actual val uiScaleBaseline: Dp = 686.dp
 
 /** How often the maliit session is asked how tall its keyboard is. */
 private const val KEYBOARD_POLL_MS = 100L
+
+/**
+ * Tag for everything said about the keyboard, so a run can be read back off the device with
+ * `journalctl --no-pager | grep -E 'SoftKeyboard|OrganizerPicker'`.
+ */
+private const val KEYBOARD_TAG = "SoftKeyboard"
 
 /**
  * The fork reports no keyboard insets, so the height is taken from the maliit session itself —
@@ -47,9 +54,39 @@ private const val KEYBOARD_POLL_MS = 100L
 actual fun softKeyboardOverlapPx(): Int {
     val overlap by produceState(0) {
         while (true) {
-            value = if (Keyboard.isOpen()) Keyboard.height().toInt() else 0
+            // The binding is the fork's, and the fork disposes it from `onWindowPause()` without
+            // telling anyone, so a call landing after that is unmapped ground. A keyboard that
+            // cannot be measured is not worth an app, and it is not worth a log line every 100 ms
+            // either — say it once and stop asking.
+            val height = runCatching {
+                if (Keyboard.isOpen()) Keyboard.height().toInt() else 0
+            }.getOrElse {
+                Napier.e(throwable = it, tag = KEYBOARD_TAG) { "height poll failed, giving up" }
+                return@produceState
+            }
+            if (height != value) {
+                Napier.i(tag = KEYBOARD_TAG) { "overlap ${value}px -> ${height}px" }
+                value = height
+            }
             delay(KEYBOARD_POLL_MS)
         }
     }
     return overlap
+}
+
+actual fun closeSoftKeyboard() {
+    runCatching {
+        // Unconditionally, and `isOpen()` only goes into the log. That flag says whether the
+        // keyboard is on screen, and by the time editing ends it is already false: maliit hides
+        // itself the moment the Qt focus goes, a tick before the height even drops. The session
+        // behind it is the thing that is never torn down, and closing that is the entire point of
+        // this call — guarding it on visibility, as the first version did, meant it never ran once.
+        val visible = Keyboard.isOpen()
+        Keyboard.close()
+        Napier.i(tag = KEYBOARD_TAG) {
+            "closed the session, keyboard was ${if (visible) "up" else "already down"}"
+        }
+    }.onFailure {
+        Napier.e(throwable = it, tag = KEYBOARD_TAG) { "closing the session failed" }
+    }
 }

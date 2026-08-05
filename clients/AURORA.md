@@ -332,6 +332,40 @@ the same defect behind the organizer-input freeze); the answer grows as the keyb
 the modal follows it instead of jumping; and a keyboard swiped away behind the app's back, which
 the fork does not report either, reads as closed on the next tick.
 
+**The session is also closed by hand,** through `closeSoftKeyboard()` — a no-op on Android and iOS.
+The fork opens a maliit session when a field takes focus and then parks in `awaitCancellation()`
+with no `finally`, so it never stops one: the field is done being edited and maliit still believes
+it is feeding it. A session outliving its field is the likeliest trigger for the freeze where the
+app keeps drawing and polling but never receives another tap.
+
+Everything that ends editing therefore leaves through one door — the field losing focus — and that
+is where the session is closed. `Done` and picking a name from the list clear the focus to get
+there; so does a tap on the dim; and so does `ModalHost` when the poll says the keyboard went away
+while the field still held focus, which is the gesture testing reports the freeze on and the one
+case where nothing else would have noticed. `freeFocus()` used to stand in for this and could not
+work: it releases *captured* focus, and nothing here captures any.
+
+**How to read a run off the device.** The keyboard says what it is doing under the `SoftKeyboard`
+tag, the field under `OrganizerPicker`, the modal under `ModalHost`:
+
+```sh
+journalctl --since '<HH:MM>' --no-pager | grep -E 'SoftKeyboard|OrganizerPicker|ModalHost|Uncaught'
+```
+
+Picking a name from the list reads `field focus: true` → `overlap 0px -> Npx` → the key events →
+`field focus: false` → `closed the session` → `overlap Npx -> 0px`. Swiping the keyboard away
+instead leaves the field focused, so `overlap Npx -> 0px` → `keyboard gone on its own, field still
+focused: true` → `field focus: false` → `closed the session`; verified on the dev phone, where the
+whole sequence comes out in that order and the app stays alive.
+
+`keyboard was already down` on that line is normal and not a sign the close was pointless:
+`isOpen()` says whether the keyboard is on screen, maliit takes it down as soon as the Qt focus
+goes, and the session being closed outlives both.
+
+Every call into the fork's keyboard binding is wrapped, so a Kotlin exception from it is logged
+rather than fatal; a native crash inside the binding is not catchable that way, and the last line
+before silence is then the thing to look at.
+
 **This is aimed at the tablet, and only the tablet.** On the Quadro T the keyboard comes up along
 the bottom of the content, exactly where the shared `ModalHost` geometry expects it. On the dev
 phone it comes up along the right-hand side instead, where a vertical shift does nothing — the same

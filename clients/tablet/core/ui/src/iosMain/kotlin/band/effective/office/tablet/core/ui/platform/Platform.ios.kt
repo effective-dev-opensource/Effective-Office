@@ -14,3 +14,6 @@ actual val uiScaleBaseline: Dp = 0.dp
 // content is covered.
 @Composable
 actual fun softKeyboardOverlapPx(): Int = 0
+
+// UIKit takes the keyboard down with the focus by itself.
+actual fun closeSoftKeyboard() = Unit

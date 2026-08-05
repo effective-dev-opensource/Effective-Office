@@ -63,6 +63,7 @@ import band.effective.office.tablet.core.ui.selectbox_organizer_title
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h8
 import band.effective.office.tablet.core.ui.platform.LocalFocusedFieldBottom
+import band.effective.office.tablet.core.ui.platform.closeSoftKeyboard
 import band.effective.office.tablet.core.ui.platform.popupIsSeparateScene
 import band.effective.office.tablet.core.ui.res.painterResource
 import io.github.aakira.napier.Napier
@@ -99,7 +100,14 @@ fun EventOrganizerView(
     var isFocused by remember { mutableStateOf(false) }
     val focusedFieldBottom = LocalFocusedFieldBottom.current
     DisposableEffect(focusedFieldBottom) {
-        onDispose { focusedFieldBottom?.value = null }
+        onDispose {
+            focusedFieldBottom?.value = null
+            // The net under the branch above: the field can be taken off screen mid-edit — back,
+            // the inactivity reset — and no focus change is reported when that happens. Still
+            // focused on the way out is what says the session is ours to close.
+            Napier.i(tag = ORGANIZER_TAG) { "field gone, focused: $isFocused" }
+            if (isFocused) closeSoftKeyboard()
+        }
     }
 
     Column(modifier = modifier) {
@@ -135,11 +143,22 @@ fun EventOrganizerView(
                     .then(if (popupIsSeparateScene) Modifier.logKeyEvents() else Modifier)
                     .onFocusChanged(
                         onFocusChanged = {
+                            // Only a real loss counts. Compose reports the field as unfocused once
+                            // when it appears, and taking that for the end of editing would have
+                            // us tearing down a keyboard session nobody has started yet.
+                            val wasFocused = isFocused
                             isFocused = it.isFocused
+                            Napier.i(tag = ORGANIZER_TAG) { "field focus: ${it.isFocused}" }
                             if (it.isFocused) {
                                 onExpandedChange()
-                            } else {
+                            } else if (wasFocused) {
                                 focusedFieldBottom?.value = null
+                                // The field is done being edited, so the keyboard's session is
+                                // done too — on Aurora it has to be told. Everything that ends
+                                // editing comes through here: Done, a name picked from the list,
+                                // a tap on the dim, and the host catching a keyboard that went
+                                // away on its own.
+                                closeSoftKeyboard()
                             }
                         }
                     ).onSizeChanged({ mTextFieldSize = it.toSize() })
@@ -174,7 +193,11 @@ fun EventOrganizerView(
                         defaultKeyboardAction(ImeAction.Done)
                         onDoneInput(inputText)
                         onExpandedChange()
-                        focusRequester.freeFocus()
+                        // Dropping the focus, not freeing it: freeFocus() releases focus that was
+                        // captured, and nothing here ever captures any, so it did nothing and the
+                        // field stayed focused with the keyboard up. Everything that ends editing
+                        // now leaves through the same door, the branch above.
+                        focusManager.clearFocus()
                     }
                 ),
             )
@@ -192,7 +215,6 @@ fun EventOrganizerView(
                     selectOrganizers = selectOrganizers,
                     onSelectItem = onSelectItem,
                     onExpandedChange = onExpandedChange,
-                    focusRequester = focusRequester,
                     focusManager = focusManager,
                 )
             }
@@ -213,7 +235,6 @@ private fun OrganizerListBody(
     selectOrganizers: List<String>,
     onSelectItem: (String) -> Unit,
     onExpandedChange: () -> Unit,
-    focusRequester: FocusRequester,
     focusManager: FocusManager,
 ) {
     Column(
@@ -234,7 +255,7 @@ private fun OrganizerListBody(
                     .fillMaxWidth()
                     .clickable {
                         onSelectItem(organizer)
-                        focusRequester.freeFocus()
+                        // clearFocus() alone, for the reason the Done action gives.
                         focusManager.clearFocus()
                         onExpandedChange()
                     }

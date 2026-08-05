@@ -22,3 +22,6 @@ actual fun softKeyboardOverlapPx(): Int {
     val navigationBars = WindowInsets.navigationBars.getBottom(density)
     return maxOf(0, ime - navigationBars)
 }
+
+// The ime goes down with the focus by itself.
+actual fun closeSoftKeyboard() = Unit

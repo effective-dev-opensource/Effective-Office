@@ -60,6 +60,22 @@ expect val uiScaleBaseline: Dp
 expect fun softKeyboardOverlapPx(): Int
 
 /**
+ * Puts the on-screen keyboard away, for the platform that will not do it on its own.
+ *
+ * Only Aurora has work here. The fork starts a maliit session when a field takes focus and then
+ * parks in `awaitCancellation()` with no `finally`, so the session is never stopped: the field
+ * stops being edited and maliit still believes it is feeding one. That leftover session is the
+ * likeliest trigger for input being routed away from the app for good — the freeze that testing
+ * keeps hitting on the tablet. Closing it by hand is what the missing `finally` would have done.
+ *
+ * Android and iOS take their keyboard down together with the focus, so their actuals do nothing.
+ *
+ * Safe to call from anywhere, including where a failure would be awkward: the Aurora actual logs
+ * whatever the fork throws under the `SoftKeyboard` tag and returns.
+ */
+expect fun closeSoftKeyboard()
+
+/**
  * Bottom edge of the text field currently being typed into, in window pixels, or `null` when
  * nothing is focused.
  *

@@ -29,10 +29,14 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import band.effective.office.tablet.core.ui.platform.LocalFocusedFieldBottom
 import band.effective.office.tablet.core.ui.platform.softKeyboardOverlapPx
+import io.github.aakira.napier.Napier
 import kotlin.math.roundToInt
 
 /** How much air to leave between the field being typed into and the top of the keyboard. */
 private val FIELD_TO_KEYBOARD_GAP = 8.dp
+
+/** Same log tag family as `SoftKeyboard` and `OrganizerPicker`, so one grep reads the whole story. */
+private const val MODAL_TAG = "ModalHost"
 
 /**
  * Full-screen dim (0.9 black, matching the pre-swap Decompose overlay) behind a centered modal,
@@ -116,11 +120,43 @@ internal fun ModalHost(
             if (measuredFieldBottom != null) restingFieldBottom = measuredFieldBottom + shiftPx
         }
 
+        val focusManager = LocalFocusManager.current
+
+        // The keyboard can also go away without the app being told: on Aurora it is swiped down or
+        // dismissed from its own key, and the fork reports neither. The field keeps its focus, the
+        // fork keeps the maliit session open, and that mismatch is where the tablet freezes —
+        // testing hits it on exactly this gesture. The overlap dropping back to zero after the
+        // keyboard had been up is the only notice there is, so treat it as the end of editing and
+        // catch up: drop the focus, and close the session the fork will not close.
+        //
+        // Only after the keyboard has actually been seen, or the zero every field starts out with
+        // would clear the focus the moment it was taken. Nothing here fires on iOS, where the
+        // overlap is zero throughout.
+        var keyboardHasBeenUp by remember { mutableStateOf(false) }
+        if (overlapPx > 0) keyboardHasBeenUp = true
+        val keyboardGone = keyboardHasBeenUp && overlapPx == 0
+        LaunchedEffect(keyboardGone) {
+            if (!keyboardGone) return@LaunchedEffect
+            keyboardHasBeenUp = false
+            val stillEditing = focusedFieldBottom.value != null
+            Napier.i(tag = MODAL_TAG) { "keyboard gone on its own, field still focused: $stillEditing" }
+            if (!stillEditing) return@LaunchedEffect
+            // Dropping the focus is all this does: the field closes the keyboard session from its
+            // own focus-lost branch, so closing it here as well only meant a second trip into the
+            // fork. Which is what the wrapping is for — clearFocus() unwinds the fork's input
+            // method, and the fork is the part already known to be broken here. A native crash
+            // inside it is not catchable this way; the log line above is then the last thing seen.
+            runCatching {
+                focusManager.clearFocus()
+            }.onFailure {
+                Napier.e(throwable = it, tag = MODAL_TAG) { "dropping the focus failed" }
+            }
+        }
+
         // A tap on the dim takes one step back, not two: with the keyboard up it puts the keyboard
         // away and leaves the modal, and only closes the modal once there is no keyboard to close.
         // iOS has no dismiss key on its keyboard, so without this the only way out of the keyboard
         // is to close the whole dialog.
-        val focusManager = LocalFocusManager.current
         val onDimTap: () -> Unit = {
             if (focusedFieldBottom.value != null) focusManager.clearFocus() else onDismiss()
         }
