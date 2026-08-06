@@ -212,6 +212,7 @@ internal fun ModalHost(
                         // into the number we derive the shift from.
                         .graphicsLayer { translationY = -shiftPx.toFloat() }
                         .onSizeChanged { cardHeight = it.height }
+                        .onGloballyPositioned { modal.cardCoords = it }
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
@@ -219,6 +220,12 @@ internal fun ModalHost(
                         ),
                 ) {
                     content()
+                    // Inside the card's own box, so everything that moves the card moves the
+                    // overlay identically by construction — no transform arithmetic, no frame
+                    // where the two disagree. Drawn after the content so it sits on top; the box
+                    // does not clip, so content reaching above the card's top edge — a list
+                    // opening upward — still shows.
+                    modal.overlay?.let { overlay -> overlay() }
                 }
             }
         }

@@ -118,6 +118,25 @@ class ModalHostState {
 
     /** The host's full-screen container box — the frame [focusedFieldBottom] is measured in. */
     var containerCoords: LayoutCoordinates? by mutableStateOf(null)
+
+    /**
+     * The card box — what the keyboard shift moves, and what [overlay] content is composed into.
+     * Anchoring overlay content field-against-card keeps every transform on both sides of the
+     * measurement, where it cancels: the shift and the Aurora rotation alike. Anchoring against
+     * anything outside the card would mean adding the shift back by hand, at the mercy of when
+     * the layer matrices update.
+     */
+    var cardCoords: LayoutCoordinates? by mutableStateOf(null)
+
+    /**
+     * Content drawn on top of the card, in the same scene. On Android and iOS such content goes
+     * into a `Popup` and this slot stays empty. On Aurora a popup is a scene of its own — a second
+     * window the fork creates on demand, which takes a visible pause to appear and has to be aimed
+     * across coordinate spaces that disagree about rotation and density. Content in the slot shows
+     * up on the frame it is set and inherits the rotation, density and input handling already
+     * applied around it.
+     */
+    var overlay: (@Composable () -> Unit)? by mutableStateOf(null)
 }
 
 val LocalModalHost = compositionLocalOf<ModalHostState?> { null }

@@ -314,8 +314,8 @@ a no-op on Android and iOS.
 
 | API | What it does | Where it is applied |
 |---|---|---|
-| `ForcedLandscape` | rotates content to landscape when the window arrives portrait | root, date/time picker `Dialog`, organizer popup |
-| `ScaledUiDensity` | normalises the dp space to `uiScaleBaseline` by the short side | same three |
+| `ForcedLandscape` | rotates content to landscape when the window arrives portrait | root, date/time picker `Dialog` |
+| `ScaledUiDensity` | normalises the dp space to `uiScaleBaseline` by the short side | same two |
 | `statusBarInset` | padding for Aurora's status bar | root, **inside** the rotated content |
 | `softKeyboardOverlapPx` | how much of the content the keyboard covers | `ModalHost`, to keep the focused field visible |
 
@@ -377,29 +377,28 @@ was not, was wrong. What differs is where maliit puts its keys: along the window
 phone, which the rotation turns into the content's right-hand side, and along the content's bottom
 on the tablet.
 
-**Why three layers and not just the root.** The fork renders `Popup` and `Dialog` as separate
-scenes, in the untouched window and with the system density. Nothing applied at the root reaches
-them, so both wrappers are re-applied in every layer. The modals themselves no longer need a layer:
-they are state-driven overlays in the main scene (the date/time picker's own `Dialog` is the only
-dialog window left — see AppNavHost for why).
+**Why two layers and not just the root.** The fork renders `Popup` and `Dialog` as separate scenes,
+in the untouched window and with the system density. Nothing applied at the root reaches them, so
+both wrappers are re-applied in every layer that is one. Only the date/time picker's `Dialog` still
+is: the modals are state-driven overlays in the main scene (see AppNavHost for why), and the
+organizer list is content inside the modal's card rather than a popup at all.
 
-**Why the popup is positioned by hand, and why it is still wrong.** Its position provider returns
-`0,0`, the layer is stretched to fill the window, and the list itself is moved with `offset`. The
-stretching is not optional: a popup window is sized to its content by default, so an offset list
-would fall outside its own window and be clipped — which is exactly what happened on Android. The
-gap between the field and the list is expressed in px so a substituted density cannot shift it.
+**Why the organizer list is not a popup here.** A `Popup` on this fork is a scene of its own — a
+second window created on demand. It takes a visible pause to come up, arrives without the rotation,
+density and inactivity tracking applied around everything else, and has to be aimed by carrying the
+field's coordinates into it. That last part is what killed the approach: the anchor came from
+`positionInWindow()`, which maps a node's position up through every ancestor, `ForcedLandscape`
+included, so the Y it reports for a node inside the rotated content is that node's content-X. The
+list duly landed off to the side. This document and the code both claimed the opposite for a while,
+on the strength of the list appearing roughly beside the field; the same confusion cost the keyboard
+shift a fortnight before `ModalHostState` settled it.
 
-The anchor, though, is taken from `positionInWindow()` and applied inside a scene that lays out in
-content space — and on a rotated window those are not the same space. `positionInWindow()` maps a
-node's position up through every ancestor, the `ForcedLandscape` layer included, so the Y it
-reports for a node inside the rotated content is that node's content-X. This document and the code
-both used to claim the opposite, on the strength of the list appearing roughly beside the field;
-that was wrong, and it is what puts the list off to the side. The same confusion cost the keyboard
-shift a fortnight — see [ModalHostState].
-
-It cannot be fixed inside the popup: a scene of its own has no ancestor in common with the field to
-measure against. What fixes it is not being a popup — rendering the list into the modal's own
-scene, as `fix/aurora-maliit-deadlock` does through the host's overlay slot.
+So the list is content now, not a window: `ModalHost` exposes an overlay slot, the linux
+`OrganizerListPopup` writes into it, and the slot is composed inside the card's own box. It shows up
+on the frame it opens, inherits everything already applied around the card, and anchors against the
+field through their nearest shared ancestor — where the keyboard shift and the rotation are on both
+sides of the measurement and cancel. There is no popup fallback: the only user is the booking
+editor, and it is only ever composed inside a modal.
 
 **Why the inset goes inside the rotated content.** Applied outside, the padding would land in the
 window's portrait coordinate space and show up as a stripe down the side after rotation. The
@@ -479,9 +478,8 @@ Each of these cost at least one round of on-device debugging.
   only at the next tick. Android and iOS are woken by the system and see them at once.
 - **No FCM,** so room updates arrive by polling once a minute rather than by push.
 - **No kiosk mode** — there is no Aurora equivalent of the Android device-admin / lock-task path.
-- **The dropdown lands off to the side** on a rotated window, worst on the dev phone. Explained:
-  the anchor is read in window space and used in content space, and the two differ by the forced
-  rotation — see the popup section. The fix is to stop making it a popup.
+- **The dropdown landing off to the side** should be gone: the list is no longer a popup and no
+  longer anchored through window space — see the section above. Unverified on a device.
 - **The scale baseline has not been looked at on the target tablet** since it was moved to 686 dp
   for parity. The arithmetic is exact; whether the text wrapping that 800 dp was hiding is
   acceptable is unverified. See the baseline section.
