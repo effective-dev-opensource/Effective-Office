@@ -314,23 +314,35 @@ a no-op on Android and iOS.
 
 | API | What it does | Where it is applied |
 |---|---|---|
-| `ForcedLandscape` | rotates content to landscape when the window arrives portrait | root, date/time picker `Dialog`, organizer popup |
+| `ForcedLandscape` | rotates content to landscape when the window arrives portrait | root, date/time picker `Dialog`, organizer popup (fallback path) |
 | `ScaledUiDensity` | normalises the dp space to `uiScaleBaseline` by the short side | same three |
 | `statusBarInset` | padding for Aurora's status bar | root, **inside** the rotated content |
 | `softKeyboardOverlapPx` | how much of the content the keyboard covers | `ModalHost`, to keep the focused field visible |
 
 **The keyboard is the one Aurora has to work out for itself.** Android reads the ime inset, iOS
 answers zero because the system has already shortened the scene, and the fork reports no keyboard
-insets at all — so the height comes from the maliit session directly, `Keyboard.height()` on a
-100 ms poll while a modal is on screen.
+insets at all — so `Keyboard.isOpen()` is polled every 100 ms while a modal is on screen, and the
+covered height is *estimated* as half the window's short side. Estimated because the real number
+is not exposed anywhere: maliit's surface spans the whole screen in the panel's native portrait
+frame, so `Keyboard.height()` returns the full long side (2000 on the tablet), and the key strip's
+thickness exists in no layer of the binding, down to the libac struct (`{ height, is_open }`).
+Overshooting the estimate only lifts the field a bit higher; undershooting hides it.
 
-It is polled rather than subscribed to because the events are unusable: `Keyboard.listenState`
-fires when the keyboard opens, but that event carries `height = 0` — maliit sends the size in a
-follow-up event which never reaches the app. Polling is the sturdier half anyway. There is no
-subscription to lose (the fork drops its listeners in `onWindowPause()` and never restores them —
-the same defect behind the organizer-input freeze); the answer grows as the keyboard slides in, so
-the modal follows it instead of jumping; and a keyboard swiped away behind the app's back, which
-the fork does not report either, reads as closed on the next tick.
+Two hard-won rules around that poll:
+
+- **Do not subscribe.** `Keyboard.listenState` next to the fork's own listener breaks maliit
+  outright: the first session closes normally and every later focus gets no keyboard until the app
+  restarts. The event is also useless for the size (`height = 0`; maliit sends the size in a
+  follow-up event which never reaches the app) and buys no time — it fires at the end of the
+  session-start handshake, milliseconds before `isOpen()` turns truthful anyway.
+- **The tap is the only early signal.** The fork starts the maliit session synchronously *before*
+  granting focus; that costs a visible second or two during which the keyboard is already rising
+  while focus, `isOpen()` and the state event all still say closed. So the organizer field opens
+  its list from the raw press (`awaitFirstDown`, not focus) and calls
+  `noteSoftKeyboardExpected()`, which makes the overlap poll report optimistically for a 3 s
+  grace — the card lifts with the keyboard instead of trailing it. The notice is never cancelled
+  by a truthful-looking `isOpen()` (that can be a stale `true` from the previous session, and
+  acting on it made the lift a coin flip); it just expires.
 
 **The session is also closed by hand,** through `closeSoftKeyboard()` — a no-op on Android and iOS.
 The fork opens a maliit session when a field takes focus and then parks in `awaitCancellation()`
@@ -378,6 +390,13 @@ scenes, in the untouched window and with the system density. Nothing applied at 
 them, so both wrappers are re-applied in every layer. The modals themselves no longer need a layer:
 they are state-driven overlays in the main scene (the date/time picker's own `Dialog` is the only
 dialog window left — see AppNavHost for why).
+
+The organizer list inside a modal is not a `Popup` on Aurora at all any more: a popup scene takes
+a visible pause to come up and has to be aimed across two scenes that disagree about rotation and
+density. It renders into the modal's overlay slot instead (`ModalHostState.overlay`), composed
+inside the card's own box — same scene, same transforms, anchored with one `localPositionOf`
+between field and card. The `Popup` path survives only as the fallback for a host without the
+slot.
 
 **Why the popup is positioned by hand.** Its position provider returns `0,0`, the layer is
 stretched to fill the window, and the list itself is moved with `offset`. The stretching is not
@@ -470,14 +489,20 @@ The proper fix belongs to the fork: `send_state` should not need the lock the in
 `send_input` holds, and `stopInput` should not close the session inline.
 
 **2. `do_epoll_wait` — input torn down on window Pause (screen keeps repainting, input dead).**
-`ComposeWindow.onWindowPause()` disposes the keyboard and unlistens both input and touch;
-a Pause with no matching Resume — maliit focus thrash produces exactly that, with
-`MAttributeExtensionManager ... Invalid focus state` in the journal — leaves the app deaf while
-it keeps rendering. `onWindowResume()` also re-listens without unlistening first, so an extra
-Resume duplicates every key. `AuroraFreezeGuard` closes both: after the first Resume has armed
-the fork's listeners it drops all lifecycle subscriptions via `WindowEvents.unlistenLifecycleAll()`,
-so Pause never reaches the teardown. Cost: the Compose lifecycle idles in RESUMED and
-`Keyboard.dispose()` on Pause never runs — a wall-mounted kiosk cares about neither.
+`ComposeWindow.onWindowPause()` disposes the keyboard and unlistens both input and touch; a Pause
+with no matching Resume would leave the app deaf while it keeps rendering. `onWindowResume()` also
+re-listens without unlistening first, so an extra Resume duplicates every key.
+
+This mechanism is **hypothetical so far** — it has never been confirmed on the device. An
+`AuroraFreezeGuard` briefly shipped against it (`WindowEvents.unlistenLifecycleAll()` after the
+first Resume) and was removed: the same call strips the fork's *own* lifecycle listener, freezing
+the Compose `Lifecycle` in RESUMED forever and skipping `Keyboard.dispose()` and the destroy
+cleanup — a bigger hazard than the one it guarded against. The
+`MAttributeExtensionManager ... Invalid focus state` journal line once read as its signature turns
+out to fire on *every* field focus, freeze or no freeze — it is maliit-server noise, not evidence.
+If a deaf-but-rendering freeze ever shows up, log the lifecycle events first
+(`WindowEvents.listenLifecycle`) and look for a Pause with no Resume; the fix then belongs in the
+fork (input re-listen on the next frame), not in blanket unlistening.
 
 **Getting a stack when it happens again:** the device has `gdbserver` (no gdb). As root:
 `gdbserver --attach :2345 <pid>`, tunnel the port (`ssh -L 2345:localhost:2345`), then from the

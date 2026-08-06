@@ -20,17 +20,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import band.effective.office.tablet.core.ui.platform.LocalFocusedFieldBottom
+import band.effective.office.tablet.core.ui.platform.LocalModalHost
+import band.effective.office.tablet.core.ui.platform.ModalHostState
 import band.effective.office.tablet.core.ui.platform.softKeyboardOverlapPx
 import io.github.aakira.napier.Napier
-import kotlin.math.roundToInt
 
 /** How much air to leave between the field being typed into and the top of the keyboard. */
 private val FIELD_TO_KEYBOARD_GAP = 8.dp
@@ -81,13 +80,16 @@ internal fun ModalHost(
         // What has to clear the keyboard is the focused field, not the card around it: aim for its
         // bottom edge sitting [FIELD_TO_KEYBOARD_GAP] above the keyboard, and move the card by
         // however much that costs. Nothing focused, or the field already high enough — no shift.
-        val focusedFieldBottom = remember { mutableStateOf<Int?>(null) }
+        val modal = remember { ModalHostState() }
         val overlapPx = softKeyboardOverlapPx()
         val gapPx = with(density) { FIELD_TO_KEYBOARD_GAP.roundToPx() }
-        // Measured rather than taken from the window size: on iOS `LocalWindowInfo.containerSize`
-        // comes back with the sides swapped — 1668 as the height of a 1668x2420 portrait screen —
-        // and everything derived from it lands nowhere near the keyboard.
-        var containerBottom by remember { mutableStateOf(0) }
+        // Everything positional runs in the container's own space (see ModalHostState for why
+        // window space is unusable on Aurora): the field reports its bottom relative to the
+        // container, and the keyboard top is containerHeight - overlap, which holds because the
+        // container fills the scene down to the same bottom edge the keyboard rises from.
+        // Measured, not taken from the window size: on iOS `LocalWindowInfo.containerSize` comes
+        // back with the sides swapped — 1668 as the height of a 1668x2420 portrait screen — and
+        // everything derived from it lands nowhere near the keyboard.
         var containerHeight by remember { mutableStateOf(0) }
         var cardHeight by remember { mutableStateOf(0) }
 
@@ -97,7 +99,7 @@ internal fun ModalHost(
         // card jitters between two positions. The keyboard is still animating at this point, so the
         // shift keeps recomputing against a moving keyboardTop, which is fine — that end is real.
         var restingFieldBottom by remember { mutableStateOf<Int?>(null) }
-        val measuredFieldBottom = focusedFieldBottom.value
+        val measuredFieldBottom = modal.focusedFieldBottom
         if (measuredFieldBottom == null) {
             restingFieldBottom = null
         } else if (restingFieldBottom == null) {
@@ -109,14 +111,14 @@ internal fun ModalHost(
         // so a card that already fits never drifts below where it was centred.
         val overhangTop = maxOf(0, (cardHeight - containerHeight) / 2)
         val shiftPx = restingFieldBottom
-            ?.let { (it + gapPx - (containerBottom - overlapPx)).coerceAtLeast(-overhangTop) }
+            ?.let { (it + gapPx - (containerHeight - overlapPx)).coerceAtLeast(-overhangTop) }
             ?: 0
 
         // iOS shortens the scene when the keyboard opens, which re-lays out the card underneath us,
         // so a resting position taken before that describes a layout that no longer exists. Retake
         // it whenever the scene resizes: measured + shift is where the field would be with nothing
         // shifted, so this stays a fixed point rather than chasing itself.
-        LaunchedEffect(containerBottom) {
+        LaunchedEffect(containerHeight) {
             if (measuredFieldBottom != null) restingFieldBottom = measuredFieldBottom + shiftPx
         }
 
@@ -138,7 +140,7 @@ internal fun ModalHost(
         LaunchedEffect(keyboardGone) {
             if (!keyboardGone) return@LaunchedEffect
             keyboardHasBeenUp = false
-            val stillEditing = focusedFieldBottom.value != null
+            val stillEditing = modal.focusedFieldBottom != null
             Napier.i(tag = MODAL_TAG) { "keyboard gone on its own, field still focused: $stillEditing" }
             if (!stillEditing) return@LaunchedEffect
             // Dropping the focus is all this does: the field closes the keyboard session from its
@@ -158,10 +160,10 @@ internal fun ModalHost(
         // iOS has no dismiss key on its keyboard, so without this the only way out of the keyboard
         // is to close the whole dialog.
         val onDimTap: () -> Unit = {
-            if (focusedFieldBottom.value != null) focusManager.clearFocus() else onDismiss()
+            if (modal.focusedFieldBottom != null) focusManager.clearFocus() else onDismiss()
         }
 
-        CompositionLocalProvider(LocalFocusedFieldBottom provides focusedFieldBottom) {
+        CompositionLocalProvider(LocalModalHost provides modal) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -169,9 +171,7 @@ internal fun ModalHost(
                         containerHeight = it.height
                         fullHeight = maxOf(fullHeight, it.height)
                     }
-                    .onGloballyPositioned {
-                        containerBottom = (it.positionInWindow().y + it.size.height).roundToInt()
-                    }
+                    .onGloballyPositioned { modal.containerCoords = it }
                     .background(Color.Black.copy(alpha = 0.9f))
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
@@ -194,6 +194,7 @@ internal fun ModalHost(
                         // into the number we derive the shift from.
                         .graphicsLayer { translationY = -shiftPx.toFloat() }
                         .onSizeChanged { cardHeight = it.height }
+                        .onGloballyPositioned { modal.cardCoords = it }
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
@@ -201,6 +202,12 @@ internal fun ModalHost(
                         ),
                 ) {
                     content()
+                    // Inside the card's own box, so the keyboard shift and everything else that
+                    // moves the card moves the overlay identically by construction — no transform
+                    // arithmetic, no frame where the two disagree. Drawn after the content, so it
+                    // sits on top; the box does not clip, so content offset above the card's top
+                    // edge (the organizer list opening upward) still shows.
+                    modal.overlay?.let { overlay -> overlay() }
                 }
             }
         }

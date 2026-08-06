@@ -25,3 +25,5 @@ actual fun softKeyboardOverlapPx(): Int {
 
 // The ime goes down with the focus by itself.
 actual fun closeSoftKeyboard() = Unit
+
+actual fun noteSoftKeyboardExpected() = Unit

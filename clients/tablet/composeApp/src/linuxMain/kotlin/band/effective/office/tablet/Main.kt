@@ -9,10 +9,8 @@ import io.github.aakira.napier.Napier
 fun main() {
     Napier.base(DebugAntilog())
     KoinInitializer().init()
-    installFreezeGuard()
 
     application {
-        AuroraFreezeGuard()
         AuroraKeyboardSessionCloser()
         AppRoot()
     }

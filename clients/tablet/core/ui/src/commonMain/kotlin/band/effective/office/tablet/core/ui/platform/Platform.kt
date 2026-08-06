@@ -1,9 +1,16 @@
 package band.effective.office.tablet.core.ui.platform
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.unit.Dp
+import kotlin.math.roundToInt
 
 /**
  * The tablet is a landscape-locked kiosk, but the Aurora window has no orientation handling and
@@ -76,10 +83,71 @@ expect fun softKeyboardOverlapPx(): Int
 expect fun closeSoftKeyboard()
 
 /**
- * Bottom edge of the text field currently being typed into, in window pixels, or `null` when
- * nothing is focused.
+ * Tells the platform the user has just pressed a text field — i.e. a soft keyboard is coming —
+ * before the platform has any way of knowing.
  *
- * A field writes here while it holds focus so the modal hosting it knows how far to move: what has
- * to clear the keyboard is the field, not the card around it, and only the field knows where it is.
+ * Only Aurora listens. The fork starts the maliit session synchronously before it grants focus,
+ * and for the second or two that takes, the keyboard is already sliding up the screen while every
+ * queryable signal — focus, `Keyboard.isOpen()`, the state event — still says closed. The press
+ * is the one signal that precedes the keyboard, so [softKeyboardOverlapPx] treats it as an
+ * advance notice and reports the overlap optimistically; if no keyboard shows up, the notice
+ * expires. Android and iOS report insets in real time and their actuals do nothing.
  */
-val LocalFocusedFieldBottom = compositionLocalOf<MutableState<Int?>?> { null }
+expect fun noteSoftKeyboardExpected()
+
+/**
+ * The contract between a modal host and the editable content inside it. `null` outside a modal.
+ *
+ * One object instead of a local per channel, provided once by `ModalHost` and read by fields and
+ * their popups. Everything positional in it is measured field-against-host, never through window
+ * coordinates: on Aurora there is a 90° rotation between the window and the content
+ * ([ForcedLandscape]), and `positionInWindow()` goes through it — the window-Y of a point inside
+ * the rotated content is its content-X. Measurements between two nodes on the same side of the
+ * rotation stay in content space and cancel it out; on Android and iOS the frames coincide
+ * anyway.
+ */
+@Stable
+class ModalHostState {
+    /**
+     * Bottom edge of the field currently being edited, in [containerCoords] space, or `null`
+     * when none. A field writes it while it holds focus so the host knows how far to lift the
+     * card: what has to clear the keyboard is the field, and only the field knows where it is.
+     */
+    var focusedFieldBottom: Int? by mutableStateOf(null)
+
+    /** The host's full-screen container box — the frame [focusedFieldBottom] is measured in. */
+    var containerCoords: LayoutCoordinates? by mutableStateOf(null)
+
+    /**
+     * The card box — what the keyboard shift moves, and what [overlay] content is composed into.
+     * Anchoring overlay content field-against-card keeps every transform (the shift, the Aurora
+     * rotation) on both sides of the measurement, where it cancels; anchoring against anything
+     * outside the card would need the shift added back in by hand, at the mercy of when the
+     * layer matrices update.
+     */
+    var cardCoords: LayoutCoordinates? by mutableStateOf(null)
+
+    /**
+     * Content drawn on top of the card, in the same scene. On Android and iOS such content goes
+     * into a `Popup` and this slot stays empty. On Aurora a popup is a scene of its own — a
+     * second window the fork creates on demand, which takes a visible pause to appear and has to
+     * be aimed by translating coordinates between scenes that disagree about rotation and
+     * density. The slot's content instead shows up on the frame it is set and inherits the
+     * rotation, density and input handling already applied.
+     */
+    var overlay: (@Composable () -> Unit)? by mutableStateOf(null)
+}
+
+val LocalModalHost = compositionLocalOf<ModalHostState?> { null }
+
+/**
+ * Bottom edge of [field] in [container]'s space, for [ModalHostState.focusedFieldBottom]. Falls
+ * back to window space when no container is provided, which is only the case in previews and
+ * hosts that do not shift for the keyboard.
+ */
+fun fieldBottomPx(container: LayoutCoordinates?, field: LayoutCoordinates): Int =
+    if (container != null && container.isAttached) {
+        container.localPositionOf(field, Offset(0f, field.size.height.toFloat())).y.roundToInt()
+    } else {
+        (field.positionInWindow().y + field.size.height).roundToInt()
+    }

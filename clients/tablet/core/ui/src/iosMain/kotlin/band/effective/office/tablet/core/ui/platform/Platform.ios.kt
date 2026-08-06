@@ -17,3 +17,5 @@ actual fun softKeyboardOverlapPx(): Int = 0
 
 // UIKit takes the keyboard down with the focus by itself.
 actual fun closeSoftKeyboard() = Unit
+
+actual fun noteSoftKeyboardExpected() = Unit

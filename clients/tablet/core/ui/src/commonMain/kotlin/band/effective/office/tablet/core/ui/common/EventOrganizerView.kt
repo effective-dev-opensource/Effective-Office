@@ -19,6 +19,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -47,11 +49,12 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.utf16CodePoint
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -64,16 +67,25 @@ import band.effective.office.tablet.core.ui.selectbox_organizer_error
 import band.effective.office.tablet.core.ui.selectbox_organizer_title
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h8
-import band.effective.office.tablet.core.ui.platform.LocalFocusedFieldBottom
+import band.effective.office.tablet.core.ui.platform.LocalModalHost
 import band.effective.office.tablet.core.ui.platform.closeSoftKeyboard
+import band.effective.office.tablet.core.ui.platform.fieldBottomPx
+import band.effective.office.tablet.core.ui.platform.noteSoftKeyboardExpected
 import band.effective.office.tablet.core.ui.platform.popupIsSeparateScene
 import band.effective.office.tablet.core.ui.res.painterResource
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import kotlin.math.roundToInt
 
 private const val ORGANIZER_TAG = "OrganizerPicker"
+
+/**
+ * How long a press-time field-bottom report survives without focus confirming it. Covers the
+ * fork's slow focus grant on Aurora (up to ~2 s seen); after that the press evidently did not
+ * turn into editing.
+ */
+private const val FOCUS_GRACE_MS = 3_500L
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,6 +106,11 @@ fun EventOrganizerView(
 
 
     var textFieldCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    // The field row's live coordinates, for reporting the bottom edge at focus time: the focus
+    // change arrives without any relayout, so onGloballyPositioned — which only fires on moves
+    // and on recomposition — cannot be counted on to fire again while focused. A reference, not
+    // a cached position: it is asked where the row is at the moment of the write.
+    var rowCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val density = LocalDensity.current
 
     // Tell whoever hosts this screen where the field's bottom edge is while it is being typed into,
@@ -102,10 +119,10 @@ fun EventOrganizerView(
     // cached off a coordinates reference would keep reporting where the field used to be. Cleared
     // on focus loss and on the way out, or a stale edge would keep the host shifted.
     var isFocused by remember { mutableStateOf(false) }
-    val focusedFieldBottom = LocalFocusedFieldBottom.current
-    DisposableEffect(focusedFieldBottom) {
+    val modalHost = LocalModalHost.current
+    DisposableEffect(modalHost) {
         onDispose {
-            focusedFieldBottom?.value = null
+            modalHost?.focusedFieldBottom = null
             // The net under the branch above: the field can be taken off screen mid-edit — back,
             // the inactivity reset — and no focus change is reported when that happens. Still
             // focused on the way out is what says the session is ours to close.
@@ -126,14 +143,46 @@ fun EventOrganizerView(
         Row(
             modifier = Modifier
                 .fillMaxSize()
+                // Everything keyed off the press rather than the focus that follows it: on Aurora
+                // granting focus starts the maliit session synchronously, which costs a visible
+                // second or two, and the keyboard is already rising during it. The press is the
+                // only signal that comes first — so it opens the list, warns the platform, and
+                // reports the field's position for the keyboard lift, instead of all three
+                // trailing the keyboard. Initial pass, so the press is seen before the field
+                // consumes it; the focus branch below is guarded against toggling the list shut.
+                .pointerInput(expanded) {
+                    awaitEachGesture {
+                        awaitFirstDown(pass = PointerEventPass.Initial)
+                        Napier.i(tag = ORGANIZER_TAG) { "field pressed, expanded: $expanded" }
+                        if (!expanded) onExpandedChange()
+                        noteSoftKeyboardExpected()
+                        if (!isFocused) {
+                            modalHost?.focusedFieldBottom = rowCoords
+                                ?.takeIf { c -> c.isAttached }
+                                ?.let { c -> fieldBottomPx(modalHost.containerCoords, c) }
+                            // Taken back if the focus never confirms the press — a stuck value
+                            // would leave the host believing a field is being edited.
+                            scope.launch {
+                                delay(FOCUS_GRACE_MS)
+                                if (!isFocused) modalHost?.focusedFieldBottom = null
+                            }
+                        }
+                        do {
+                            val event = awaitPointerEvent(PointerEventPass.Initial)
+                        } while (event.changes.any { it.pressed })
+                    }
+                }
                 .onGloballyPositioned { coordinates ->
                     // This value is used to assign to
                     // the DropDown the same width
                     mTextFieldSize = coordinates.size.toSize()
+                    rowCoords = coordinates
                     if (isFocused) {
-                        focusedFieldBottom?.value =
-                            (coordinates.positionInWindow().y + coordinates.size.height)
-                                .roundToInt()
+                        // In the modal container's space, not the window's: on Aurora there is a
+                        // rotation between the two and a window-space bottom is garbage there —
+                        // see ModalHostState.
+                        modalHost?.focusedFieldBottom =
+                            fieldBottomPx(modalHost?.containerCoords, coordinates)
                     }
                 }
                 .clip(RoundedCornerShape(15.dp))
@@ -154,9 +203,18 @@ fun EventOrganizerView(
                             isFocused = it.isFocused
                             Napier.i(tag = ORGANIZER_TAG) { "field focus: ${it.isFocused}" }
                             if (it.isFocused) {
-                                onExpandedChange()
+                                // Written here and not left to onGloballyPositioned: focus arrives
+                                // without a relayout, and the positioned callback stays silent
+                                // until something moves — which is exactly what this write is
+                                // supposed to cause.
+                                modalHost?.focusedFieldBottom = rowCoords
+                                    ?.takeIf { c -> c.isAttached }
+                                    ?.let { c -> fieldBottomPx(modalHost.containerCoords, c) }
+                                // Guarded: the press that granted this focus has usually opened
+                                // the list already, and onExpandedChange is a toggle.
+                                if (!expanded) onExpandedChange()
                             } else if (wasFocused) {
-                                focusedFieldBottom?.value = null
+                                modalHost?.focusedFieldBottom = null
                                 // The field is done being edited, so the keyboard's session is
                                 // done too — on Aurora it has to be told. Everything that ends
                                 // editing comes through here: Done, a name picked from the list,
