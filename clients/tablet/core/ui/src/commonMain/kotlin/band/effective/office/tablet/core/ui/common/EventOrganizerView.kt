@@ -32,7 +32,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,6 +69,7 @@ import band.effective.office.tablet.core.ui.platform.closeSoftKeyboard
 import band.effective.office.tablet.core.ui.platform.popupIsSeparateScene
 import band.effective.office.tablet.core.ui.res.painterResource
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
@@ -87,6 +90,7 @@ fun EventOrganizerView(
 ) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    val scope = rememberCoroutineScope()
 
 
     var textFieldCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
@@ -190,14 +194,29 @@ fun EventOrganizerView(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(
                     onDone = {
-                        defaultKeyboardAction(ImeAction.Done)
+                        // No defaultKeyboardAction(Done) here: it hides the keyboard synchronously,
+                        // and this lambda runs inside maliit's own key dispatch on Aurora, where
+                        // Keyboard.close() then deadlocks against the in-flight send_input. Android
+                        // and iOS take the keyboard down with the focus anyway, and on Aurora the
+                        // focus branch below closes the session off the dispatch.
                         onDoneInput(inputText)
                         onExpandedChange()
                         // Dropping the focus, not freeing it: freeFocus() releases focus that was
                         // captured, and nothing here ever captures any, so it did nothing and the
                         // field stayed focused with the keyboard up. Everything that ends editing
                         // now leaves through the same door, the branch above.
-                        focusManager.clearFocus()
+                        //
+                        // Deferred off the key dispatch: clearFocus() synchronously ends the text
+                        // input session, whose cancel handler closes the maliit session — and on
+                        // Aurora this lambda already runs inside maliit's own key dispatch, where
+                        // that close deadlocks the process. A bare launch is not enough: the
+                        // fork's FlushCoroutineDispatcher runs it inline, still inside the
+                        // dispatch. withFrameNanos is a real suspension point, so the continuation
+                        // arrives with the next frame — same thread, outside the dispatch.
+                        scope.launch {
+                            withFrameNanos { }
+                            focusManager.clearFocus()
+                        }
                     }
                 ),
             )

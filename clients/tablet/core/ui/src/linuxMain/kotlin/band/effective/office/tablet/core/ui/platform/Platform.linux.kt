@@ -5,7 +5,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.withFrameNanos
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import ru.auroraos.kmp.keyboard.maliit.Keyboard
 
@@ -74,19 +77,51 @@ actual fun softKeyboardOverlapPx(): Int {
     return overlap
 }
 
+/**
+ * Close requests wait here for [AuroraKeyboardSessionCloser] to pick them up. Conflated: ten
+ * requests before the next frame mean one close, which is all a session needs.
+ */
+private val keyboardCloseRequests = Channel<Unit>(Channel.CONFLATED)
+
 actual fun closeSoftKeyboard() {
-    runCatching {
-        // Unconditionally, and `isOpen()` only goes into the log. That flag says whether the
-        // keyboard is on screen, and by the time editing ends it is already false: maliit hides
-        // itself the moment the Qt focus goes, a tick before the height even drops. The session
-        // behind it is the thing that is never torn down, and closing that is the entire point of
-        // this call — guarding it on visibility, as the first version did, meant it never ran once.
-        val visible = Keyboard.isOpen()
-        Keyboard.close()
-        Napier.i(tag = KEYBOARD_TAG) {
-            "closed the session, keyboard was ${if (visible) "up" else "already down"}"
+    // Never closes inline: this can be reached from inside maliit's own key dispatch (Done ends
+    // editing, editing drops the focus, the focus change lands here synchronously), and
+    // Keyboard.close() called from within send_input deadlocks the whole process against the
+    // dispatch that is still on the stack — send_state waits on the channel send_input holds.
+    // Deferring with a launch does not work either: both of the fork's dispatchers run tasks
+    // inline on the main thread, so only a real suspension point leaves the dispatch. The close
+    // itself lives in [AuroraKeyboardSessionCloser], on the far side of one.
+    keyboardCloseRequests.trySend(Unit)
+}
+
+/**
+ * The consumer half of [closeSoftKeyboard]: waits a frame, then closes the maliit session.
+ *
+ * A composable, because the frame clock is the one scheduler on this fork that genuinely defers —
+ * and only a composition scope carries one. Mount it once at the root, before any content that
+ * edits text.
+ */
+@Composable
+fun AuroraKeyboardSessionCloser() {
+    LaunchedEffect(Unit) {
+        for (request in keyboardCloseRequests) {
+            // The trySend above may resume this coroutine inline, still inside the key dispatch —
+            // the frame await is what guarantees the close runs outside it.
+            withFrameNanos { }
+            runCatching {
+                // Unconditionally, and `isOpen()` only goes into the log. That flag says whether the
+                // keyboard is on screen, and by the time editing ends it is already false: maliit hides
+                // itself the moment the Qt focus goes, a tick before the height even drops. The session
+                // behind it is the thing that is never torn down, and closing that is the entire point of
+                // this call — guarding it on visibility, as the first version did, meant it never ran once.
+                val visible = Keyboard.isOpen()
+                Keyboard.close()
+                Napier.i(tag = KEYBOARD_TAG) {
+                    "closed the session, keyboard was ${if (visible) "up" else "already down"}"
+                }
+            }.onFailure {
+                Napier.e(throwable = it, tag = KEYBOARD_TAG) { "closing the session failed" }
+            }
         }
-    }.onFailure {
-        Napier.e(throwable = it, tag = KEYBOARD_TAG) { "closing the session failed" }
     }
 }

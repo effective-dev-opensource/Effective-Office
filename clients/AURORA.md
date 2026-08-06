@@ -431,6 +431,60 @@ arithmetic is solid, what it does to the wrapping is not verified. And the metri
 `ScaledUiDensity` are still scaffolding: once someone has confirmed the layout on the device, the
 debug line should come out.
 
+## Freezes: the maliit re-entrancy deadlock and the input teardown
+
+A "frozen" app on this fork is almost never hung for the reason the UI suggests. Two distinct
+mechanisms were caught on the device, and they need different tools to tell apart — start with
+`cat /proc/<pid>/wchan` of the main thread.
+
+**1. `futex_wait_queue_me` — the maliit deadlock (the whole process stops, polling included).**
+The `ak-keyboard-maliit` binding is not re-entrant: key events arrive through
+`MaliitEvents::send_input`, and `Keyboard.close()` sends `send_state` through the same channel —
+so a close reached *synchronously from inside a key event handler* waits on the dispatch that is
+still on the stack, forever. Kotlin/Native GC then parks every other thread, which is why even
+the IO polling goes silent. Three separate call chains hit it, all starting at the organizer
+field's `onDone`:
+
+- `defaultKeyboardAction(Done)` → `SoftwareKeyboardController.hide()` → `Keyboard.close()`;
+- `focusManager.clearFocus()` → CoreTextField ends its input session → the cancel handler of
+  `startInputMethod` → `MaliitTextInputService.stopInput()` → `Keyboard.close()`;
+- the app's own `closeSoftKeyboard()`.
+
+The trap on the way out: **a `launch` does not defer anything here.** Both of the fork's
+dispatchers — `FlushCoroutineDispatcher` (composition) and `ComposeUiMainDispatcher`
+(`Dispatchers.Main`) — execute tasks inline when already on the main thread, so a "deferred"
+block still runs inside the key dispatch. The only thing that genuinely leaves the dispatch is a
+real suspension point against the frame clock. Hence the shape of the fix:
+
+- `onDone` drops the focus behind `withFrameNanos {}` (composition scope carries the frame clock);
+- `closeSoftKeyboard()` only `trySend`s into a conflated channel; `AuroraKeyboardSessionCloser`
+  (mounted once in `Main.kt`) receives, awaits a frame, and closes outside any dispatch;
+- `defaultKeyboardAction(Done)` is gone — Android and iOS take the keyboard down with the focus
+  anyway.
+
+The rule that falls out, for any future code: **never call `Keyboard.close()`, clear focus, or
+end a text session synchronously from a key event handler.** Touch handlers are fine — touch
+comes through `ac_window`, a different channel.
+
+The proper fix belongs to the fork: `send_state` should not need the lock the in-flight
+`send_input` holds, and `stopInput` should not close the session inline.
+
+**2. `do_epoll_wait` — input torn down on window Pause (screen keeps repainting, input dead).**
+`ComposeWindow.onWindowPause()` disposes the keyboard and unlistens both input and touch;
+a Pause with no matching Resume — maliit focus thrash produces exactly that, with
+`MAttributeExtensionManager ... Invalid focus state` in the journal — leaves the app deaf while
+it keeps rendering. `onWindowResume()` also re-listens without unlistening first, so an extra
+Resume duplicates every key. `AuroraFreezeGuard` closes both: after the first Resume has armed
+the fork's listeners it drops all lifecycle subscriptions via `WindowEvents.unlistenLifecycleAll()`,
+so Pause never reaches the teardown. Cost: the Compose lifecycle idles in RESUMED and
+`Keyboard.dispose()` on Pause never runs — a wall-mounted kiosk cares about neither.
+
+**Getting a stack when it happens again:** the device has `gdbserver` (no gdb). As root:
+`gdbserver --attach :2345 <pid>`, tunnel the port (`ssh -L 2345:localhost:2345`), then from the
+host `lldb` against the local unstripped `composeApp.kexe`: `platform select remote-linux`,
+`gdb-remote 2345`, `thread backtrace all`. Symbol names come out intact; the three chains above
+were read straight off it.
+
 ## Gotchas
 
 Each of these cost at least one round of on-device debugging.

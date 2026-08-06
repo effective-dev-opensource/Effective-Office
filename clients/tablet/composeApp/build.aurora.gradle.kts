@@ -52,6 +52,9 @@ kotlin {
             implementation(project(":clients:tablet:core:data"))
             implementation(project(":clients:tablet:core:domain"))
         }
+        linuxMain.dependencies {
+            implementation(libs.aurora.ak.window)
+        }
     }
 
     sourceSets.all {
