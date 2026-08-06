@@ -19,12 +19,15 @@ import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
  *
  * [content] receives the modifier that positions the list — empty where the popup positions itself.
  *
- * @param textFieldCoords where the field sits in the content layout, or `null` before the first
- *   layout pass.
+ * @param anchorCoords the row around the field, or `null` before the first layout pass. The row
+ *   rather than the field itself, because the row is also what the list takes its width from
+ *   (`mTextFieldSize`), and a list positioned by one node while sized by another is off by whatever
+ *   sits between them — here the row's 20.dp horizontal padding, which had the list hanging 35px
+ *   past the card's edge on Aurora.
  */
 @Composable
 internal expect fun OrganizerListPopup(
-    textFieldCoords: LayoutCoordinates?,
+    anchorCoords: LayoutCoordinates?,
     content: @Composable (Modifier) -> Unit,
 )
 
@@ -37,10 +40,10 @@ internal expect fun OrganizerListPopup(
  */
 @Composable
 internal fun AnchoredOrganizerList(
-    textFieldCoords: LayoutCoordinates?,
+    anchorCoords: LayoutCoordinates?,
     content: @Composable (Modifier) -> Unit,
 ) {
-    val popupPositionProvider = remember(textFieldCoords) {
+    val popupPositionProvider = remember(anchorCoords) {
         object : PopupPositionProvider {
             override fun calculatePosition(
                 anchorBounds: IntRect,
@@ -48,8 +51,8 @@ internal fun AnchoredOrganizerList(
                 layoutDirection: LayoutDirection,
                 popupContentSize: IntSize
             ): IntOffset {
-                return if (textFieldCoords != null) {
-                    val anchorTop = textFieldCoords.positionInWindow().y.toInt()
+                return if (anchorCoords != null) {
+                    val anchorTop = anchorCoords.positionInWindow().y.toInt()
                     val y = anchorTop - popupContentSize.height
                     IntOffset(anchorBounds.left, y.coerceAtLeast(0) - 60)
                 } else {

@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -112,10 +113,15 @@ fun EventOrganizerView(
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
 
+    // The gesture detector below is remembered on `Unit`, so it would hold the lambda it was given
+    // on the first composition forever. Every other caller of this one reaches it from a callback
+    // that recomposes with it; the press handler does not.
+    val expandRequest by rememberUpdatedState(onExpandedChange)
 
-    var textFieldCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
-    // The row around the field — what the modal is asked to lift clear of the keyboard. Kept so a
-    // press can report it before the field has focus to report it from.
+
+    // The row around the field — what the modal is asked to lift clear of the keyboard, and what
+    // the expanded list is both sized to and anchored on. Kept so a press can report it before the
+    // field has focus to report it from.
     var rowCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val density = LocalDensity.current
 
@@ -166,6 +172,14 @@ fun EventOrganizerView(
                             // the layout callback that would have reported one fires when the
                             // layout changes, and by the time a field is pressed it long has.
                             if (bottom != null) modalHost?.focusedFieldBottom = bottom
+                            // The list belongs to the press for the same reason the shift does.
+                            // Opened from the focus callback instead, it waited out the whole
+                            // maliit handshake and arrived after the keyboard — a press, a jump,
+                            // a pause, a keyboard, another pause, a list. Nothing about the list
+                            // needs focus: the names are already loaded and the field is already
+                            // being aimed at. Android and iOS grant focus on the same gesture, so
+                            // there the two moments were never apart.
+                            expandRequest()
                             // Taken back if the focus never confirms the press: a value left
                             // behind would have the host believing a field is being edited, and
                             // the first tap on the dim would go to dismissing a keyboard that
@@ -211,7 +225,6 @@ fun EventOrganizerView(
                                 // for the host it may be this or nothing.
                                 rowCoords?.bottomIn(modalHost?.containerCoords)
                                     ?.let { bottom -> modalHost?.focusedFieldBottom = bottom }
-                                onExpandedChange()
                             } else if (wasFocused) {
                                 modalHost?.focusedFieldBottom = null
                                 // The field is done being edited, so the keyboard's session is
@@ -224,8 +237,7 @@ fun EventOrganizerView(
                         }
                     ).onSizeChanged({ mTextFieldSize = it.toSize() })
                     .focusRequester(focusRequester)
-                    .fillMaxWidth(0.8f)
-                    .onGloballyPositioned { textFieldCoords = it },
+                    .fillMaxWidth(0.8f),
                 value = inputText,
                 singleLine = true,
                 onValueChange = {
@@ -282,7 +294,7 @@ fun EventOrganizerView(
             )
         }
         if (expanded) {
-            OrganizerListPopup(textFieldCoords = textFieldCoords) { listModifier ->
+            OrganizerListPopup(anchorCoords = rowCoords) { listModifier ->
                 OrganizerListBody(
                     modifier = listModifier,
                     width = with(density) { mTextFieldSize.width.toDp() },
