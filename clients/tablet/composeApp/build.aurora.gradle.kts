@@ -85,13 +85,24 @@ val auroraDeviceIp: String = (project.findProperty("AURORA_DEVICE_IP") as? Strin
     ?: localProperties.getProperty("AURORA_DEVICE_IP")
     ?: "192.168.0.22"
 
+// The SDK emulator has no address of its own — qemu forwards its ssh onto a host port — so the
+// port and the key are overridable the same way the address is.
+val auroraDevicePort: Int = ((project.findProperty("AURORA_DEVICE_PORT") as? String)
+    ?: localProperties.getProperty("AURORA_DEVICE_PORT"))
+    ?.toInt()
+    ?: 22
+
+val auroraDeviceSshKey: String = (project.findProperty("AURORA_DEVICE_SSH_KEY") as? String)
+    ?: localProperties.getProperty("AURORA_DEVICE_SSH_KEY")
+    ?: ".ssh/qtc_id"
+
 auroraDevices {
     devices {
         create {
             host.set(auroraDeviceIp)
             user.set("defaultuser")
-            port.set(22)
-            sshKey.set(File(System.getProperty("user.home")).resolve(".ssh/qtc_id").toPath())
+            port.set(auroraDevicePort)
+            sshKey.set(File(System.getProperty("user.home")).resolve(auroraDeviceSshKey).toPath())
         }
     }
     packages {
