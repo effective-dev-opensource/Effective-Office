@@ -28,10 +28,11 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,11 +42,11 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.utf16CodePoint
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
@@ -58,15 +59,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.arrow_to_down
-import band.effective.office.tablet.core.ui.selectbox_organizer_error
-import band.effective.office.tablet.core.ui.selectbox_organizer_title
-import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
-import band.effective.office.tablet.core.ui.theme.h8
 import band.effective.office.tablet.core.ui.platform.LocalFocusedFieldBottom
 import band.effective.office.tablet.core.ui.platform.closeSoftKeyboard
 import band.effective.office.tablet.core.ui.platform.popupIsSeparateScene
 import band.effective.office.tablet.core.ui.res.painterResource
+import band.effective.office.tablet.core.ui.selectbox_organizer_error
+import band.effective.office.tablet.core.ui.selectbox_organizer_title
+import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
+import band.effective.office.tablet.core.ui.theme.h8
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
@@ -87,6 +89,7 @@ fun EventOrganizerView(
 ) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    val scope = rememberCoroutineScope()
 
 
     var textFieldCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
@@ -190,14 +193,27 @@ fun EventOrganizerView(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(
                     onDone = {
-                        defaultKeyboardAction(ImeAction.Done)
+                        // No defaultKeyboardAction(Done): it hides the keyboard synchronously, and
+                        // on Aurora this lambda runs inside maliit's own key dispatch, where that
+                        // deadlocks. Android and iOS take the keyboard down with the focus anyway,
+                        // which is what the branch below is for.
                         onDoneInput(inputText)
                         onExpandedChange()
                         // Dropping the focus, not freeing it: freeFocus() releases focus that was
                         // captured, and nothing here ever captures any, so it did nothing and the
                         // field stayed focused with the keyboard up. Everything that ends editing
-                        // now leaves through the same door, the branch above.
-                        focusManager.clearFocus()
+                        // leaves through the same door — the focus-lost branch above.
+                        //
+                        // A frame late, on purpose. clearFocus() ends the text input session there
+                        // and then, and on Aurora the session's teardown closes the maliit one from
+                        // inside the key dispatch that is still on the stack — the deadlock again.
+                        // A bare launch does not help: the fork runs it inline. withFrameNanos is a
+                        // real suspension, so the rest arrives with the next frame, on the same
+                        // thread but outside the dispatch. Android and iOS pay one frame for it.
+                        scope.launch {
+                            withFrameNanos { }
+                            focusManager.clearFocus()
+                        }
                     }
                 ),
             )
