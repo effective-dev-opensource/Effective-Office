@@ -59,9 +59,20 @@ internal actual fun OrganizerListPopup(
                 // Its own scene means the system density too, so re-apply the scale.
                 ScaledUiDensity(modifier = Modifier.fillMaxSize()) {
                     var listSize by remember { mutableStateOf(IntSize.Zero) }
-                    // positionInWindow() reports coordinates in the UNROTATED content
-                    // layout, not in the physical window; the rotation is a drawing effect
-                    // and does not touch them, so they are used as-is.
+                    // The anchor is in WINDOW space, and this scene lays out in content space,
+                    // so on a rotated window the two disagree by 90°: positionInWindow() maps a
+                    // node's position up through every ancestor including the ForcedLandscape
+                    // layer, so the Y it reports for a node inside the rotated content is that
+                    // node's content-X. This comment used to claim the opposite — that the
+                    // rotation is a drawing effect the coordinates never see — on the strength of
+                    // the list appearing roughly beside the field. It is wrong, and it is why the
+                    // list lands off to the side on a portrait window.
+                    //
+                    // Not fixable from inside this scene: a popup is a scene of its own here, and
+                    // there is no ancestor shared with the field to measure against, the way
+                    // ModalHostState does for the keyboard shift. What fixes it is not being a
+                    // popup at all — rendering the list into the modal's own scene, which is what
+                    // fix/aurora-maliit-deadlock does.
                     val anchor = textFieldCoords?.positionInWindow()?.let {
                         IntOffset(it.x.roundToInt(), it.y.roundToInt())
                     } ?: IntOffset.Zero

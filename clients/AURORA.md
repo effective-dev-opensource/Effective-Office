@@ -367,11 +367,15 @@ rather than fatal; a native crash inside the binding is not catchable that way, 
 before silence is then the thing to look at.
 
 **This is aimed at the tablet, and only the tablet.** On the Quadro T the keyboard comes up along
-the bottom of the content, exactly where the shared `ModalHost` geometry expects it. On the dev
-phone it comes up along the right-hand side instead, where a vertical shift does nothing — the same
-device split as the dropdown that lands next to the field on the tablet and off to the side on the
-phone, and probably the same cause: the phone's window really is portrait and rotated by
-`ForcedLandscape`, while the tablet's is not.
+the bottom of the content, where the shared `ModalHost` geometry expects it. On the dev phone it
+comes up along the right-hand side instead, where a vertical shift does nothing.
+
+It is not the split it once looked like. Both windows arrive portrait and both are rotated — the
+probe measures 720x1600 on the phone and 1200x2000 on the tablet, with the scene equal to the
+window on each — so an earlier guess here, that the tablet's window was landscape and the phone's
+was not, was wrong. What differs is where maliit puts its keys: along the window's bottom on the
+phone, which the rotation turns into the content's right-hand side, and along the content's bottom
+on the tablet.
 
 **Why three layers and not just the root.** The fork renders `Popup` and `Dialog` as separate
 scenes, in the untouched window and with the system density. Nothing applied at the root reaches
@@ -379,13 +383,23 @@ them, so both wrappers are re-applied in every layer. The modals themselves no l
 they are state-driven overlays in the main scene (the date/time picker's own `Dialog` is the only
 dialog window left — see AppNavHost for why).
 
-**Why the popup is positioned by hand.** Its position provider returns `0,0`, the layer is
-stretched to fill the window, and the list itself is moved with `offset`. The stretching is not
-optional: a popup window is sized to its content by default, so an offset list would fall outside
-its own window and be clipped — which is exactly what happened on Android. The gap between the
-field and the list is expressed in px so a substituted density cannot shift it. Anchor
-coordinates are used as-is: `positionInWindow()` reports coordinates in the unrotated content
-layout, and the rotation is a drawing effect that does not touch them.
+**Why the popup is positioned by hand, and why it is still wrong.** Its position provider returns
+`0,0`, the layer is stretched to fill the window, and the list itself is moved with `offset`. The
+stretching is not optional: a popup window is sized to its content by default, so an offset list
+would fall outside its own window and be clipped — which is exactly what happened on Android. The
+gap between the field and the list is expressed in px so a substituted density cannot shift it.
+
+The anchor, though, is taken from `positionInWindow()` and applied inside a scene that lays out in
+content space — and on a rotated window those are not the same space. `positionInWindow()` maps a
+node's position up through every ancestor, the `ForcedLandscape` layer included, so the Y it
+reports for a node inside the rotated content is that node's content-X. This document and the code
+both used to claim the opposite, on the strength of the list appearing roughly beside the field;
+that was wrong, and it is what puts the list off to the side. The same confusion cost the keyboard
+shift a fortnight — see [ModalHostState].
+
+It cannot be fixed inside the popup: a scene of its own has no ancestor in common with the field to
+measure against. What fixes it is not being a popup — rendering the list into the modal's own
+scene, as `fix/aurora-maliit-deadlock` does through the host's overlay slot.
 
 **Why the inset goes inside the rotated content.** Applied outside, the padding would land in the
 window's portrait coordinate space and show up as a stripe down the side after rotation. The
@@ -465,8 +479,9 @@ Each of these cost at least one round of on-device debugging.
   only at the next tick. Android and iOS are woken by the system and see them at once.
 - **No FCM,** so room updates arrive by polling once a minute rather than by push.
 - **No kiosk mode** — there is no Aurora equivalent of the Android device-admin / lock-task path.
-- **The dropdown position differs between devices** — next to the field on the tablet, off to the
-  side on the dev phone. Unexplained.
+- **The dropdown lands off to the side** on a rotated window, worst on the dev phone. Explained:
+  the anchor is read in window space and used in content space, and the two differ by the forced
+  rotation — see the popup section. The fix is to stop making it a popup.
 - **The scale baseline has not been looked at on the target tablet** since it was moved to 686 dp
   for parity. The arithmetic is exact; whether the text wrapping that 800 dp was hiding is
   acceptable is unverified. See the baseline section.
