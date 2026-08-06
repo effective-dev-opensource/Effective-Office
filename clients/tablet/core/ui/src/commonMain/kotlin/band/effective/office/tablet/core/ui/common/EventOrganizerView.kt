@@ -43,10 +43,14 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.utf16CodePoint
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
@@ -61,6 +65,7 @@ import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.arrow_to_down
 import band.effective.office.tablet.core.ui.platform.LocalFocusedFieldBottom
 import band.effective.office.tablet.core.ui.platform.closeSoftKeyboard
+import band.effective.office.tablet.core.ui.platform.noteSoftKeyboardExpected
 import band.effective.office.tablet.core.ui.platform.popupIsSeparateScene
 import band.effective.office.tablet.core.ui.res.painterResource
 import band.effective.office.tablet.core.ui.selectbox_organizer_error
@@ -68,11 +73,19 @@ import band.effective.office.tablet.core.ui.selectbox_organizer_title
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h8
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
 private const val ORGANIZER_TAG = "OrganizerPicker"
+
+/**
+ * How long a press waits for the focus that should follow it before its report of the field's
+ * position is taken back. Covers the Aurora fork's slow focus grant — about two seconds — and
+ * nothing on the other platforms, where focus arrives with the press.
+ */
+private const val PRESS_TO_FOCUS_GRACE_MS = 3000L
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,6 +106,9 @@ fun EventOrganizerView(
 
 
     var textFieldCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    // The row around the field — what the modal is asked to lift clear of the keyboard. Kept so a
+    // press can report it before the field has focus to report it from.
+    var rowCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val density = LocalDensity.current
 
     // Tell whoever hosts this screen where the field's bottom edge is while it is being typed into,
@@ -125,10 +141,36 @@ fun EventOrganizerView(
         Row(
             modifier = Modifier
                 .fillMaxSize()
+                // The press, not the focus that follows it. On Aurora the fork starts the keyboard
+                // session before granting focus and takes a second or two over it, so a modal that
+                // waits for focus moves long after the keyboard has covered the field. The press
+                // warns the platform and reports where the field is, and the shift happens at once.
+                // Initial pass and nothing consumed, so the field still takes the press itself.
+                .pointerInput(Unit) {
+                    awaitEachGesture {
+                        awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                        noteSoftKeyboardExpected()
+                        if (!isFocused) {
+                            focusedFieldBottom?.value = rowCoords
+                                ?.takeIf { it.isAttached }
+                                ?.let { it.positionInWindow().y + it.size.height }
+                                ?.roundToInt()
+                            // Taken back if the focus never confirms the press: a value left
+                            // behind would have the host believing a field is being edited, and
+                            // the first tap on the dim would go to dismissing a keyboard that
+                            // never came.
+                            scope.launch {
+                                delay(PRESS_TO_FOCUS_GRACE_MS)
+                                if (!isFocused) focusedFieldBottom?.value = null
+                            }
+                        }
+                    }
+                }
                 .onGloballyPositioned { coordinates ->
                     // This value is used to assign to
                     // the DropDown the same width
                     mTextFieldSize = coordinates.size.toSize()
+                    rowCoords = coordinates
                     if (isFocused) {
                         focusedFieldBottom?.value =
                             (coordinates.positionInWindow().y + coordinates.size.height)

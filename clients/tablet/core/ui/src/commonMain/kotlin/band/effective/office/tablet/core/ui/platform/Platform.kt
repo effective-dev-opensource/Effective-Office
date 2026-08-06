@@ -76,6 +76,20 @@ expect fun softKeyboardOverlapPx(): Int
 expect fun closeSoftKeyboard()
 
 /**
+ * Tells the platform a text field has just been pressed — that a keyboard is on its way — before
+ * the platform has any way of knowing.
+ *
+ * Only Aurora listens. The fork starts the maliit session synchronously and only grants focus at
+ * the end of it, which takes a second or two; the keyboard is already rising through all of it
+ * while focus, `Keyboard.isOpen()` and the state event alike still say there is none. The press is
+ * the one signal that comes before the keyboard, so [softKeyboardOverlapPx] takes it as notice and
+ * answers optimistically for a few seconds; if no keyboard follows, the notice expires by itself.
+ *
+ * Android and iOS report their insets as the keyboard moves, so their actuals do nothing.
+ */
+expect fun noteSoftKeyboardExpected()
+
+/**
  * Bottom edge of the text field currently being typed into, in window pixels, or `null` when
  * nothing is focused.
  *

@@ -17,3 +17,6 @@ actual fun softKeyboardOverlapPx(): Int = 0
 
 // UIKit takes the keyboard down with the focus by itself.
 actual fun closeSoftKeyboard() = Unit
+
+// UIKit shortens the scene as the keyboard animates in — nothing to be warned about.
+actual fun noteSoftKeyboardExpected() = Unit
