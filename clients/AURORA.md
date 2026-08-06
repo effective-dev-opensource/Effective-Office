@@ -95,7 +95,7 @@ Per-module notes:
   `ImageVector` in the linux drawable implementation. Coil is not wired in: the tablet does not
   load images over the network.
 - `clients/tablet/core/domain` — multiplatform-settings has no linux target, so `SettingsStore`
-  gets its own linux actual.
+  gets its own linux actual, over the fork's `ak-shared-preferences`.
 - `clients/tablet/feature/bookingEditor` — calf publishes no linux target, so the date and time
   pickers get Material3 actuals (on Android and iOS calf draws the same widgets underneath).
 - `clients/tablet/feature/settings` — no `compose.resources` block here, same as in the upstream
@@ -156,7 +156,7 @@ and iOS already had, plus two package squats.
 | Date formatting | `LocalDateTime.toLocalisedString` | hand-rolled pattern expansion | month names hardcoded |
 | Locale | `getCurrentLanguageCode` | hardcoded `"ru"` | not read from the system |
 | Current time | `TimeReceiver` | coroutine ticking once a minute, aligned to `:00` | time/zone changes noticed late |
-| Settings | `SettingsStore` | in-memory map | does not survive a restart |
+| Settings | `SettingsStore` | `ak-shared-preferences` | every write needs an explicit `save()` |
 | Date picker | `DatePickerView` | own month grid | Material3's is unusable, see below |
 | Time picker | `TimePickerView` | Material3 | — |
 | Logging | `Napier` | package squat + `fflush` | — |
@@ -240,10 +240,19 @@ polyfill and not an equivalent.
 
 ### Settings
 
-multiplatform-settings has no linux target, so `settingsStoreModule()` provides a `SettingsStore`
-backed by a plain `mutableMapOf<String, String>`. Everything works — the room picker writes and
-reads it — but nothing is persisted, so the selected meeting room is forgotten on restart. The
-fork ships `ru.auroraos.kmp:ak-shared-preferences`, which is the intended replacement.
+multiplatform-settings has no linux target, so `settingsStoreModule()` backs `SettingsStore` with
+the fork's own `ru.auroraos.kmp:ak-shared-preferences` instead. Its API maps onto the interface one
+for one — `getString(key, default)`, `putString`, `remove` — with one thing that does not show in
+the signatures and decides everything: **`save()`**. A put reaches the process, not the disk; the
+save is what writes it out. Without it this would be the `mutableMapOf` it replaced, only reached
+through a C binding. So every write is followed by a save, which is affordable because the only
+setting is the room and it is written when somebody picks one.
+
+Calls are wrapped like every other trip into the fork and logged under the `Settings` tag: a
+setting that cannot be stored is not worth an app, and the caller carries on with an answer that is
+simply not persisted. The tag is silent unless something failed.
+
+Verified on the Quadro T emulator: pick a room, kill the app, and it comes back up in that room.
 
 ### Date and time pickers
 
@@ -506,8 +515,6 @@ Each of these cost at least one round of on-device debugging.
 
 ## Not finished yet
 
-- **Settings live in memory** — the selected room does not survive a restart. See the settings
-  section; `ru.auroraos.kmp:ak-shared-preferences` is the intended fix.
 - **The locale is hardcoded** to `ru`, and with it the month names. Aurora exposes the system
   locale through Qt; wiring it up and localising the dates belong together.
 - **The time ticker is naive on Aurora** — one coroutine tick a minute (aligned to `:00`, so the
