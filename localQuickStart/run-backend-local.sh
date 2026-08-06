@@ -80,4 +80,9 @@ export PHOTO_SAVER_SYNOLOGY_USERNAME=dummy
 export PHOTO_SAVER_SYNOLOGY_PASSWORD=dummy
 export PHOTO_SAVER_ALBUM_NAME=dummy
 
-exec ./gradlew :backend:app:bootRun --args='--spring.profiles.active=local' --console=plain
+# -PbuildVariant=upstream explicitly, never the default. The Aurora variant rewrites the module
+# list down to clients:tablet, so with `buildVariant=aurora` left active in gradle.properties —
+# which is how anyone working on the Aurora client leaves it — this line fails with "project
+# 'backend' not found", and the backend simply never comes up. There is no Aurora build of the
+# backend for the flag to ever mean anything else here.
+exec ./gradlew -PbuildVariant=upstream :backend:app:bootRun --args='--spring.profiles.active=local' --console=plain
