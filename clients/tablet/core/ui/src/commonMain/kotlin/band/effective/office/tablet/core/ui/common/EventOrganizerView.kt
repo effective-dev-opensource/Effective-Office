@@ -63,7 +63,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.arrow_to_down
-import band.effective.office.tablet.core.ui.platform.LocalFocusedFieldBottom
+import band.effective.office.tablet.core.ui.platform.LocalModalHost
+import band.effective.office.tablet.core.ui.platform.fieldBottomPx
 import band.effective.office.tablet.core.ui.platform.closeSoftKeyboard
 import band.effective.office.tablet.core.ui.platform.noteSoftKeyboardExpected
 import band.effective.office.tablet.core.ui.platform.popupIsSeparateScene
@@ -88,11 +89,11 @@ private const val ORGANIZER_TAG = "OrganizerPicker"
 private const val PRESS_TO_FOCUS_GRACE_MS = 3000L
 
 /**
- * Bottom edge of this node, for whoever has to keep it clear of the keyboard, or `null` if the
- * node has left the tree and its position means nothing any more.
+ * Bottom edge of this node in [container]'s space, or `null` if either has left the tree and its
+ * position means nothing any more. Never window space — see [ModalHostState].
  */
-private fun LayoutCoordinates.fieldBottomPx(): Int? =
-    takeIf { it.isAttached }?.let { (it.positionInWindow().y + it.size.height).roundToInt() }
+private fun LayoutCoordinates.bottomIn(container: LayoutCoordinates?): Int? =
+    takeIf { it.isAttached }?.let { fieldBottomPx(container, it) }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -124,10 +125,10 @@ fun EventOrganizerView(
     // cached off a coordinates reference would keep reporting where the field used to be. Cleared
     // on focus loss and on the way out, or a stale edge would keep the host shifted.
     var isFocused by remember { mutableStateOf(false) }
-    val focusedFieldBottom = LocalFocusedFieldBottom.current
-    DisposableEffect(focusedFieldBottom) {
+    val modalHost = LocalModalHost.current
+    DisposableEffect(modalHost) {
         onDispose {
-            focusedFieldBottom?.value = null
+            modalHost?.focusedFieldBottom = null
             // The net under the branch above: the field can be taken off screen mid-edit — back,
             // the inactivity reset — and no focus change is reported when that happens. Still
             // focused on the way out is what says the session is ours to close.
@@ -158,20 +159,20 @@ fun EventOrganizerView(
                         awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
                         noteSoftKeyboardExpected()
                         if (!isFocused) {
-                            val bottom = rowCoords?.fieldBottomPx()
+                            val bottom = rowCoords?.bottomIn(modalHost?.containerCoords)
                             Napier.i(tag = ORGANIZER_TAG) { "field pressed, bottom: $bottom" }
                             // Only ever an improvement on what the host knows. Writing the null
                             // through would erase a good value and leave nothing to restore it:
                             // the layout callback that would have reported one fires when the
                             // layout changes, and by the time a field is pressed it long has.
-                            if (bottom != null) focusedFieldBottom?.value = bottom
+                            if (bottom != null) modalHost?.focusedFieldBottom = bottom
                             // Taken back if the focus never confirms the press: a value left
                             // behind would have the host believing a field is being edited, and
                             // the first tap on the dim would go to dismissing a keyboard that
                             // never came.
                             scope.launch {
                                 delay(PRESS_TO_FOCUS_GRACE_MS)
-                                if (!isFocused) focusedFieldBottom?.value = null
+                                if (!isFocused) modalHost?.focusedFieldBottom = null
                             }
                         }
                     }
@@ -182,7 +183,8 @@ fun EventOrganizerView(
                     mTextFieldSize = coordinates.size.toSize()
                     rowCoords = coordinates
                     if (isFocused) {
-                        coordinates.fieldBottomPx()?.let { focusedFieldBottom?.value = it }
+                        coordinates.bottomIn(modalHost?.containerCoords)
+                            ?.let { modalHost?.focusedFieldBottom = it }
                     }
                 }
                 .clip(RoundedCornerShape(15.dp))
@@ -207,11 +209,11 @@ fun EventOrganizerView(
                                 // reports it too, but it only fires when the layout changes, and on
                                 // Aurora focus arrives seconds after everything has settled — so
                                 // for the host it may be this or nothing.
-                                rowCoords?.fieldBottomPx()
-                                    ?.let { bottom -> focusedFieldBottom?.value = bottom }
+                                rowCoords?.bottomIn(modalHost?.containerCoords)
+                                    ?.let { bottom -> modalHost?.focusedFieldBottom = bottom }
                                 onExpandedChange()
                             } else if (wasFocused) {
-                                focusedFieldBottom?.value = null
+                                modalHost?.focusedFieldBottom = null
                                 // The field is done being edited, so the keyboard's session is
                                 // done too — on Aurora it has to be told. Everything that ends
                                 // editing comes through here: Done, a name picked from the list,

@@ -1,9 +1,16 @@
 package band.effective.office.tablet.core.ui.platform
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.unit.Dp
+import kotlin.math.roundToInt
 
 /**
  * The tablet is a landscape-locked kiosk, but the Aurora window has no orientation handling and
@@ -90,10 +97,39 @@ expect fun closeSoftKeyboard()
 expect fun noteSoftKeyboardExpected()
 
 /**
- * Bottom edge of the text field currently being typed into, in window pixels, or `null` when
- * nothing is focused.
+ * The contract between a modal host and the editable content inside it. `null` outside a modal.
  *
- * A field writes here while it holds focus so the modal hosting it knows how far to move: what has
- * to clear the keyboard is the field, not the card around it, and only the field knows where it is.
+ * Everything positional in it is measured field-against-host, never through window coordinates. On
+ * Aurora there is a 90° rotation between the window and the content ([ForcedLandscape]) and
+ * `positionInWindow()` goes through it: the window-Y of a point inside the rotated content is its
+ * content-X. The tablet showed exactly that — a field whose bottom sits around 860px in the
+ * content reported 557, which is where it sits across, and the host duly decided the keyboard was
+ * not in its way. A measurement between two nodes on the same side of the rotation cancels it out;
+ * on Android and iOS the two frames coincide anyway.
  */
-val LocalFocusedFieldBottom = compositionLocalOf<MutableState<Int?>?> { null }
+@Stable
+class ModalHostState {
+    /**
+     * Bottom edge of the field currently being edited, in [containerCoords] space, or `null` when
+     * none. A field writes it while it holds focus so the host knows how far to lift the card:
+     * what has to clear the keyboard is the field, and only the field knows where it is.
+     */
+    var focusedFieldBottom: Int? by mutableStateOf(null)
+
+    /** The host's full-screen container box — the frame [focusedFieldBottom] is measured in. */
+    var containerCoords: LayoutCoordinates? by mutableStateOf(null)
+}
+
+val LocalModalHost = compositionLocalOf<ModalHostState?> { null }
+
+/**
+ * Bottom edge of [field] in [container]'s space, for [ModalHostState.focusedFieldBottom]. Falls
+ * back to window space when there is no container to measure against, which happens only in
+ * previews and in hosts that do not move for the keyboard.
+ */
+fun fieldBottomPx(container: LayoutCoordinates?, field: LayoutCoordinates): Int =
+    if (container != null && container.isAttached) {
+        container.localPositionOf(field, Offset(0f, field.size.height.toFloat())).y.roundToInt()
+    } else {
+        (field.positionInWindow().y + field.size.height).roundToInt()
+    }
