@@ -108,8 +108,13 @@ internal fun ModalHost(
         // the keyboard than asked for. It may only come down by as much as it hangs off the top,
         // so a card that already fits never drifts below where it was centred.
         val overhangTop = maxOf(0, (cardHeight - containerHeight) / 2)
+        // A keyboard cannot cover more than the box it is drawn over, and a platform saying it
+        // does is not to be believed — Aurora reports the screen's whole long side, 2000 against a
+        // 1200-tall content, which unclamped throws the card a screen and a half off the top.
+        // Clamped, an overblown number lifts the card as far as it can go and no further.
+        val overlapInBox = overlapPx.coerceIn(0, containerHeight)
         val shiftPx = restingFieldBottom
-            ?.let { (it + gapPx - (containerBottom - overlapPx)).coerceAtLeast(-overhangTop) }
+            ?.let { (it + gapPx - (containerBottom - overlapInBox)).coerceAtLeast(-overhangTop) }
             ?: 0
 
         // iOS shortens the scene when the keyboard opens, which re-lays out the card underneath us,

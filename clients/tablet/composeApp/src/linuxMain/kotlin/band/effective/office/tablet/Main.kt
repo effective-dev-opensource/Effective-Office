@@ -9,9 +9,12 @@ import io.github.aakira.napier.Napier
 fun main() {
     Napier.base(DebugAntilog())
     KoinInitializer().init()
+    // Registered before the window runs, so no size event can slip past — see AuroraWindowProbe.
+    installWindowProbe()
 
     application {
         AuroraKeyboardSessionCloser()
+        AuroraWindowProbe()
         AppRoot()
     }
 }

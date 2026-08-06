@@ -52,6 +52,11 @@ kotlin {
             implementation(project(":clients:tablet:core:data"))
             implementation(project(":clients:tablet:core:domain"))
         }
+
+        linuxMain.dependencies {
+            // Window geometry and size events, for the keyboard-inset probe in AuroraWindowProbe.
+            implementation(libs.aurora.ak.window)
+        }
     }
 
     sourceSets.all {
