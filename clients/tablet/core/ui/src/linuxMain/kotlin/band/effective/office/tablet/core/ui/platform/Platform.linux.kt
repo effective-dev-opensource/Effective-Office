@@ -43,12 +43,12 @@ private const val KEYBOARD_TAG = "SoftKeyboard"
  * How much of the screen's short side the keyboard is taken to cover when its own answer cannot
  * be believed — see [readKeyboard].
  *
- * Measured off a screenshot of the Quadro T rather than guessed: the key strip is a band about
- * 520 px wide across a 1200 px short side, drawn rotated with the content, so in the content's own
- * frame it is a 520 px layer along the bottom. Rounded up a little — too small hides the field
- * behind the keys, too large only lifts it higher than it needed to go.
+ * Measured rather than guessed, and twice: off a screenshot of the Quadro T, where the key strip is
+ * a band about 520 px wide across a 1200 px short side; and off the emulator, where `height()`
+ * happens to answer honestly and says 520 against the same 1200. Two devices, one number — so the
+ * estimate is set to what the keyboard turns out to be rather than rounded up away from it.
  */
-private const val KEYBOARD_COVER_FRACTION = 0.45f
+private const val KEYBOARD_COVER_FRACTION = 0.43f
 
 /** When a field was last pressed, i.e. when a keyboard was last promised. */
 private var keyboardExpectedAt: TimeSource.Monotonic.ValueTimeMark? = null
