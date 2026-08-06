@@ -2,6 +2,7 @@ package band.effective.office.tablet.core.ui.platform
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -12,6 +13,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import io.github.aakira.napier.Napier
 import kotlin.math.min
 
 /**
@@ -46,6 +48,14 @@ fun ScaledUiDensity(
         SideEffect {
             UiScaleDiagnostics.appliedDensity = scaledDensity
             UiScaleDiagnostics.contentPx = IntSize(constraints.maxWidth, constraints.maxHeight)
+        }
+        // The scale follows the scene's short side, so a scene that shrinks — for a keyboard, say —
+        // takes the whole layout down with it, which looks like the content squeezing rather than
+        // moving. Logged on every change, because that would otherwise be invisible from outside.
+        LaunchedEffect(constraints.maxWidth, constraints.maxHeight) {
+            Napier.i(tag = "UiScale") {
+                "content ${constraints.maxWidth}x${constraints.maxHeight}, density $scaledDensity"
+            }
         }
         CompositionLocalProvider(
             LocalDensity provides Density(density = scaledDensity, fontScale = 1f),

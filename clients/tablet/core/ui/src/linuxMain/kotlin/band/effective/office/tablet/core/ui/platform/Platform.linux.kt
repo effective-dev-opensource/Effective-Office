@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 import ru.auroraos.kmp.keyboard.maliit.Keyboard
 import ru.auroraos.kmp.window.Window
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
@@ -53,11 +54,25 @@ private const val KEYBOARD_COVER_FRACTION = 0.45f
 private var keyboardExpectedAt: TimeSource.Monotonic.ValueTimeMark? = null
 
 /**
- * How long a press is taken as a promise of a keyboard. Long enough to cover the fork's
- * session-start handshake, which has been seen to take about two seconds; short enough that a
- * press which summons nothing does not leave the modal hanging.
+ * How long a press is taken as a promise of a keyboard.
+ *
+ * Generous, because the handshake it has to cover is: on the Quadro T a press has been seen to
+ * produce a keyboard six seconds later, with focus granted and taken away again in between. Three
+ * seconds — the fork's own worst case on the phone — expired mid-handshake there, and the modal
+ * dropping back at that moment reads to the host as a keyboard that has gone away, which costs the
+ * field its focus and the session its life while the keyboard is still on its way up.
+ *
+ * The promise does not usually live this long: it is dropped the moment a keyboard really shows up
+ * ([readKeyboard]) or the field stops being edited ([closeSoftKeyboard]). The timeout is only the
+ * backstop for a press that summons nothing at all.
  */
-private val KEYBOARD_EXPECTED_GRACE = 3.seconds
+private val KEYBOARD_EXPECTED_GRACE = 10.seconds
+
+/**
+ * How long after a press `isOpen()` is not yet taken as proof of a keyboard — long enough for a
+ * stale `true` from the previous session to be read and ignored.
+ */
+private val KEYBOARD_NOTICE_SETTLE = 300.milliseconds
 
 actual fun noteSoftKeyboardExpected() {
     keyboardExpectedAt = TimeSource.Monotonic.markNow()
@@ -107,12 +122,23 @@ private fun readKeyboard(): KeyboardReading {
     }
 
     // A press is a promise of a keyboard, and for the second or two the fork takes to start the
-    // session it is the only evidence there is — see [noteSoftKeyboardExpected]. The promise is
-    // only ever allowed to expire, never cancelled by a reassuring-looking `isOpen()`: that can be
-    // a stale `true` left over from the previous session, and acting on it would throw away a
-    // fresh promise before the keyboard has moved.
-    val expected = keyboardExpectedAt?.let { it.elapsedNow() < KEYBOARD_EXPECTED_GRACE } == true
+    // session it is the only evidence there is — see [noteSoftKeyboardExpected].
+    val notice = keyboardExpectedAt
+    val expected = notice?.let { it.elapsedNow() < KEYBOARD_EXPECTED_GRACE } == true
     val believable = reported in 1 until shortSide
+
+    // Once the keyboard is really there, the promise has been kept and is dropped. Leaving it to
+    // expire on its own instead makes the modal bounce: close the keyboard inside the grace window
+    // and the spent promise lifts the card straight back up for the remainder of it.
+    //
+    // A believable height proves a keyboard outright. `isOpen()` only counts once the notice has
+    // had a moment to settle — read immediately after the press it can still be a stale `true`
+    // from the previous session, and taking that for proof would spend the promise before the
+    // keyboard has moved at all.
+    if (notice != null && (believable || (isOpen && notice.elapsedNow() > KEYBOARD_NOTICE_SETTLE))) {
+        keyboardExpectedAt = null
+    }
+
     val overlap = when {
         believable -> reported
         isOpen || expected -> (shortSide * KEYBOARD_COVER_FRACTION).roundToInt()
@@ -192,6 +218,10 @@ actual fun closeSoftKeyboard() {
     // Deferring with a launch does not work either: both of the fork's dispatchers run tasks
     // inline on the main thread, so only a real suspension point leaves the dispatch. The close
     // itself lives in [AuroraKeyboardSessionCloser], on the far side of one.
+    //
+    // Editing is over, so nobody is waiting for a keyboard any more: whatever a press promised is
+    // withdrawn here rather than left to time out and lift the modal over an empty screen.
+    keyboardExpectedAt = null
     keyboardCloseRequests.trySend(Unit)
 }
 

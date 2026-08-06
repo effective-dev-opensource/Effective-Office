@@ -125,6 +125,16 @@ internal fun ModalHost(
             if (measuredFieldBottom != null) restingFieldBottom = measuredFieldBottom + shiftPx
         }
 
+        // Whether the card moves or merely gets smaller is not something a photograph settles:
+        // the sizes and the shift together say which. Reported on change only, so an idle modal
+        // stays quiet.
+        LaunchedEffect(containerHeight, cardHeight, overlapPx, shiftPx) {
+            Napier.i(tag = MODAL_TAG) {
+                "container ${containerHeight}px, card ${cardHeight}px, " +
+                    "overlap ${overlapPx}px (used ${overlapInBox}px), shift ${shiftPx}px"
+            }
+        }
+
         val focusManager = LocalFocusManager.current
 
         // The keyboard can also go away without the app being told: on Aurora it is swiped down or
