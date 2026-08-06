@@ -87,6 +87,13 @@ private const val ORGANIZER_TAG = "OrganizerPicker"
  */
 private const val PRESS_TO_FOCUS_GRACE_MS = 3000L
 
+/**
+ * Bottom edge of this node, for whoever has to keep it clear of the keyboard, or `null` if the
+ * node has left the tree and its position means nothing any more.
+ */
+private fun LayoutCoordinates.fieldBottomPx(): Int? =
+    takeIf { it.isAttached }?.let { (it.positionInWindow().y + it.size.height).roundToInt() }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventOrganizerView(
@@ -151,10 +158,13 @@ fun EventOrganizerView(
                         awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
                         noteSoftKeyboardExpected()
                         if (!isFocused) {
-                            focusedFieldBottom?.value = rowCoords
-                                ?.takeIf { it.isAttached }
-                                ?.let { it.positionInWindow().y + it.size.height }
-                                ?.roundToInt()
+                            val bottom = rowCoords?.fieldBottomPx()
+                            Napier.i(tag = ORGANIZER_TAG) { "field pressed, bottom: $bottom" }
+                            // Only ever an improvement on what the host knows. Writing the null
+                            // through would erase a good value and leave nothing to restore it:
+                            // the layout callback that would have reported one fires when the
+                            // layout changes, and by the time a field is pressed it long has.
+                            if (bottom != null) focusedFieldBottom?.value = bottom
                             // Taken back if the focus never confirms the press: a value left
                             // behind would have the host believing a field is being edited, and
                             // the first tap on the dim would go to dismissing a keyboard that
@@ -172,9 +182,7 @@ fun EventOrganizerView(
                     mTextFieldSize = coordinates.size.toSize()
                     rowCoords = coordinates
                     if (isFocused) {
-                        focusedFieldBottom?.value =
-                            (coordinates.positionInWindow().y + coordinates.size.height)
-                                .roundToInt()
+                        coordinates.fieldBottomPx()?.let { focusedFieldBottom?.value = it }
                     }
                 }
                 .clip(RoundedCornerShape(15.dp))
@@ -195,6 +203,12 @@ fun EventOrganizerView(
                             isFocused = it.isFocused
                             Napier.i(tag = ORGANIZER_TAG) { "field focus: ${it.isFocused}" }
                             if (it.isFocused) {
+                                // Where the field is, said again on the way in. The layout callback
+                                // reports it too, but it only fires when the layout changes, and on
+                                // Aurora focus arrives seconds after everything has settled — so
+                                // for the host it may be this or nothing.
+                                rowCoords?.fieldBottomPx()
+                                    ?.let { bottom -> focusedFieldBottom?.value = bottom }
                                 onExpandedChange()
                             } else if (wasFocused) {
                                 focusedFieldBottom?.value = null
