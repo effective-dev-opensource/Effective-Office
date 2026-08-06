@@ -13,6 +13,10 @@ On top of the usual `api.url.debug` / `api.url.release` / `apiKey`, `local.prope
   Aurora Compose plugin and libraries. The fork lives outside git.
 - `AURORA_DEVICE_IP` — the device to deploy to over SSH. Can also be passed as
   `-PAURORA_DEVICE_IP=…`, which wins.
+- `AURORA_DEVICE_PORT` and `AURORA_DEVICE_SSH_KEY` — optional, and only the SDK emulator needs
+  them. Defaults are 22 and `~/.ssh/qtc_id`, which is a real device; the emulator has no address of
+  its own (qemu forwards its ssh onto a host port) and authorises the SDK's own key instead. The
+  key path is resolved against `$HOME`. Both take `-P…` overrides like the address does.
 
 Packaging and deploy additionally need Docker (the Aurora build tools image) and an SSH key at
 `~/.ssh/qtc_id`.
@@ -28,7 +32,22 @@ Packaging and deploy additionally need Docker (the Aurora build tools image) and
 
 # build, install and launch on the device
 ./gradlew -PbuildVariant=aurora :clients:tablet:composeApp:runReleaseOnDevice
+
+# the same, onto the SDK emulator
+./gradlew -PbuildVariant=aurora :clients:tablet:composeApp:runReleaseOnDevice \
+  -PAURORA_DEVICE_IP=127.0.0.1 -PAURORA_DEVICE_PORT=2223 \
+  -PAURORA_DEVICE_SSH_KEY=AuroraOS/vmshare/ssh/private_keys/sdk
 ```
+
+The emulator's model has to be **landscape** for the keyboard and the organizer list to sit where
+the tablet puts them: the window then arrives 2000x1200 and `ForcedLandscape` passes the content
+through untouched, so maliit draws along the content's own bottom edge. A portrait emulator window
+reproduces the dev phone instead — the content is rotated and the keyboard comes up along its right
+edge, where a vertical shift does nothing. The real Quadro T is the portrait one, so geometry fixes
+have to be confirmed there; everything else is easier to watch in landscape. Deploying onto a
+freshly booted emulator usually fails once with `Sync output timed out after 60 seconds` — that is
+the install timing out under emulation, not a build error; the second run, on a warm system, goes
+through.
 
 Logs leave the device through journald, but **`ssh defaultuser@<ip> journalctl -f` does not work** —
 `defaultuser` is not in the `systemd-journal` group, so it answers "No journal files were opened due
@@ -396,9 +415,27 @@ shift a fortnight before `ModalHostState` settled it.
 So the list is content now, not a window: `ModalHost` exposes an overlay slot, the linux
 `OrganizerListPopup` writes into it, and the slot is composed inside the card's own box. It shows up
 on the frame it opens, inherits everything already applied around the card, and anchors against the
-field through their nearest shared ancestor — where the keyboard shift and the rotation are on both
-sides of the measurement and cancel. There is no popup fallback: the only user is the booking
+field's row through their nearest shared ancestor — where the keyboard shift and the rotation are on
+both sides of the measurement and cancel. There is no popup fallback: the only user is the booking
 editor, and it is only ever composed inside a modal.
+
+**The row, not the field inside it.** The list takes its width from the row (`mTextFieldSize`), so
+that is what it has to be positioned by; anchored to the `TextField` instead, it started 20.dp — the
+row's horizontal padding — to the right of where it was drawn from, and hung the same 20.dp past the
+card's right edge. Measured on the emulator: card 1259 wide, row at x=61 and 1137 wide, field at
+x=96 and 854 wide, list 1137 wide drawn from x=96 — so 96..1233 against the row's 61..1198. This is
+the second time this list has been diagnosed off a screenshot and the second time the screenshot was
+not enough to tell "offset" from "wrong width"; the `OrganizerList` log line exists so the third
+time is arithmetic. Its sizes are written `1137 x 262` rather than `1137x262` on purpose — the
+deploy plugin scans the app's output for a native backtrace and reads a bare `0x0`, which is what an
+unmeasured list logs, as an address, failing the run with "Application crashed with critical
+errors".
+
+**The list opens on the press, not on the focus.** Aurora grants focus at the end of the maliit
+handshake — seconds, and up to six of them on the Quadro T — so a list opened from the focus
+callback arrived after the keyboard: press, card jumps, pause, keyboard, pause, list. Nothing about
+the list needs focus, and it now opens where the keyboard shift is already triggered, in the press
+handler. Android and iOS grant focus on the same gesture, so the two moments were never apart there.
 
 **Why the inset goes inside the rotated content.** Applied outside, the padding would land in the
 window's portrait coordinate space and show up as a stripe down the side after rotation. The
@@ -478,8 +515,9 @@ Each of these cost at least one round of on-device debugging.
   only at the next tick. Android and iOS are woken by the system and see them at once.
 - **No FCM,** so room updates arrive by polling once a minute rather than by push.
 - **No kiosk mode** — there is no Aurora equivalent of the Android device-admin / lock-task path.
-- **The dropdown landing off to the side** should be gone: the list is no longer a popup and no
-  longer anchored through window space — see the section above. Unverified on a device.
+- ~~**The dropdown landing off to the side**~~ — fixed and verified on the Quadro T emulator: the
+  list is no longer a popup, no longer anchored through window space, and now anchored on the same
+  node it is sized to. It draws exactly over the row, 61..1198 in a 1259-wide card.
 - **The scale baseline has not been looked at on the target tablet** since it was moved to 686 dp
   for parity. The arithmetic is exact; whether the text wrapping that 800 dp was hiding is
   acceptable is unverified. See the baseline section.
