@@ -15,11 +15,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -330,7 +330,12 @@ private fun OrganizerListBody(
     onExpandedChange: () -> Unit,
     focusManager: FocusManager,
 ) {
-    Column(
+    // Lazy, because the office is not three people: the list is the whole staff, 46 of them in
+    // production, and a Column in a verticalScroll composes every one of them to show the three
+    // that fit under the 150.dp cap. `LazyVerticalGrid` in the room picker and `LazyColumn` in the
+    // main screen's slot list already run on the Aurora fork, so SubcomposeLayout is not the
+    // hazard here that it is in the date picker.
+    LazyColumn(
         modifier = modifier
             .width(width)
             .heightIn(max = 150.dp)
@@ -340,9 +345,8 @@ private fun OrganizerListBody(
                 RoundedCornerShape(8.dp)
             )
             .border(3.dp, Color.DarkGray, RoundedCornerShape(8.dp))
-            .verticalScroll(rememberScrollState())
     ) {
-        selectOrganizers.forEach { organizer ->
+        items(selectOrganizers) { organizer ->
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
