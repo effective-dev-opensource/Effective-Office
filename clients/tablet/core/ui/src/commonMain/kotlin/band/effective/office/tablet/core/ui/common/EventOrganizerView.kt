@@ -67,6 +67,7 @@ import band.effective.office.tablet.core.ui.arrow_to_down
 import band.effective.office.tablet.core.ui.platform.LocalModalHost
 import band.effective.office.tablet.core.ui.platform.fieldBottomPx
 import band.effective.office.tablet.core.ui.platform.closeSoftKeyboard
+import band.effective.office.tablet.core.ui.platform.listFlingBehavior
 import band.effective.office.tablet.core.ui.platform.noteSoftKeyboardExpected
 import band.effective.office.tablet.core.ui.platform.popupIsSeparateScene
 import band.effective.office.tablet.core.ui.res.painterResource
@@ -336,6 +337,7 @@ private fun OrganizerListBody(
     // main screen's slot list already run on the Aurora fork, so SubcomposeLayout is not the
     // hazard here that it is in the date picker.
     LazyColumn(
+        flingBehavior = listFlingBehavior(),
         modifier = modifier
             .width(width)
             .heightIn(max = 150.dp)

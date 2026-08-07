@@ -1,5 +1,8 @@
 package band.effective.office.tablet.core.ui.platform
 
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
+
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -20,3 +23,6 @@ actual fun closeSoftKeyboard() = Unit
 
 // UIKit shortens the scene as the keyboard animates in — nothing to be warned about.
 actual fun noteSoftKeyboardExpected() = Unit
+
+@Composable
+actual fun listFlingBehavior(): FlingBehavior = ScrollableDefaults.flingBehavior()

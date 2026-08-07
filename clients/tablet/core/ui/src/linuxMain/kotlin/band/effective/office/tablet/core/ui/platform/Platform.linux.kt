@@ -1,7 +1,11 @@
 package band.effective.office.tablet.core.ui.platform
 
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.ScrollScope
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -252,6 +256,47 @@ fun AuroraKeyboardSessionCloser() {
                 }
             }.onFailure {
                 Napier.e(throwable = it, tag = KEYBOARD_TAG) { "closing the session failed" }
+            }
+        }
+    }
+}
+
+/** What the fling is told, before anything is done about it. */
+private const val FLING_TAG = "ListFling"
+
+/**
+ * The platform default, with the sign of the velocity put back the way the drag reads it.
+ *
+ * A flick on Aurora scrolled a list the right way while the finger was down and threw it back the
+ * other way on release; a slow drag, which ends with no velocity and so produces no fling at all,
+ * was fine throughout. That places the fault in the velocity rather than in the drag, and the
+ * measurement says the same. Three flicks in one direction on the dev phone:
+ *
+ * ```
+ * fling v=-5851.73,   unconsumed=-5757.672
+ * fling v=-1241.1434, unconsumed=-0.0
+ * fling v=-900.90607, unconsumed=-0.0
+ * ```
+ *
+ * The numbers are consistent and plausibly sized, so the tracker is not producing noise — it is
+ * producing the opposite of what the drag consumed. The first line is the giveaway: nearly all of
+ * that velocity went unspent, i.e. the fling ran straight into an edge the list had just been
+ * dragged away from. On the later two the list was mid-way and the fling had room, which is
+ * exactly when the snap-back was visible.
+ *
+ * So the velocity is negated on the way in and the remainder on the way out, leaving the caller's
+ * sign convention intact. The log line stays: it is the only way to notice if a future fork build
+ * starts agreeing with the drag, at which point this correction has to go.
+ */
+@Composable
+actual fun listFlingBehavior(): FlingBehavior {
+    val delegate = ScrollableDefaults.flingBehavior()
+    return remember(delegate) {
+        object : FlingBehavior {
+            override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
+                val left = with(delegate) { performFling(-initialVelocity) }
+                Napier.i(tag = FLING_TAG) { "fling v=$initialVelocity flipped, unconsumed=$left" }
+                return -left
             }
         }
     }

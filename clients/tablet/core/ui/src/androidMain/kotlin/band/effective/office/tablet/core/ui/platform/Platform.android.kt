@@ -1,5 +1,8 @@
 package band.effective.office.tablet.core.ui.platform
 
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
+
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
@@ -28,3 +31,6 @@ actual fun closeSoftKeyboard() = Unit
 
 // The ime inset arrives on its own, in step with the animation — nothing to be warned about.
 actual fun noteSoftKeyboardExpected() = Unit
+
+@Composable
+actual fun listFlingBehavior(): FlingBehavior = ScrollableDefaults.flingBehavior()

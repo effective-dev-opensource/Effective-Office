@@ -163,6 +163,7 @@ and iOS already had, plus two package squats.
 | Locale | `getCurrentLanguageCode` | hardcoded `"ru"` | not read from the system |
 | Current time | `TimeReceiver` | coroutine ticking once a minute, aligned to `:00` | time/zone changes noticed late |
 | Settings | `SettingsStore` | `ak-shared-preferences` | every write needs an explicit `save()` |
+| List fling | `listFlingBehavior` | platform default, velocity negated | corrects a fork defect; drop it when the fork stops needing it |
 | Date picker | `DatePickerView` | own month grid | Material3's is unusable, see below |
 | Time picker | `TimePickerView` | Material3 | — |
 | Logging | `Napier` | package squat + `fflush` | — |
@@ -259,6 +260,35 @@ setting that cannot be stored is not worth an app, and the caller carries on wit
 simply not persisted. The tag is silent unless something failed.
 
 Verified on the Quadro T emulator: pick a room, kill the app, and it comes back up in that room.
+
+### List fling
+
+A flick on a scrollable list scrolled it the right way while the finger was down and threw it back
+the other way on release. A slow drag was always fine — and a slow drag is precisely the gesture
+that ends with no velocity, so it produces no fling at all. That places the fault in the velocity
+handed to the fling rather than in the drag, and the measurement agrees. Three flicks in one
+direction on the dev phone, logged under the `ListFling` tag:
+
+```
+fling v=-5851.73,   unconsumed=-5757.672
+fling v=-1241.1434, unconsumed=-0.0
+fling v=-900.90607, unconsumed=-0.0
+```
+
+Consistent and plausibly sized, so this is not a noisy tracker — it is one that disagrees with the
+drag about direction. The first line is the tell: nearly all of that velocity went unspent, which
+means the fling ran into an edge the list had just been dragged away from. On the other two the
+list was mid-way, the fling had room, and that is exactly when the snap-back showed.
+
+So `listFlingBehavior()` negates the velocity on the way in and the remainder on the way out. Two
+things about this are worth remembering. It is a correction to someone else's defect, not a fix:
+where the fork loses the axis reversal — in the velocity tracker or in the points it feeds it — is
+not visible from here, and if a fork build ever starts agreeing with the drag this correction will
+invert a velocity that was already right. The log line is left in so that is noticeable.
+
+And it only reaches the lists that ask for it, which today is the organizer list alone. The
+`LazyColumn` in the main screen's slot list and the `LazyVerticalGrid` in the room picker have the
+same defect underneath; nobody has flicked them hard enough to mind.
 
 ### Date and time pickers
 

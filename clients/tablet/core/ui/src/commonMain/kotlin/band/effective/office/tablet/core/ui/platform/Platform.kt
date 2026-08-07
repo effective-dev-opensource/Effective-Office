@@ -1,5 +1,6 @@
 package band.effective.office.tablet.core.ui.platform
 
+import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
@@ -21,6 +22,19 @@ import kotlin.math.roundToInt
  * so the flag breaks nothing on a landscape screen.
  */
 expect val forceLandscape: Boolean
+
+/**
+ * The fling to give a scrollable list.
+ *
+ * Android and iOS hand back the platform default and are done. Aurora is here because of what a
+ * flick does on it: dragging a list scrolls it the right way, and letting go sends it back the
+ * other way. A slow drag ends with no velocity and behaves; only a flick, which is the only thing
+ * that produces a fling, goes backwards. So the drag arithmetic is right and the velocity handed
+ * to the fling is not — and the fling is the one place to see the number and, if it comes to it,
+ * to do something about it.
+ */
+@Composable
+expect fun listFlingBehavior(): FlingBehavior
 
 /**
  * Whether the platform renders a `Popup` as a scene of its own.
