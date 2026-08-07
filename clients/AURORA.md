@@ -49,6 +49,12 @@ freshly booted emulator usually fails once with `Sync output timed out after 60 
 the install timing out under emulation, not a build error; the second run, on a warm system, goes
 through.
 
+Two more deploy failures that are not the app: `App starting failed / Did not receive a reply`
+means the permission dialog is up on the device waiting to be approved — the launch is blocked on a
+human, and the D-Bus call gives up first. And a run that ends in `Application crashed with critical
+errors` listing ordinary log lines is the plugin scanning stdout for a native backtrace; it takes a
+bare `0x0` for an address, which is why the diagnostic lines here write sizes as `0 x 0`.
+
 Logs leave the device through journald, but **`ssh defaultuser@<ip> journalctl -f` does not work** —
 `defaultuser` is not in the `systemd-journal` group, so it answers "No journal files were opened due
 to insufficient permissions". There is no `sudo` on the device either. Three ways that do work:

@@ -155,42 +155,6 @@ fun EventOrganizerView(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                // The press, not the focus that follows it. On Aurora the fork starts the keyboard
-                // session before granting focus and takes a second or two over it, so a modal that
-                // waits for focus moves long after the keyboard has covered the field. The press
-                // warns the platform and reports where the field is, and the shift happens at once.
-                // Initial pass and nothing consumed, so the field still takes the press itself.
-                .pointerInput(Unit) {
-                    awaitEachGesture {
-                        awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-                        noteSoftKeyboardExpected()
-                        if (!isFocused) {
-                            val bottom = rowCoords?.bottomIn(modalHost?.containerCoords)
-                            Napier.i(tag = ORGANIZER_TAG) { "field pressed, bottom: $bottom" }
-                            // Only ever an improvement on what the host knows. Writing the null
-                            // through would erase a good value and leave nothing to restore it:
-                            // the layout callback that would have reported one fires when the
-                            // layout changes, and by the time a field is pressed it long has.
-                            if (bottom != null) modalHost?.focusedFieldBottom = bottom
-                            // The list belongs to the press for the same reason the shift does.
-                            // Opened from the focus callback instead, it waited out the whole
-                            // maliit handshake and arrived after the keyboard — a press, a jump,
-                            // a pause, a keyboard, another pause, a list. Nothing about the list
-                            // needs focus: the names are already loaded and the field is already
-                            // being aimed at. Android and iOS grant focus on the same gesture, so
-                            // there the two moments were never apart.
-                            expandRequest()
-                            // Taken back if the focus never confirms the press: a value left
-                            // behind would have the host believing a field is being edited, and
-                            // the first tap on the dim would go to dismissing a keyboard that
-                            // never came.
-                            scope.launch {
-                                delay(PRESS_TO_FOCUS_GRACE_MS)
-                                if (!isFocused) modalHost?.focusedFieldBottom = null
-                            }
-                        }
-                    }
-                }
                 .onGloballyPositioned { coordinates ->
                     // This value is used to assign to
                     // the DropDown the same width
@@ -210,6 +174,49 @@ fun EventOrganizerView(
             TextField(
                 modifier = Modifier
                     .then(if (popupIsSeparateScene) Modifier.logKeyEvents() else Modifier)
+                    // The press, not the focus that follows it. On Aurora the fork starts the
+                    // keyboard session before granting focus and takes a second or two over it, so
+                    // a modal that waits for focus moves long after the keyboard has covered the
+                    // field. The press warns the platform and reports where the field is, and the
+                    // shift happens at once. Initial pass and nothing consumed, so the field still
+                    // takes the press itself.
+                    //
+                    // On the field and not on the row around it. The row also holds the arrow, and
+                    // an arrow that starts the press path is an arrow that opens the list and lifts
+                    // the card for a keyboard that never comes — the field never took focus, so the
+                    // grace timer below simply puts the card back down. The arrow has no click of
+                    // its own on any platform, and now it has no effect through the row either.
+                    .pointerInput(Unit) {
+                        awaitEachGesture {
+                            awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                            noteSoftKeyboardExpected()
+                            if (!isFocused) {
+                                val bottom = rowCoords?.bottomIn(modalHost?.containerCoords)
+                                Napier.i(tag = ORGANIZER_TAG) { "field pressed, bottom: $bottom" }
+                                // Only ever an improvement on what the host knows. Writing the null
+                                // through would erase a good value and leave nothing to restore it:
+                                // the layout callback that would have reported one fires when the
+                                // layout changes, and by the time a field is pressed it long has.
+                                if (bottom != null) modalHost?.focusedFieldBottom = bottom
+                                // The list belongs to the press for the same reason the shift does.
+                                // Opened from the focus callback instead, it waited out the whole
+                                // maliit handshake and arrived after the keyboard — a press, a jump,
+                                // a pause, a keyboard, another pause, a list. Nothing about the list
+                                // needs focus: the names are already loaded and the field is already
+                                // being aimed at. Android and iOS grant focus on the same gesture,
+                                // so there the two moments were never apart.
+                                expandRequest()
+                                // Taken back if the focus never confirms the press: a value left
+                                // behind would have the host believing a field is being edited, and
+                                // the first tap on the dim would go to dismissing a keyboard that
+                                // never came.
+                                scope.launch {
+                                    delay(PRESS_TO_FOCUS_GRACE_MS)
+                                    if (!isFocused) modalHost?.focusedFieldBottom = null
+                                }
+                            }
+                        }
+                    }
                     .onFocusChanged(
                         onFocusChanged = {
                             // Only a real loss counts. Compose reports the field as unfocused once
