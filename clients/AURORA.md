@@ -564,3 +564,7 @@ Each of these cost at least one round of on-device debugging.
 - **The scale baseline has not been looked at on the target tablet** since it was moved to 686 dp
   for parity. The arithmetic is exact; whether the text wrapping that 800 dp was hiding is
   acceptable is unverified. See the baseline section.
+- **Not an Aurora bug, but it is found here first:** a failed first load latches the error screen,
+  and the once-a-minute refresh succeeding afterwards does not clear it. Deploying a build before
+  the local backend is up reproduces it every time and reads as "the emulator cannot connect".
+  Written up in `clients/tablet/feature/main/README.md`.
