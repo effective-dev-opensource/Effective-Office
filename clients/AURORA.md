@@ -396,6 +396,11 @@ the same defect behind the organizer-input freeze); the answer grows as the keyb
 the modal follows it instead of jumping; and a keyboard swiped away behind the app's back, which
 the fork does not report either, reads as closed on the next tick.
 
+**Do not turn the poll back into a subscription.** It looks like the tidier of the two and it is
+not available: a second `listenState` subscription alongside the fork's own breaks maliit outright
+— after the first session is closed the keyboard never opens again until the app is restarted.
+Found on `origin/fix/aurora-maliit-deadlock` and worth more than the code that came with it.
+
 **The session is also closed by hand,** through `closeSoftKeyboard()` — a no-op on Android and iOS.
 The fork opens a maliit session when a field takes focus and then parks in `awaitCancellation()`
 with no `finally`, so it never stops one: the field is done being edited and maliit still believes
