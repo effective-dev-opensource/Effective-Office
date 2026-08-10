@@ -4,14 +4,9 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import io.github.aakira.napier.Napier
 import kotlin.math.min
@@ -45,10 +40,6 @@ fun ScaledUiDensity(
             return@BoxWithConstraints
         }
         val scaledDensity = shortSidePx / uiScaleBaseline.value
-        SideEffect {
-            UiScaleDiagnostics.appliedDensity = scaledDensity
-            UiScaleDiagnostics.contentPx = IntSize(constraints.maxWidth, constraints.maxHeight)
-        }
         // The scale follows the scene's short side, so a scene that shrinks — for a keyboard, say —
         // takes the whole layout down with it, which looks like the content squeezing rather than
         // moving. Logged on every change, because that would otherwise be invisible from outside.
@@ -63,14 +54,4 @@ fun ScaledUiDensity(
             content()
         }
     }
-}
-
-/**
- * What [ScaledUiDensity] actually computed — for the debug line in the overlay only.
- * It has to be read OUTSIDE [ScaledUiDensity], or the values reported would be the substituted
- * ones rather than the system's.
- */
-object UiScaleDiagnostics {
-    var appliedDensity by mutableStateOf<Float?>(null)
-    var contentPx by mutableStateOf(IntSize.Zero)
 }

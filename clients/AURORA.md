@@ -504,10 +504,12 @@ The scene density cannot be set on Aurora: the fork creates the scene as
 instead — `ScaledUiDensity` substitutes `LocalDensity` with `short_side_px / uiScaleBaseline` and
 pins `fontScale` to 1 so the system font scale does not multiply on top of ours.
 
-The measurements were taken with the version overlay, which prints `win` (window size in px), `d`
-and `fs` (density and font scale from the system) and `ui` (what `ScaledUiDensity` computed). The
-overlay deliberately sits outside `ScaledUiDensity` — inside it, it would report the substituted
-values instead of the system ones it exists to show.
+The measurements below were taken with a metrics line the version overlay used to carry: `win`
+(window size in px), `d` and `fs` (density and font scale from the system) and `ui` (what
+`ScaledUiDensity` computed), read outside `ScaledUiDensity` so the numbers were the system's rather
+than the substituted ones. That line was scaffolding and is gone; the overlay itself stays and now
+shows the version alone. `ScaledUiDensity` still logs its own answer under the `UiScale` tag on
+every change, which covers most of what the line was read for.
 
 | device | window px | system density | dp space |
 |---|---|---|---|
@@ -531,10 +533,9 @@ The alternative was **`800.dp`**, which is what the code carried first: it lays 
 wider — at the price of everything being ~15% smaller than it was drawn. Parity is the better
 default; the wrapping that 800 was hiding has to be fixed in the texts and layout instead.
 
-Two caveats on the current number. It has not been looked at on the Quadro since the change — the
-arithmetic is solid, what it does to the wrapping is not verified. And the metrics overlay and
-`ScaledUiDensity` are still scaffolding: once someone has confirmed the layout on the device, the
-debug line should come out.
+One caveat on the current number: it has not been looked at on the Quadro since the change. The
+arithmetic is solid, what it does to the wrapping is not. Confirming it now means reading the
+`UiScale` log line off the device, or putting the metrics back on the overlay for one run.
 
 ## Gotchas
 
@@ -573,7 +574,8 @@ Each of these cost at least one round of on-device debugging.
   node it is sized to. It draws exactly over the row, 61..1198 in a 1259-wide card.
 - **The scale baseline has not been looked at on the target tablet** since it was moved to 686 dp
   for parity. The arithmetic is exact; whether the text wrapping that 800 dp was hiding is
-  acceptable is unverified. See the baseline section.
+  acceptable is unverified. See the baseline section — this now needs the `UiScale` log off the
+  device, since the overlay no longer carries the metrics.
 - **Not an Aurora bug, but it is found here first:** a failed first load latches the error screen,
   and the once-a-minute refresh succeeding afterwards does not clear it. Deploying a build before
   the local backend is up reproduces it every time and reads as "the emulator cannot connect".

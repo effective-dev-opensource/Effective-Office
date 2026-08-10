@@ -15,17 +15,16 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import band.effective.office.tablet.components.VersionOverlay
 import band.effective.office.tablet.core.domain.manager.DateResetManager
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.ResourceDisposerUseCase
+import band.effective.office.tablet.components.VersionOverlay
 import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
 import band.effective.office.tablet.core.ui.inactivity.InactivityTracking
 import band.effective.office.tablet.core.ui.platform.ForcedLandscape
 import band.effective.office.tablet.core.ui.platform.ScaledUiDensity
 import band.effective.office.tablet.core.ui.theme.AppTheme
 import band.effective.office.tablet.navigation.AppNavHost
-import band.effective.office.tablet.platform.showDiagnosticsOverlay
 import band.effective.office.tablet.platform.statusBarInset
 import band.effective.office.tablet.time.TimeReceiver
 import org.koin.compose.koinInject
@@ -69,7 +68,7 @@ fun AppRoot() {
                                 AppNavHost(startRoomConfigured = startRoomConfigured)
                             }
                         }
-                        if (showDiagnosticsOverlay) VersionOverlay()
+                        VersionOverlay()
                     }
                 }
             }
