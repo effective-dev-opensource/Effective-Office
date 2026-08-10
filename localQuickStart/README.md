@@ -41,6 +41,15 @@ docker run --name postgres-effectiveoffice \
 localQuickStart/run-backend-local.sh
 ```
 
+**Check first whether one is already up** — `lsof -nP -iTCP:8080 -sTCP:LISTEN`. A `bootRun` from an
+earlier session has been found still serving two weeks later, Postgres container and seeded data
+intact, and rebuilding on top of it only wastes a few minutes.
+
+**Run it in your own terminal.** `bootRun` is a foreground process: started as a background job of
+some other tool it dies when that tool exits, and the symptom — a client that suddenly cannot
+connect — looks nothing like the cause. If it has to be detached, `nohup … & disown` (macOS has no
+`setsid`).
+
 Wait for `Started EffectiveOfficeApplicationKt`. It listens on **http://localhost:8080**,
 context path **`/api`**. Quick check (Swagger UI is public and should return 200):
 
@@ -67,6 +76,15 @@ curl -H "Authorization: Bearer effective-office-local-key" \
 # -> JSON array with "Sync" and "Focus"
 ```
 
+Mind the `/v1/`: `/api/workspaces` does not exist and answers "No static resource", which reads as a
+broken backend rather than a wrong path.
+
+The seed also inserts 20 organizers for the booking editor's "Choose organizer" list. Three would be
+fewer than fills the list's 150.dp cap, and a list with nothing to scroll cannot be told apart from
+a list whose scrolling is broken — which cost one bug report. They are inserted with `tag='employer'`
+on purpose; see `clients/tablet/core/data/README.md` for why the client asks for one tag and filters
+by another.
+
 ## 4. Run the tablet app
 
 The client reads its config from the **repo-root `local.properties`**
@@ -90,6 +108,19 @@ adb install -r -g clients/tablet/composeApp/build/outputs/apk/debug/composeApp-d
 adb shell monkey -p band.effective.office.tablet -c android.intent.category.LAUNCHER 1
 ```
 
+Four things that cost time here:
+
+- **`adb` and `emulator` are not on `PATH`** — they live under `$HOME/Library/Android/sdk` in
+  `platform-tools/` and `emulator/`.
+- **Put an `adb` sequence in a bash script, not a zsh line.** `D="adb -s emulator-5554"; $D shell …`
+  fails silently in zsh: it does not word-split an unquoted variable, so the whole string is looked
+  up as one command name.
+- **With more than one device attached, `adb` needs `-s emulator-5554`** or it refuses to choose.
+- **The on-screen keyboard does not appear** until
+  `adb shell settings put secure show_ime_with_hard_keyboard 1` — the emulator counts the laptop
+  keyboard as a hardware one, so anything that has to be tested against a soft keyboard silently
+  cannot be.
+
 ### iOS simulator
 
 Open `iosApp/iosApp.xcodeproj` in Xcode and hit **Run** (scheme `iosApp`), or:
@@ -101,6 +132,9 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -sdk iphonesimulator 
 
 To iterate on Kotlin/Native compile errors fast (without Xcode):
 `./gradlew :clients:tablet:composeApp:linkDebugFrameworkIosSimulatorArm64`
+
+Switching to iOS means editing `api.url.debug` to `http://localhost:8080` — **and putting it back
+to `10.0.2.2` afterwards**, or the next Android build silently stops reaching the backend.
 
 ---
 
