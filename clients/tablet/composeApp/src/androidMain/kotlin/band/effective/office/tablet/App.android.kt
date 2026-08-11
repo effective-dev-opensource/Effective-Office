@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import band.effective.office.tablet.utils.KioskCommandBus
 import band.effective.office.tablet.utils.KioskLifecycleObserver
 import band.effective.office.tablet.utils.KioskManager
+import band.effective.office.tablet.core.ui.theme.AppTheme
 
 val LocalKioskManager = staticCompositionLocalOf<KioskManager?> { null }
 
@@ -26,7 +27,9 @@ class AppActivity : ComponentActivity() {
 
         setContent {
             CompositionLocalProvider(LocalKioskManager provides kioskManager) {
-                AppRoot()
+                AppTheme {
+                    AppRoot()
+                }
             }
         }
     }

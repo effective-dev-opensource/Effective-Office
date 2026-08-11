@@ -29,8 +29,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import band.effective.office.tablet.core.ui.common.CrossButtonView
 import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
-import band.effective.office.tablet.core.ui.platform.ForcedLandscape
-import band.effective.office.tablet.core.ui.platform.ScaledUiDensity
+import band.effective.office.tablet.core.ui.platform.DialogSceneFrame
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.header8
 import band.effective.office.tablet.core.ui.time_booked
@@ -70,6 +69,14 @@ fun DateTimePicker(dateTimePickerComponent: DateTimePickerComponent) {
  * animation is what masks the frame where calf hasn't applied our colors yet. The pickers set all
  * colors from the theme, so no delay/alpha/warm-up masking is needed on top. Plain `Box` (no
  * `BoxWithConstraints`/`SubcomposeLayout`) — landscape layout only.
+ *
+ * This arrangement is easy to undo by accident and has been undone twice. Rendering the picker
+ * in-place removes the animation and the flash comes back (`524d54d`, put right by `3f7a199`);
+ * making any modal above it a `dialog<>` destination nests two dialog windows and the pickers stop
+ * receiving touches at all. The second one arrived with the compose-navigation swap (`5725761`):
+ * the branch that first fixed it with overlays later went back to `dialog<>` destinations, and the
+ * Aurora port carried that end state over, so the fix was lost on the way in and had to be found
+ * again from a black screen (`0e4f793`). Anything that reworks navigation should check this.
  */
 @Composable
 fun DateTimePicker(
@@ -84,41 +91,40 @@ fun DateTimePicker(
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         // A dialog is a window of its own on Android and a scene of its own in the Aurora fork, so
-        // the rotation, the UI scale and the inactivity tracker installed by AppRoot do not reach
-        // in here — re-apply them, the same way EventOrganizerView does for its popup layer.
+        // nothing installed around the root reaches in here. The inactivity tracker is needed on
+        // every platform; whatever else has to be re-applied is per-platform and lives behind
+        // DialogSceneFrame, which is the Aurora window frame on linux and nothing anywhere else.
         InactivityTracker(modifier = Modifier.fillMaxSize()) {
-            ForcedLandscape {
+            DialogSceneFrame {
                 // Dismiss-on-tap-outside by hand, the way ModalHost does it: those wrappers make the
                 // dialog's content fill the window, so there is no area left for the platform's own
                 // dismissOnClickOutside to detect. Transparent, not dimmed — the modal host under
                 // this window already draws the dim. The inner Box absorbs taps on the card so they
                 // do not reach the dismissing one.
-                ScaledUiDensity(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onCloseRequest,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
                     Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = onCloseRequest,
-                            ),
-                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {},
+                        ),
                     ) {
-                        Box(
-                            modifier = Modifier.clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = {},
-                            ),
-                        ) {
-                            DateTimePickerBody(
-                                currentDate = currentDate,
-                                onCloseRequest = onCloseRequest,
-                                onChangeDate = onChangeDate,
-                                onChangeTime = onChangeTime,
-                                enableDateButton = enableDateButton,
-                            )
-                        }
+                        DateTimePickerBody(
+                            currentDate = currentDate,
+                            onCloseRequest = onCloseRequest,
+                            onChangeDate = onChangeDate,
+                            onChangeTime = onChangeTime,
+                            enableDateButton = enableDateButton,
+                        )
                     }
                 }
             }

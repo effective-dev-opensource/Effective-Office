@@ -20,9 +20,11 @@ import kotlin.math.min
  * `fontScale` is pinned to 1: otherwise the system font scale would multiply on top of ours and
  * drift the text away from the layout.
  *
- * The size comes from our own constraints rather than `LocalWindowInfo.containerSize`, so that
- * already-subtracted padding (the status bar) is accounted for and a dialog window behaves the
- * same way.
+ * The size comes from our own constraints rather than `LocalWindowInfo.containerSize`, so a dialog
+ * window behaves the same way as the root. What those constraints must be is the window, not what
+ * is left of it: [AuroraWindowFrame] therefore puts this above the status-bar padding rather than
+ * below it. Below it the short side would be 1157 instead of 1200 and `uiScaleBaseline`'s exact
+ * parity with the reference Android tablet — 1200/686 = 1.7493 against its 1.75 — would be lost.
  */
 @Composable
 fun ScaledUiDensity(

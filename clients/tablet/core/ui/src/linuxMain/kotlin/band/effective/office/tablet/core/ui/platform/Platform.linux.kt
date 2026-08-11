@@ -23,6 +23,8 @@ import kotlin.time.TimeSource
 
 actual val forceLandscape: Boolean = true
 
+actual val statusBarInset: Dp = 24.dp
+
 actual val popupIsSeparateScene: Boolean = true
 
 /**
@@ -300,4 +302,13 @@ actual fun listFlingBehavior(): FlingBehavior {
             }
         }
     }
+}
+
+/**
+ * The fork gives a `Dialog` a scene of its own, so the frame put around the root does not reach it
+ * — see [DialogSceneFrame].
+ */
+@Composable
+actual fun DialogSceneFrame(content: @Composable () -> Unit) {
+    AuroraWindowFrame { content() }
 }

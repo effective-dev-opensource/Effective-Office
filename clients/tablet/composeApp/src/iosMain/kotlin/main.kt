@@ -1,6 +1,7 @@
 import androidx.compose.ui.uikit.OnFocusBehavior
 import androidx.compose.ui.window.ComposeUIViewController
 import band.effective.office.tablet.AppRoot
+import band.effective.office.tablet.core.ui.theme.AppTheme
 import platform.UIKit.UIViewController
 
 /**
@@ -12,5 +13,7 @@ fun MainViewController(): UIViewController =
     ComposeUIViewController(
         configure = { onFocusBehavior = OnFocusBehavior.DoNothing },
     ) {
-        AppRoot()
+        AppTheme {
+            AppRoot()
+        }
     }

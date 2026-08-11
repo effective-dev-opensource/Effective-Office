@@ -9,6 +9,8 @@ import androidx.compose.ui.unit.dp
 
 actual val forceLandscape: Boolean = false
 
+actual val statusBarInset: Dp = 0.dp
+
 actual val popupIsSeparateScene: Boolean = false
 
 actual val uiScaleBaseline: Dp = 0.dp
@@ -26,3 +28,7 @@ actual fun noteSoftKeyboardExpected() = Unit
 
 @Composable
 actual fun listFlingBehavior(): FlingBehavior = ScrollableDefaults.flingBehavior()
+
+/** Nothing to re-apply: the frame is a no-op here, so a dialog inherits everything worth having. */
+@Composable
+actual fun DialogSceneFrame(content: @Composable () -> Unit) = content()

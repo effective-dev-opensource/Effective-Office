@@ -383,9 +383,10 @@ a no-op on Android and iOS.
 
 | API | What it does | Where it is applied |
 |---|---|---|
-| `ForcedLandscape` | rotates content to landscape when the window arrives portrait | root, date/time picker `Dialog` |
-| `ScaledUiDensity` | normalises the dp space to `uiScaleBaseline` by the short side | same two |
-| `statusBarInset` | padding for Aurora's status bar | root, **inside** the rotated content |
+| `AuroraWindowFrame` | the three below, in the one order that works | the linux entry point, and `DialogSceneFrame` |
+| `ForcedLandscape` | rotates content to landscape when the window arrives portrait | inside the frame, nowhere else |
+| `ScaledUiDensity` | normalises the dp space to `uiScaleBaseline` by the short side | inside the frame, **above** the inset |
+| `statusBarInset` | padding for Aurora's status bar | inside the frame, **inside** the rotation |
 | `softKeyboardOverlapPx` | how much of the content the keyboard covers | `ModalHost`, to keep the focused field visible |
 
 **The keyboard is the one Aurora has to work out for itself.** Android reads the ime inset, iOS
@@ -492,9 +493,27 @@ callback arrived after the keyboard: press, card jumps, pause, keyboard, pause, 
 the list needs focus, and it now opens where the keyboard shift is already triggered, in the press
 handler. Android and iOS grant focus on the same gesture, so the two moments were never apart there.
 
-**Why the inset goes inside the rotated content.** Applied outside, the padding would land in the
-window's portrait coordinate space and show up as a stripe down the side after rotation. The
-background is painted before the padding so the strip under the status bar stays dark.
+**The three window wrappers, and why their order is not free.** Rotation, status-bar inset and dp
+scale all live in one composable, `AuroraWindowFrame`, because written out by hand the order gets
+forgotten — and each ordering mistake has been made at least once.
+
+- **The inset goes inside the rotation.** Applied outside, the padding lands in the window's
+  portrait coordinate space and shows up as a stripe down the side rather than a band along the top.
+- **The inset goes inside the scale**, not the other way round. `ScaledUiDensity` normalises
+  whatever constraints it is given, so under the padding it would normalise 1157 px instead of the
+  window's 1200 — and 1200/686 = 1.7493 against the reference tablet's 1.75 is the whole point of
+  the baseline. Measured against the padded height that parity is gone and the UI comes out ~3.6%
+  larger, which is exactly what happened when the two were briefly swapped.
+- **The theme goes outside the frame.** `AppTheme` paints the background through its own `Surface`,
+  so it has to sit above the inset or the strip the inset leaves bare is not painted at all. With
+  the theme inside `AppRoot` — where it used to be — that strip came out **white**: the bare Aurora
+  window is not dark, whatever one might assume from a dark app. Hence the entry points apply the
+  theme and the frame in that order, and `AppRoot` applies neither.
+
+`AuroraWindowFrame` is called in exactly two places: the linux `application {}` block, and the linux
+actual of `DialogSceneFrame` — the seam that re-applies it around content the fork gives a scene of
+its own. Android and iOS call neither: all three layers are no-ops there, so their entry points
+start `AppRoot` with the theme alone.
 
 ## UI scale baseline
 

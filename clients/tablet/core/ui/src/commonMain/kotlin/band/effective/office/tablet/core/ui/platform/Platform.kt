@@ -37,6 +37,25 @@ expect val forceLandscape: Boolean
 expect fun listFlingBehavior(): FlingBehavior
 
 /**
+ * Padding for Aurora's status bar. Applied by [AuroraWindowFrame], i.e. INSIDE the rotation, so in
+ * landscape it ends up on top rather than down the side — outside it the padding would land in the
+ * window's portrait coordinate space and show as a stripe down the edge. Zero on Android and iOS,
+ * where `systemBarsPadding()` covers the system bars instead.
+ */
+expect val statusBarInset: Dp
+
+/**
+ * Re-applies around a scene of its own whatever [AuroraWindowFrame] applies around the root.
+ *
+ * A `Dialog` is a window on Android, and in the Aurora fork a scene of its own in the untouched
+ * window: nothing put around the root reaches into it. Only Aurora has anything to re-apply,
+ * because only there do those wrappers do work at all — so this is `content()` on Android and iOS
+ * and the frame on linux, and common code neither knows nor asks.
+ */
+@Composable
+expect fun DialogSceneFrame(content: @Composable () -> Unit)
+
+/**
  * Whether the platform renders a `Popup` as a scene of its own.
  *
  * The Aurora fork does: a popup gets its own scene in the untouched window — unrotated and with
