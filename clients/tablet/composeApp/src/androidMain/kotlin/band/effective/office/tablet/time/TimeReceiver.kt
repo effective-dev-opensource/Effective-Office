@@ -1,13 +1,12 @@
 package band.effective.office.tablet.time
 
+import band.effective.office.shared.core.utils.currentLocalDateTime
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import band.effective.office.tablet.feature.main.domain.CurrentTimeHolder
-import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 /**
@@ -56,5 +55,5 @@ actual class TimeReceiver(private val context: Context) {
     }
 
     private fun getCurrentTime(): LocalDateTime =
-        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        currentLocalDateTime
 }

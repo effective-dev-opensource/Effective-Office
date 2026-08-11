@@ -1,5 +1,6 @@
 package band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.components
 
+import band.effective.office.shared.core.utils.currentLocalDate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -34,10 +35,8 @@ import band.effective.office.tablet.core.ui.arrow_right
 import band.effective.office.tablet.core.ui.res.painterResource
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import androidx.compose.foundation.Image
-import kotlin.time.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 /**
@@ -71,7 +70,7 @@ actual fun DatePickerView(
     // it is what primes the picker's own confirm button (see DateTimePickerComponent).
     LaunchedEffect(selected) { onChangeDate(selected) }
 
-    val today = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date }
+    val today = remember { currentLocalDate }
     val palette = LocalCustomColorsPalette.current
 
     Column(modifier = modifier) {

@@ -3,17 +3,16 @@ package band.effective.office.tablet.core.domain.useCase
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.shared.core.utils.asInstant
 import band.effective.office.shared.core.utils.currentInstant
+import band.effective.office.shared.core.utils.defaultTimeZone
 import kotlin.math.absoluteValue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Clock
 import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 
 // TODO rename
 open class SelectRoomUseCase(
-    private val timeZone: TimeZone = TimeZone.currentSystemDefault(),
     private val clock: Clock = Clock.System
 ) {
 
@@ -33,6 +32,9 @@ open class SelectRoomUseCase(
 
     private fun RoomInfo.getNearestFreeTime(minDuration: Int): Instant {
         val now = clock.now()
+        // Taken once: every conversion below belongs to the same answer, and a zone read again
+        // halfway through could be a different one.
+        val timeZone = defaultTimeZone
         val minGap = minDuration.minutes
 
         // No events at all and nothing running — free right now

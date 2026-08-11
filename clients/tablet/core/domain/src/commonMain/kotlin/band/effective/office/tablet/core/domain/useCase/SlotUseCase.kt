@@ -4,16 +4,14 @@ import band.effective.office.tablet.core.domain.OfficeTime
 import band.effective.office.tablet.core.domain.model.EventInfo
 import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.shared.core.utils.cropSeconds
+import band.effective.office.shared.core.utils.defaultTimeZone
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
-class SlotUseCase(
-    private val timeZone: TimeZone = TimeZone.currentSystemDefault()
-) {
+class SlotUseCase {
     fun getSlots(
         start: LocalDateTime = OfficeTime.startWorkTime(),
         finish: LocalDateTime = OfficeTime.finishWorkTime(),
@@ -38,6 +36,8 @@ class SlotUseCase(
     ): List<Slot> {
         if (start >= finish) return emptyList()
 
+        // One zone for the whole slicing, not one per boundary.
+        val timeZone = defaultTimeZone
         val durationMinutes = finish.toInstant(timeZone).toEpochMilliseconds() -
                 start.toInstant(timeZone).toEpochMilliseconds()
         val count = durationMinutes / (minSlotDur * 60 * 1000)

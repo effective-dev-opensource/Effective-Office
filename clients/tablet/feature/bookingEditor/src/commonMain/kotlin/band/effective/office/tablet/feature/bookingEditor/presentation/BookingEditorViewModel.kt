@@ -1,5 +1,6 @@
 package band.effective.office.tablet.feature.bookingEditor.presentation
 
+import band.effective.office.shared.core.utils.currentLocalDateTime
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import band.effective.office.shared.core.domain.Either
@@ -31,9 +32,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 /**
@@ -298,7 +297,7 @@ class BookingEditorViewModel(
      * Gets the current time
      */
     private fun getCurrentTime(): LocalDateTime =
-        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        currentLocalDateTime
 
     /**
      * Checks for busy events that conflict with the given parameters

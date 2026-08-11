@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import band.effective.office.shared.core.utils.defaultTimeZone
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -22,15 +23,22 @@ import kotlinx.datetime.toLocalDateTime
  *
  * [onTick] is a parameter rather than a hard-wired call into [CurrentTimeHolder] so that the
  * ticker itself stays free of global state.
+ *
+ * [timeZone] is asked on every tick rather than captured once, and that is the whole point of it
+ * being a function. Held as a value it survives the very change it exists to notice: the instant
+ * keeps moving, so the clock goes on ticking and looks healthy, while every conversion still uses
+ * the zone the app was started in — the displayed time is then wrong by the offset, for as long as
+ * the app runs. This loop is Aurora's alone, and Aurora is also the platform with no system
+ * notification to fall back on, so there a captured zone is wrong until somebody restarts the app.
  */
 class CurrentTimeTicker(
     private val clock: Clock = Clock.System,
-    private val timeZone: TimeZone = TimeZone.currentSystemDefault(),
+    private val timeZone: () -> TimeZone = { defaultTimeZone },
 ) {
     fun start(scope: CoroutineScope, onTick: (LocalDateTime) -> Unit): Job = scope.launch {
         while (true) {
             delay(millisToNextMinute())
-            onTick(clock.now().toLocalDateTime(timeZone))
+            onTick(clock.now().toLocalDateTime(timeZone()))
         }
     }
 
