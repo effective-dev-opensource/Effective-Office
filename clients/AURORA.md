@@ -42,6 +42,19 @@ Packaging and deploy additionally need Docker (the Aurora build tools image) and
 It does not start out of the box, and the IDE misreports why. The cause and the way through are in
 [AURORA_QEMU.md](AURORA_QEMU.md) — read it before concluding the emulator is broken.
 
+**Its clock drifts, and there is no NTP to pull it back.** Under TCG the guest loses time against
+the host — a minute and a quarter after a couple of hours has been measured — so the emulator's
+idea of now is genuinely not the Mac's. Anything about the app's clock has to be judged against the
+guest:
+
+```sh
+ssh -i ~/AuroraOS/vmshare/ssh/private_keys/sdk -p 2223 defaultuser@127.0.0.1 date
+```
+
+Comparing the app's header with the macOS menu bar instead reads as an app that runs behind, and it
+is convincing: the numbers differ by whole minutes and the gap grows over a session. That comparison
+once nearly filed a working fix as a failure.
+
 ## Commands
 
 ```
