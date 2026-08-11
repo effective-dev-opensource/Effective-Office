@@ -138,7 +138,19 @@ class MainViewModel(
         }
 
         coroutineScope.launch {
-            CurrentTimeHolder.currentTime.collect { updateTimeToNextEvent() }
+            // The tick has to reach the room state, not only the countdown beside it. Which booking
+            // counts as the current one is decided in the repository against the clock, and it is
+            // decided only when the repository emits — that is, on a refresh. So a room whose
+            // booking has just begun goes on showing itself free until the next one: up to a minute
+            // on the platforms that poll, and on Android, which has no poll, until a push arrives
+            // or somebody restarts the app.
+            //
+            // Re-reading rooms here is the local read; the network is only touched when the cache
+            // has nothing, which is the same rule every other caller gets.
+            CurrentTimeHolder.currentTime.collect {
+                loadRooms(state.value.indexSelectRoom)
+                updateTimeToNextEvent()
+            }
         }
     }
 
