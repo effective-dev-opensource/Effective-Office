@@ -5,9 +5,10 @@ import band.effective.office.tablet.core.ui.theme.AppTheme
 import platform.UIKit.UIViewController
 
 /**
- * [OnFocusBehavior.DoNothing] instead of the default scroll-to-focused-element: the modal handles
- * the keyboard itself with `imePadding()`, and letting UIKit also shove the content up on top of
- * that pushed the dialog's own title off the screen.
+ * [OnFocusBehavior.DoNothing] instead of the default scroll-to-focused-element: `ModalHost` already
+ * moves the focused field clear of the keyboard itself — a draw-time translation of the card, aimed
+ * at the field rather than the card — and letting UIKit shove the content up on top of that pushed
+ * the dialog's own title off the screen.
  */
 fun MainViewController(): UIViewController =
     ComposeUIViewController(

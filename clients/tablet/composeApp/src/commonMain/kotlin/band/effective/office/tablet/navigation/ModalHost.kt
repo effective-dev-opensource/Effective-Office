@@ -41,9 +41,19 @@ private const val MODAL_TAG = "ModalHost"
 
 /**
  * Full-screen dim (0.9 black, matching the pre-swap Decompose overlay) behind a centered modal,
- * rendered in-composition. Provides a modal-scoped [ViewModelStoreOwner] that is cleared when the
- * modal leaves the composition, so each modal gets a fresh ViewModel. Tapping the dim dismisses;
- * taps on the content are absorbed.
+ * rendered in-composition. Tapping the dim dismisses; taps on the content are absorbed.
+ *
+ * The modal-scoped [ViewModelStoreOwner] is about lifetime, not availability. Every platform
+ * already offers a root one — the Activity on Android, the `ComposeUIViewController` on iOS, and on
+ * Aurora the fork's own scene-scoped default (`findComposeDefaultViewModelStoreOwner`) — and all
+ * three live as long as the app. A ViewModel is cached in its store by class and `parametersOf`
+ * only runs when one is created, so under a root owner the booking editor opened for a second
+ * booking would be handed the instance built for the first. Clearing the store on dispose is what
+ * makes every open a fresh one. Keying the call per booking instead would leave an instance behind
+ * for each, in a store that is never cleared, on a tablet that runs for weeks.
+ *
+ * This is the same scoping the modals had from their nested nav graph while they were `dialog<>`
+ * destinations; it had to be re-created here when they became overlays.
  *
  * No rotation/density/inactivity wrappers here, unlike the `dialog<>` hosting this replaced: an
  * overlay is part of the main scene, so the ones `AppRoot` installs already cover it. The back
