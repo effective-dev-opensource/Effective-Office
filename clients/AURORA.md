@@ -18,6 +18,22 @@ On top of the usual `api.url.debug` / `api.url.release` / `apiKey`, `local.prope
   its own (qemu forwards its ssh onto a host port) and authorises the SDK's own key instead. The
   key path is resolved against `$HOME`. Both take `-P…` overrides like the address does.
 
+**The URL that ends up in the build is `api.url.release`, never `api.url.debug`.** The Aurora
+variant links a release executable, so `Platform.isDebugBinary` is false and the release URL is the
+one baked in — see the logging section, where the same flag decides whether there is a log at all.
+A release URL pointing at a stand on the office LAN is unreachable from anywhere else, and the
+symptom is an app that starts, draws and never fills, which reads as a broken emulator rather than
+a wrong address.
+
+On the SDK emulator the host is **`http://10.0.2.2:8080`** — qemu's user-mode networking puts it
+there, the same address the Android emulator uses, so the `localQuickStart` backend is reachable
+without any forwarding. Worth confirming from the guest before blaming the app:
+
+```sh
+ssh -i ~/AuroraOS/vmshare/ssh/private_keys/sdk -p 2223 defaultuser@127.0.0.1 \
+  "curl -s -o /dev/null -w '%{http_code}\n' http://10.0.2.2:8080/api/swagger-ui/index.html"
+```
+
 Packaging and deploy additionally need Docker (the Aurora build tools image) and an SSH key at
 `~/.ssh/qtc_id`.
 
