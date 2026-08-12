@@ -14,6 +14,12 @@ kotlin {
             implementation(libs.kotlin.coroutines.core)
             implementation(libs.bundles.aurora.koin)
         }
+
+        linuxMain.dependencies {
+            // Persistent settings. multiplatform-settings has no linux target, so this is what
+            // backs SettingsStore here — see domainModule.linux.kt.
+            implementation(libs.aurora.ak.shared.preferences)
+        }
     }
 
     sourceSets.all {

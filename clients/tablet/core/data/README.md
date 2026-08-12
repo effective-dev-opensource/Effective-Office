@@ -40,6 +40,23 @@ The Data module integrates with:
 - Domain module for providing repository implementations
 - External libraries for networking (Ktor)
 
+## Organizers are asked for by one tag and filtered by another
+
+`OrganizerRepositoryImpl` requests `user_tag=employee` and then keeps the users whose `tag` is
+`employer`. The two do not match, and that is not a typo waiting to bite: the backend ignores the
+`user_tag` query parameter and returns every user regardless, so the request tag decides nothing and
+the filter does all the work. Staff carry `employer`, which is what the list is meant to show.
+
+Working as intended in every environment it has been run in — the local offline stand and the
+team's own environments, on Android, iOS and Aurora alike. Written down only because the mismatch
+looks like a bug on the way past, and because it is worth knowing that the two sides are
+independent: if the backend ever starts honouring `user_tag`, the request would narrow the response
+to `employee` and the `employer` filter would empty the list. Changing either side means changing
+both.
+
+Note also that a seeded stand has to use the same tag: `localQuickStart/seed-local-db.sh` inserts
+its organizers with `tag='employer'` for exactly this reason.
+
 ## Error Handling
 The module provides error handling for:
 - Network errors and timeouts

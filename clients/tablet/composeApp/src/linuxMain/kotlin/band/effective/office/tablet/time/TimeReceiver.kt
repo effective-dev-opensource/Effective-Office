@@ -1,35 +1,28 @@
 package band.effective.office.tablet.time
 
 import band.effective.office.tablet.feature.main.domain.CurrentTimeHolder
+import band.effective.office.tablet.feature.main.domain.CurrentTimeTicker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
+import kotlinx.coroutines.Job
 
 /**
- * Aurora implementation of TimeReceiver.
- *
- * There is no system broadcast for time changes (Android) and no NSTimer (iOS) here, so this
- * just ticks once a minute from a coroutine.
+ * Aurora: no time broadcast and no run loop of our own to hang a timer on, so a coroutine that
+ * sleeps to the next whole minute is what is left. [CurrentTimeTicker] holds that loop, including
+ * the alignment — without it the minute would flip a minute after launch rather than at :00.
  */
 actual class TimeReceiver {
-    actual val currentTime: StateFlow<LocalDateTime> = CurrentTimeHolder.currentTime
 
     private val scope = CoroutineScope(Dispatchers.Default)
+    private var job: Job? = null
 
-    init {
-        scope.launch {
-            while (true) {
-                delay(60_000L)
-                CurrentTimeHolder.updateTime(
-                    Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
-                )
-            }
-        }
+    actual fun start() {
+        if (job != null) return
+        job = CurrentTimeTicker().start(scope, CurrentTimeHolder::updateTime)
+    }
+
+    actual fun stop() {
+        job?.cancel()
+        job = null
     }
 }

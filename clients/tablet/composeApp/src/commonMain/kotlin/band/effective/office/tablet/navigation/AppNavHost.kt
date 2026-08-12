@@ -1,21 +1,21 @@
 package band.effective.office.tablet.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.window.DialogProperties
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navigation
-import androidx.navigation.toRoute
 import band.effective.office.tablet.core.domain.model.EventInfo
+import band.effective.office.tablet.core.ui.inactivity.InactivityTracking
 import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditor
 import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditorViewModel
-import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.DateTimePicker
-import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.DateTimePickerComponent
 import band.effective.office.tablet.feature.fastBooking.presentation.FastBooking
 import band.effective.office.tablet.feature.fastBooking.presentation.FastBookingViewModel
 import band.effective.office.tablet.feature.main.presentation.freeuproom.FreeSelectRoomView
@@ -24,136 +24,113 @@ import band.effective.office.tablet.feature.main.presentation.main.MainNavEvent
 import band.effective.office.tablet.feature.main.presentation.main.MainScreen
 import band.effective.office.tablet.feature.main.presentation.main.MainViewModel
 import band.effective.office.tablet.feature.settings.SettingsScreen
-import kotlin.reflect.typeOf
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-/** Stateless nav constants for the modal `dialog<>` destinations (hoisted so they aren't
- *  re-allocated on recomposition). */
-private object AppNavHostData {
-    /** NavType map for routes carrying a single [EventInfo] payload. */
-    val eventTypeMap = mapOf(typeOf<EventInfo>() to serializableNavType<EventInfo>())
-
-    /** Modals fill the screen so [DialogBackgroundDim] can draw the full-screen dim behind the
-     *  centered content. */
-    val dialogProperties = DialogProperties(usePlatformDefaultWidth = false)
-}
-
 /**
- * The app's navigation graph. Two full-screen destinations (Settings/Main) and the modals — plus the
- * date/time picker — as `dialog<>` destinations. Each modal is its own dialog window (not a
- * state-driven overlay); the date/time picker is pushed on top of the booking editor and shares its
- * ViewModel.
+ * The app's navigation graph.
+ *
+ * Settings/Main are `NavHost` destinations. Modal windows are **state-driven overlays** rendered in
+ * the main composition, NOT Compose `Dialog` windows (`dialog<>` destinations): calf's date/time
+ * pickers are native UIKit views on iOS, and inside a Compose dialog window they receive no touches
+ * at all — the calendar does not select and the wheels do not scroll (Calf issue #115, "native
+ * picker draws on the wrong view inside a container"). So the modals live in the main scene, the way
+ * the pre-swap Decompose overlays did, and only the picker itself gets a Compose `Dialog` — see
+ * [band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.DateTimePicker],
+ * whose present animation masks the frame where calf has not applied our colors yet.
  *
  * @param startRoomConfigured whether a room is already configured (drives the start destination)
  */
 @Composable
 fun AppNavHost(startRoomConfigured: Boolean) {
     val navController = rememberNavController()
+    var activeModal by remember { mutableStateOf<ActiveModal?>(null) }
     val startDestination: Any = if (startRoomConfigured) MainRoute else SettingsRoute
 
-    NavHost(navController = navController, startDestination = startDestination) {
-        composable<SettingsRoute> {
-            SettingsScreen(
-                onNavigateToMain = {
-                    navController.navigate(MainRoute) {
-                        popUpTo<SettingsRoute> { inclusive = true }
+    // The tablet returns to the room it was set up with when nobody has touched it for a minute.
+    // The modal has to go with it: it addresses the room it was opened for, so leaving it up would
+    // put "Book B" over a screen that has already gone back to A — and the next person books the
+    // wrong room. Closing the overlay takes the date/time picker with it, since that lives inside
+    // the booking editor's composition.
+    LaunchedEffect(Unit) {
+        InactivityTracking.timeouts.collect { activeModal = null }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        NavHost(navController = navController, startDestination = startDestination) {
+            composable<SettingsRoute> {
+                SettingsScreen(
+                    onNavigateToMain = {
+                        navController.navigate(MainRoute) {
+                            popUpTo<SettingsRoute> { inclusive = true }
+                        }
+                    },
+                )
+            }
+
+            composable<MainRoute> {
+                MainScreen(
+                    onNavigate = { event ->
+                        activeModal = when (event) {
+                            is MainNavEvent.OpenFastBooking ->
+                                ActiveModal.FastBooking(event.minDuration)
+
+                            is MainNavEvent.OpenFreeRoom ->
+                                ActiveModal.FreeRoom(event.event, event.roomName)
+
+                            is MainNavEvent.OpenBookingEditor ->
+                                ActiveModal.BookingEditor(event.event, event.room)
+                        }
+                    },
+                )
+            }
+        }
+
+        val modal = activeModal
+        if (modal != null) {
+            val close: () -> Unit = { activeModal = null }
+            ModalHost(onDismiss = close) {
+                when (modal) {
+                    is ActiveModal.FreeRoom -> {
+                        val viewModel = koinViewModel<FreeSelectRoomViewModel> {
+                            parametersOf(modal.event, modal.roomName)
+                        }
+                        FreeSelectRoomView(onClose = close, viewModel = viewModel)
                     }
-                },
-            )
-        }
 
-        composable<MainRoute> {
-            MainScreen(
-                onNavigate = { event ->
-                    when (event) {
-                        is MainNavEvent.OpenFastBooking -> navController.navigate(
-                            FastBookingRoute(event.minDuration)
-                        )
-
-                        is MainNavEvent.OpenFreeRoom -> navController.navigate(
-                            FreeRoomRoute(event.event, event.roomName)
-                        )
-
-                        is MainNavEvent.OpenBookingEditor -> navController.navigate(
-                            BookingFlowRoute(event.event, event.room)
-                        )
+                    is ActiveModal.BookingEditor -> {
+                        val viewModel = koinViewModel<BookingEditorViewModel> {
+                            parametersOf(modal.event, modal.room)
+                        }
+                        BookingEditor(viewModel = viewModel, onClose = close)
                     }
-                },
-            )
-        }
 
-        dialog<FreeRoomRoute>(typeMap = AppNavHostData.eventTypeMap, dialogProperties = AppNavHostData.dialogProperties) { entry ->
-            val route = entry.toRoute<FreeRoomRoute>()
-            val viewModel = koinViewModel<FreeSelectRoomViewModel> {
-                parametersOf(route.event, route.roomName)
-            }
-            DialogBackgroundDim(onDismiss = { navController.popBackStack() }) {
-                FreeSelectRoomView(
-                    onClose = { navController.popBackStack() },
-                    viewModel = viewModel,
-                )
-            }
-        }
-
-        navigation<BookingFlowRoute>(
-            startDestination = BookingEditorRoute,
-            typeMap = AppNavHostData.eventTypeMap,
-        ) {
-            dialog<BookingEditorRoute>(dialogProperties = AppNavHostData.dialogProperties) {
-                val flowEntry = remember(it) { navController.getBackStackEntry<BookingFlowRoute>() }
-                val route = flowEntry.toRoute<BookingFlowRoute>()
-                val viewModel = koinViewModel<BookingEditorViewModel>(viewModelStoreOwner = flowEntry) {
-                    parametersOf(route.event, route.room)
+                    is ActiveModal.FastBooking -> {
+                        // The room list and the selected room are read from the Main ViewModel
+                        // rather than carried in the modal: each RoomInfo carries its full event
+                        // list, and Main is still on the back stack behind the overlay.
+                        val mainEntry = remember { navController.getBackStackEntry<MainRoute>() }
+                        val mainViewModel =
+                            koinViewModel<MainViewModel>(viewModelStoreOwner = mainEntry)
+                        val mainSnapshot = remember { mainViewModel.state.value }
+                        val viewModel = koinViewModel<FastBookingViewModel> {
+                            parametersOf(
+                                modal.minEventDuration,
+                                mainSnapshot.roomList[mainSnapshot.indexSelectRoom],
+                                mainSnapshot.roomList,
+                            )
+                        }
+                        FastBooking(viewModel = viewModel, onClose = close)
+                    }
                 }
-                DialogBackgroundDim(onDismiss = { navController.popBackStack() }) {
-                    BookingEditor(
-                        viewModel = viewModel,
-                        onClose = { navController.popBackStack() },
-                        onOpenDateTimePicker = { navController.navigate(DateTimePickerRoute) },
-                    )
-                }
-            }
-
-            dialog<DateTimePickerRoute>(dialogProperties = AppNavHostData.dialogProperties) {
-                val flowEntry = remember(it) { navController.getBackStackEntry<BookingFlowRoute>() }
-                val viewModel = koinViewModel<BookingEditorViewModel>(viewModelStoreOwner = flowEntry)
-                val component = viewModel.dateTimePickerComponent
-                val pickerState by component.state.collectAsState()
-                val close: () -> Unit = {
-                    component.sendIntent(DateTimePickerComponent.Intent.CloseModal)
-                    navController.popBackStack()
-                }
-                DialogBackgroundDim(onDismiss = close) {
-                    DateTimePicker(
-                        currentDate = pickerState.currentDate,
-                        onCloseRequest = close,
-                        onChangeDate = { component.sendIntent(DateTimePickerComponent.Intent.OnChangeDate(it)) },
-                        onChangeTime = { component.sendIntent(DateTimePickerComponent.Intent.OnChangeTime(it)) },
-                        enableDateButton = pickerState.isEnabledButton,
-                    )
-                }
-            }
-        }
-
-        dialog<FastBookingRoute>(dialogProperties = AppNavHostData.dialogProperties) { entry ->
-            val minDuration = entry.toRoute<FastBookingRoute>().minEventDuration
-            val mainEntry = remember(entry) { navController.getBackStackEntry<MainRoute>() }
-            val mainViewModel = koinViewModel<MainViewModel>(viewModelStoreOwner = mainEntry)
-            val mainSnapshot = remember { mainViewModel.state.value }
-            val viewModel = koinViewModel<FastBookingViewModel> {
-                parametersOf(
-                    minDuration,
-                    mainSnapshot.roomList[mainSnapshot.indexSelectRoom],
-                    mainSnapshot.roomList,
-                )
-            }
-            DialogBackgroundDim(onDismiss = { navController.popBackStack() }) {
-                FastBooking(
-                    viewModel = viewModel,
-                    onClose = { navController.popBackStack() },
-                )
             }
         }
     }
+}
+
+/** In-memory description of the currently-open modal (replaces the serializable modal routes). */
+private sealed interface ActiveModal {
+    data class FreeRoom(val event: EventInfo, val roomName: String) : ActiveModal
+    data class BookingEditor(val event: EventInfo, val room: String) : ActiveModal
+    data class FastBooking(val minEventDuration: Int) : ActiveModal
 }

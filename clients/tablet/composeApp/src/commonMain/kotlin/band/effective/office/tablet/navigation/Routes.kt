@@ -1,14 +1,14 @@
 package band.effective.office.tablet.navigation
 
-import band.effective.office.tablet.core.domain.model.EventInfo
 import kotlinx.serialization.Serializable
 
 /**
  * Type-safe compose-navigation routes for the tablet app.
  *
- * Full-screen destinations are hosted with `composable<Route>`; modal windows (and the date/time
- * picker) with `dialog<Route>` — they are full-fledged navigation destinations, each its own dialog
- * window, rather than state-driven overlays.
+ * Only the two full-screen destinations are routes, hosted with `composable<Route>`. The modals and
+ * the date/time picker are not navigation destinations at all — they are state-driven overlays in
+ * the main composition (see AppNavHost), because calf's native iOS pickers do not receive touches
+ * inside a Compose dialog window.
  */
 
 /** Settings screen — start destination when no room is configured yet. */
@@ -18,38 +18,3 @@ object SettingsRoute
 /** Main room list / dashboard — start destination once settings exist. */
 @Serializable
 object MainRoute
-
-/** Modal: release ("free up") the current room's event. */
-@Serializable
-data class FreeRoomRoute(val event: EventInfo, val roomName: String)
-
-/**
- * Nested navigation graph for the booking-editor flow. Carries the runtime payload so the graph
- * entry can own the shared `BookingEditorViewModel`; both the editor and the date/time picker
- * resolve that same ViewModel from this graph entry (see AppNavHost), so the picked date flows back
- * through shared state without nav-result plumbing.
- */
-@Serializable
-data class BookingFlowRoute(val event: EventInfo, val room: String)
-
-/** Modal: create/edit a booking — start destination of [BookingFlowRoute]. */
-@Serializable
-object BookingEditorRoute
-
-/**
- * Modal: quick booking of the nearest available room. Carries only the requested duration — the
- * room list and the currently-selected room are read from the shared [MainRoute] `MainViewModel`
- * (see AppNavHost) rather than serialized into the route: each `RoomInfo` carries its full event
- * list, so embedding `List<RoomInfo>` in the route would bloat it and risk a
- * `TransactionTooLargeException`.
- */
-@Serializable
-data class FastBookingRoute(val minEventDuration: Int)
-
-/**
- * Date/time picker for the booking editor. Carries no payload: it lives inside [BookingFlowRoute]
- * and shares the graph entry's `BookingEditorViewModel` (and its `dateTimePickerComponent`), so the
- * picked date flows back through the shared state.
- */
-@Serializable
-object DateTimePickerRoute

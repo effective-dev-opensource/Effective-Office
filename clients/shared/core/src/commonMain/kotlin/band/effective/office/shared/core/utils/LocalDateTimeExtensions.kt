@@ -11,9 +11,19 @@ import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
 /**
- * Default system time zone
+ * Default system time zone.
+ *
+ * A getter, not a stored value, and that matters more here than anywhere else: everything that
+ * decides *what time it is now* goes through this — whether a booking is the current one, how the
+ * day is cut into slots, how long is left before a room frees up. Captured once at startup it keeps
+ * converting in the zone the app was launched in, so after a zone change the clock still moves
+ * while every one of those answers is wrong by the offset, until somebody restarts the app. That is
+ * the shape the tablet was reported with: time picked up, zone not, and the countdown broken
+ * afterwards.
+ *
+ * The lookup is cheap, and the alternative — a value that silently goes stale — is not.
  */
-val defaultTimeZone: TimeZone = TimeZone.currentSystemDefault()
+val defaultTimeZone: TimeZone get() = TimeZone.currentSystemDefault()
 
 /**
  * Current local date and time in system time zone

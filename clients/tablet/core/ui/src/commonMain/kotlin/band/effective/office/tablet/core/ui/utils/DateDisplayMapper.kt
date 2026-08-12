@@ -41,6 +41,20 @@ object DateDisplayMapper {
         return formatPatterns[currentLanguage] ?: defaultFormats
     }
 
+    /**
+     * The header line: which day is being looked at, and — while that day is today — what time it
+     * is now.
+     *
+     * The two halves come from different places on purpose. The day is [selectDate], because the
+     * arrows move it and the header has to follow them. The time is [currentDate], because
+     * [selectDate] carries a time only incidentally: nothing advances it except the arrows and the
+     * inactivity reset, so a header formatted from it stands still between resets and reads as a
+     * clock that is a minute behind. The countdown beside it is driven by the ticker, so the two
+     * numbers on screen disagreed — which is how this was noticed.
+     *
+     * Only while the selected day is today. Browsing another day, the time on screen would be
+     * neither the selected one nor useful, and the future pattern drops it anyway.
+     */
     fun map(selectDate: LocalDateTime, currentDate: LocalDateTime?): String {
         val patterns = getPatternsForLocale()
         val pattern = if (currentDate != null && selectDate.date > currentDate.date) {
@@ -48,7 +62,12 @@ object DateDisplayMapper {
         } else {
             patterns.default
         }
-        return selectDate.toLocalisedString(pattern)
+        val shown = if (currentDate != null && selectDate.date == currentDate.date) {
+            LocalDateTime(selectDate.date, currentDate.time)
+        } else {
+            selectDate
+        }
+        return shown.toLocalisedString(pattern)
     }
 
     fun formatForPicker(date: LocalDateTime): String {

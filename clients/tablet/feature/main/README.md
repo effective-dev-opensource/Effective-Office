@@ -47,6 +47,40 @@ The Main module integrates with:
 - Core UI module for shared UI components
 - All feature modules for navigation and coordination
 
+## Known issues
+
+### The error screen never clears once the first load has failed
+
+If the very first workspaces request fails, the screen keeps showing **that** error for as long as
+the process lives — even though the once-a-minute refresh starts succeeding straight afterwards and
+the data is arriving the whole time. Only killing and relaunching the app clears it.
+
+Seen on 2026-08-06 on the Aurora emulator, though nothing about it is Aurora-specific. The app was
+started while the backend was down; its log then read:
+
+```
+… Connection failed for request … Reason: Could not connect to server     ← ×4
+RESPONSE: 200 OK                                                          ← ×6, to the end of the run
+```
+
+and the screen was still showing the error from a request older than all four failures
+(`with_bookings_until=1787254488319` against the first logged failure's `…607233`). So it is not the
+latest failure being displayed — it is the first one, latched.
+
+**Why it is worth fixing.** These tablets hang on meeting-room walls. A backend blip while one is
+rebooting leaves it showing an error until somebody walks up and restarts the app, with correct data
+sitting one layer below the whole time.
+
+**Where to look.** Refreshing goes two ways and neither clears the error: `PeriodicRoomRefreshUseCase`
+calls `RefreshDataUseCase` on a timer and writes into the local repository's buffer, which this
+screen already subscribes to; `UpdateUseCase` only asks the screen to reload, and that reload is
+served from cache. The latched state appears to live in a third place — start from this module's
+ViewModel and the repository layer in `core/data`.
+
+**Reproducing it** does not need Aurora: start the app on the Android emulator with the backend
+stopped, confirm the error screen, then start the backend (`localQuickStart/run-backend-local.sh`)
+and watch the screen not recover.
+
 ## User Flows
 
 ### Application Startup

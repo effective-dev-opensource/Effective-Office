@@ -13,9 +13,47 @@ On top of the usual `api.url.debug` / `api.url.release` / `apiKey`, `local.prope
   Aurora Compose plugin and libraries. The fork lives outside git.
 - `AURORA_DEVICE_IP` — the device to deploy to over SSH. Can also be passed as
   `-PAURORA_DEVICE_IP=…`, which wins.
+- `AURORA_DEVICE_PORT` and `AURORA_DEVICE_SSH_KEY` — optional, and only the SDK emulator needs
+  them. Defaults are 22 and `~/.ssh/qtc_id`, which is a real device; the emulator has no address of
+  its own (qemu forwards its ssh onto a host port) and authorises the SDK's own key instead. The
+  key path is resolved against `$HOME`. Both take `-P…` overrides like the address does.
+
+**The URL that ends up in the build is `api.url.release`, never `api.url.debug`.** The Aurora
+variant links a release executable, so `Platform.isDebugBinary` is false and the release URL is the
+one baked in — see the logging section, where the same flag decides whether there is a log at all.
+A release URL pointing at a stand on the office LAN is unreachable from anywhere else, and the
+symptom is an app that starts, draws and never fills, which reads as a broken emulator rather than
+a wrong address.
+
+On the SDK emulator the host is **`http://10.0.2.2:8080`** — qemu's user-mode networking puts it
+there, the same address the Android emulator uses, so the `localQuickStart` backend is reachable
+without any forwarding. Worth confirming from the guest before blaming the app:
+
+```sh
+ssh -i ~/AuroraOS/vmshare/ssh/private_keys/sdk -p 2223 defaultuser@127.0.0.1 \
+  "curl -s -o /dev/null -w '%{http_code}\n' http://10.0.2.2:8080/api/swagger-ui/index.html"
+```
 
 Packaging and deploy additionally need Docker (the Aurora build tools image) and an SSH key at
 `~/.ssh/qtc_id`.
+
+### The SDK emulator on an Apple Silicon Mac
+
+It does not start out of the box, and the IDE misreports why. The cause and the way through are in
+[AURORA_QEMU.md](AURORA_QEMU.md) — read it before concluding the emulator is broken.
+
+**Its clock drifts, and there is no NTP to pull it back.** Under TCG the guest loses time against
+the host — a minute and a quarter after a couple of hours has been measured — so the emulator's
+idea of now is genuinely not the Mac's. Anything about the app's clock has to be judged against the
+guest:
+
+```sh
+ssh -i ~/AuroraOS/vmshare/ssh/private_keys/sdk -p 2223 defaultuser@127.0.0.1 date
+```
+
+Comparing the app's header with the macOS menu bar instead reads as an app that runs behind, and it
+is convincing: the numbers differ by whole minutes and the gap grows over a session. That comparison
+once nearly filed a working fix as a failure.
 
 ## Commands
 
@@ -28,9 +66,39 @@ Packaging and deploy additionally need Docker (the Aurora build tools image) and
 
 # build, install and launch on the device
 ./gradlew -PbuildVariant=aurora :clients:tablet:composeApp:runReleaseOnDevice
+
+# the same, onto the SDK emulator
+./gradlew -PbuildVariant=aurora :clients:tablet:composeApp:runReleaseOnDevice \
+  -PAURORA_DEVICE_IP=127.0.0.1 -PAURORA_DEVICE_PORT=2223 \
+  -PAURORA_DEVICE_SSH_KEY=AuroraOS/vmshare/ssh/private_keys/sdk
 ```
 
-Logs leave the device through journald: `ssh defaultuser@<ip> journalctl -f`.
+The emulator's model has to be **landscape** for the keyboard and the organizer list to sit where
+the tablet puts them: the window then arrives 2000x1200 and `ForcedLandscape` passes the content
+through untouched, so maliit draws along the content's own bottom edge. A portrait emulator window
+reproduces the dev phone instead — the content is rotated and the keyboard comes up along its right
+edge, where a vertical shift does nothing. The real Quadro T is the portrait one, so geometry fixes
+have to be confirmed there; everything else is easier to watch in landscape. Deploying onto a
+freshly booted emulator usually fails once with `Sync output timed out after 60 seconds` — that is
+the install timing out under emulation, not a build error; the second run, on a warm system, goes
+through.
+
+Two more deploy failures that are not the app: `App starting failed / Did not receive a reply`
+means the permission dialog is up on the device waiting to be approved — the launch is blocked on a
+human, and the D-Bus call gives up first. And a run that ends in `Application crashed with critical
+errors` listing ordinary log lines is the plugin scanning stdout for a native backtrace; it takes a
+bare `0x0` for an address, which is why the diagnostic lines here write sizes as `0 x 0`.
+
+Logs leave the device through journald, but **`ssh defaultuser@<ip> journalctl -f` does not work** —
+`defaultuser` is not in the `systemd-journal` group, so it answers "No journal files were opened due
+to insufficient permissions". There is no `sudo` on the device either. Three ways that do work:
+
+- **the output of the deploy task itself.** `runReleaseOnDevice` streams the app's stdout back, and
+  that is usually all you want: one log per run, which lines up with one test scenario per run.
+- `ssh -t defaultuser@<ip> "devel-su journalctl -f"` — a continuous log across runs. The `-t` is
+  required, or `devel-su` cannot prompt for the developer password.
+- one-time `ssh -t defaultuser@<ip> "devel-su usermod -a -G systemd-journal defaultuser"`, after
+  which the plain command above works.
 
 ## How the build variant is wired
 
@@ -67,7 +135,7 @@ Per-module notes:
   `ImageVector` in the linux drawable implementation. Coil is not wired in: the tablet does not
   load images over the network.
 - `clients/tablet/core/domain` — multiplatform-settings has no linux target, so `SettingsStore`
-  gets its own linux actual.
+  gets its own linux actual, over the fork's `ak-shared-preferences`.
 - `clients/tablet/feature/bookingEditor` — calf publishes no linux target, so the date and time
   pickers get Material3 actuals (on Android and iOS calf draws the same widgets underneath).
 - `clients/tablet/feature/settings` — no `compose.resources` block here, same as in the upstream
@@ -127,12 +195,14 @@ and iOS already had, plus two package squats.
 | Drawables | `core.ui.res.painterResource` / `vectorResource` | own loader + vendored vector XML parser | SVG ignores `tint` |
 | Date formatting | `LocalDateTime.toLocalisedString` | hand-rolled pattern expansion | month names hardcoded |
 | Locale | `getCurrentLanguageCode` | hardcoded `"ru"` | not read from the system |
-| Current time | `TimeReceiver` | coroutine ticking once a minute | time/zone changes noticed late |
-| Settings | `SettingsStore` | in-memory map | does not survive a restart |
-| Date/time pickers | `DatePickerView` / `TimePickerView` | Material3 | — |
+| Current time | `TimeReceiver` | coroutine ticking once a minute, aligned to `:00` | time/zone changes noticed late |
+| Settings | `SettingsStore` | `ak-shared-preferences` | every write needs an explicit `save()` |
+| List fling | `listFlingBehavior` | platform default, velocity negated | corrects a fork defect; drop it when the fork stops needing it |
+| Date picker | `DatePickerView` | own month grid | Material3's is unusable, see below |
+| Time picker | `TimePickerView` | Material3 | — |
 | Logging | `Napier` | package squat + `fflush` | — |
 | `@Preview` | `org.jetbrains.compose.ui.tooling.preview.Preview` | package squat | annotation is inert |
-| Push notifications | — | none | no room updates by push |
+| Push notifications | — | none — polling instead | see below |
 
 ### Drawables: the resource facade and the vector XML parser
 
@@ -191,30 +261,98 @@ means an English build would still print Russian months.
 
 ### Current time
 
-`TimeReceiver` on Android is a `BroadcastReceiver` for system time changes; on iOS it is an
-`NSTimer` on the main run loop. On linux there is neither, so the actual simply launches a
-coroutine on `Dispatchers.Default` that sleeps 60 seconds and pushes
-`Clock.System.now()` into `CurrentTimeHolder`, forever.
+`TimeReceiver` is an `expect class` with one implementation per platform, because each system has
+its own way of waking an app once a minute and using it is what keeps a wall-mounted tablet off the
+battery. Android registers a `BroadcastReceiver` for `ACTION_TIME_TICK` (the system's own minute
+cadence, so no timer at all) plus `ACTION_TIME_CHANGED` and `ACTION_TIMEZONE_CHANGED`; iOS puts an
+`NSTimer` on the main run loop and observes `NSSystemClockDidChange`. On linux there is neither, so
+the actual launches a coroutine on `Dispatchers.Default` — `CurrentTimeTicker`, which sleeps to the
+next whole minute and pushes `Clock.System.now()` into `CurrentTimeHolder`, forever.
 
-The practical difference: a manual clock change or a timezone switch is not observed, it is only
-picked up at the next tick. For a wall-mounted room tablet that is acceptable; it is still a
+The instance comes from Koin: `timeReceiverModule()` is an expect module in the shape of
+`settingsStoreModule()`, because only Android's implementation needs a `Context` and only Android's
+graph has one. `AppRoot` starts and stops it, which is the one root all three platforms share — an
+earlier version constructed it in `AppActivity` alone, and the clock silently never moved on iOS or
+Aurora.
+
+The practical difference on linux: a manual clock change or a timezone switch is not observed, it is
+only picked up at the next tick. For a wall-mounted room tablet that is acceptable; it is still a
 polyfill and not an equivalent.
 
 ### Settings
 
-multiplatform-settings has no linux target, so `settingsStoreModule()` provides a `SettingsStore`
-backed by a plain `mutableMapOf<String, String>`. Everything works — the room picker writes and
-reads it — but nothing is persisted, so the selected meeting room is forgotten on restart. The
-fork ships `ru.auroraos.kmp:ak-shared-preferences`, which is the intended replacement.
+multiplatform-settings has no linux target, so `settingsStoreModule()` backs `SettingsStore` with
+the fork's own `ru.auroraos.kmp:ak-shared-preferences` instead. Its API maps onto the interface one
+for one — `getString(key, default)`, `putString`, `remove` — with one thing that does not show in
+the signatures and decides everything: **`save()`**. A put reaches the process, not the disk; the
+save is what writes it out. Without it this would be the `mutableMapOf` it replaced, only reached
+through a C binding. So every write is followed by a save, which is affordable because the only
+setting is the room and it is written when somebody picks one.
+
+Calls are wrapped like every other trip into the fork and logged under the `Settings` tag: a
+setting that cannot be stored is not worth an app, and the caller carries on with an answer that is
+simply not persisted. The tag is silent unless something failed.
+
+Verified on the Quadro T emulator: pick a room, kill the app, and it comes back up in that room.
+
+### List fling
+
+A flick on a scrollable list scrolled it the right way while the finger was down and threw it back
+the other way on release. A slow drag was always fine — and a slow drag is precisely the gesture
+that ends with no velocity, so it produces no fling at all. That places the fault in the velocity
+handed to the fling rather than in the drag, and the measurement agrees. Three flicks in one
+direction on the dev phone, logged under the `ListFling` tag:
+
+```
+fling v=-5851.73,   unconsumed=-5757.672
+fling v=-1241.1434, unconsumed=-0.0
+fling v=-900.90607, unconsumed=-0.0
+```
+
+Consistent and plausibly sized, so this is not a noisy tracker — it is one that disagrees with the
+drag about direction. The first line is the tell: nearly all of that velocity went unspent, which
+means the fling ran into an edge the list had just been dragged away from. On the other two the
+list was mid-way, the fling had room, and that is exactly when the snap-back showed.
+
+So `listFlingBehavior()` negates the velocity on the way in and the remainder on the way out. Two
+things about this are worth remembering. It is a correction to someone else's defect, not a fix:
+where the fork loses the axis reversal — in the velocity tracker or in the points it feeds it — is
+not visible from here, and if a fork build ever starts agreeing with the drag this correction will
+invert a velocity that was already right. The log line is left in so that is noticeable.
+
+And it only reaches the lists that ask for it, which today is the organizer list alone. The
+`LazyColumn` in the main screen's slot list and the `LazyVerticalGrid` in the room picker have the
+same defect underneath; nobody has flicked them hard enough to mind.
 
 ### Date and time pickers
 
-calf publishes no linux artifacts, so `DatePickerView` and `TimePickerView` are implemented
-directly on Material3 `DatePicker` / `rememberDatePickerState` and `TimePicker` /
-`rememberTimePickerState`. That is not a downgrade — calf draws the same Material3 widgets under
-the hood on Android. The colours are mapped onto `LocalCustomColorsPalette` so they match the
-rest of the app, and the time picker uses `TimePickerLayoutType.Vertical` with `is24Hour` taken
-from `DateDisplayMapper`.
+calf publishes no linux artifacts, so both pickers are implemented here. The two halves ended up
+in very different places.
+
+**Time** is Material3 `TimePicker` / `rememberTimePickerState`, and that is not a downgrade — calf
+draws the same Material3 widget under the hood on Android. The colours are mapped onto
+`LocalCustomColorsPalette`, and it uses `TimePickerLayoutType.Vertical` with `is24Hour` taken from
+`DateDisplayMapper` — passing `is24Hour` explicitly matters, because the default would fall back
+to `PlatformDateFormat.is24HourFormat()`.
+
+**Date** cannot use Material3 at all. The fork ships
+`androidx.compose.material3.internal.PlatformDateFormat` as a stub carrying `// @todo feature linux`:
+`firstDayOfWeek = 0`, `weekdayNames = emptyList()`, `formatWithSkeleton` returning `""`. Material3's
+`WeekDays` then walks `firstDayOfWeek - 1 until weekdayNames.size`, which is `-1 until 0` and
+indexes an empty list — an exception on the very first frame, swallowed by the fork, presenting as
+the dialog hanging and then dying. Fixing just the index would not help either: the month headline
+would still be empty and the day grid still shifted by one.
+
+So `DatePickerView.linux.kt` is a hand-written 6×7 month grid. The layout maths is
+`CalendarGrid.kt` in `shared:core/linuxMain` — always six rows padded with nulls, so the dialog
+does not change height when you page months — and the Russian month and weekday names are in
+`RuCalendarNames.kt` next to it. Note there are two month lists there and they are not
+interchangeable: formatting a date needs the genitive ("25 ноября"), a calendar header needs the
+nominative ("Ноябрь 2026").
+
+Deliberately no `LazyVerticalGrid` and no `FlowRow` — both are `SubcomposeLayout`, which this
+dialog avoids on purpose. No year picker either (the backend serves a 14-day window, month arrows
+are plenty) and no restriction on past days, which Material3's picker did not impose either.
 
 ### Logging
 
@@ -245,37 +383,166 @@ Two more details make it actually usable on a device:
 file only. It carries every parameter the call sites use (`widthDp`, `heightDp`, `locale`, …) or
 the module would not compile; the annotation itself does nothing.
 
-### Push notifications
+### Push notifications, and the polling that replaces them
 
-There is no FCM on Aurora and no substitute wired up, so the room list is never updated by push —
-only by the app's own polling.
+There is no FCM on Aurora and no substitute wired up, so nothing is ever pushed here.
+
+Polling covers it instead: `roomRefreshInterval` in `core:domain/platform` is a minute on linux and
+drives `PeriodicRoomRefreshUseCase`, which calls `RefreshDataUseCase` on a timer. That is enough on
+its own — the refresh writes into the local repository's buffer, and the main screen is already
+subscribed to it, so the existing chain carries the update the rest of the way.
+
+Note that `UpdateUseCase`, which also ticks, is **not** this: it only asks the screen to reload, and
+the reload is served from the cache. Before the polling was added, Aurora never re-read the server
+after startup at all.
+
+iOS turned out to need the same thing for the same reason — there is no Firebase in `iosMain`
+either, so `Collector.emit` is never called there.
+
+Android stays on push alone. Worth knowing what that costs, because it was seen during testing: the
+emulator showed a slot as free for an hour after another client had booked it, and the backend had
+the booking the whole time. A push that does not arrive is indistinguishable from nothing having
+changed — the screen stays wrong until the app is restarted, which on a wall-mounted tablet can be
+weeks. A deliberately low-frequency backstop here would close that off.
 
 ## Layout: orientation, insets and scale
 
-Three declarations in `core:ui/platform` and `composeApp/platform` are switched by a flag and are
+The declarations in `core:ui/platform` and `composeApp/platform` are switched by a flag and are
 a no-op on Android and iOS.
 
 | API | What it does | Where it is applied |
 |---|---|---|
-| `ForcedLandscape` | rotates content to landscape when the window arrives portrait | root, `DialogBackgroundDim`, organizer popup |
-| `ScaledUiDensity` | normalises the dp space to `uiScaleBaseline` by the short side | same three |
-| `statusBarInset` | padding for Aurora's status bar | root, **inside** the rotated content |
+| `AuroraWindowFrame` | the three below, in the one order that works | the linux entry point, and `DialogSceneFrame` |
+| `ForcedLandscape` | rotates content to landscape when the window arrives portrait | inside the frame, nowhere else |
+| `ScaledUiDensity` | normalises the dp space to `uiScaleBaseline` by the short side | inside the frame, **above** the inset |
+| `statusBarInset` | padding for Aurora's status bar | inside the frame, **inside** the rotation |
+| `softKeyboardOverlapPx` | how much of the content the keyboard covers | `ModalHost`, to keep the focused field visible |
 
-**Why three layers and not just the root.** The fork renders `Popup` and `dialog<>` as separate
-scenes, in the untouched window and with the system density. Nothing applied at the root reaches
-them, so both wrappers are re-applied in every layer.
+**The keyboard is the one Aurora has to work out for itself.** Android reads the ime inset, iOS
+answers zero because the system has already shortened the scene, and the fork reports no keyboard
+insets at all — so the height comes from the maliit session directly, `Keyboard.height()` on a
+100 ms poll while a modal is on screen.
 
-**Why the popup is positioned by hand.** Its position provider returns `0,0`, the layer is
-stretched to fill the window, and the list itself is moved with `offset`. The stretching is not
-optional: a popup window is sized to its content by default, so an offset list would fall outside
-its own window and be clipped — which is exactly what happened on Android. The gap between the
-field and the list is expressed in px so a substituted density cannot shift it. Anchor
-coordinates are used as-is: `positionInWindow()` reports coordinates in the unrotated content
-layout, and the rotation is a drawing effect that does not touch them.
+It is polled rather than subscribed to because the events are unusable: `Keyboard.listenState`
+fires when the keyboard opens, but that event carries `height = 0` — maliit sends the size in a
+follow-up event which never reaches the app. Polling is the sturdier half anyway. There is no
+subscription to lose (the fork drops its listeners in `onWindowPause()` and never restores them —
+the same defect behind the organizer-input freeze); the answer grows as the keyboard slides in, so
+the modal follows it instead of jumping; and a keyboard swiped away behind the app's back, which
+the fork does not report either, reads as closed on the next tick.
 
-**Why the inset goes inside the rotated content.** Applied outside, the padding would land in the
-window's portrait coordinate space and show up as a stripe down the side after rotation. The
-background is painted before the padding so the strip under the status bar stays dark.
+**Do not turn the poll back into a subscription.** It looks like the tidier of the two and it is
+not available: a second `listenState` subscription alongside the fork's own breaks maliit outright
+— after the first session is closed the keyboard never opens again until the app is restarted.
+Found on `origin/fix/aurora-maliit-deadlock` and worth more than the code that came with it.
+
+**The session is also closed by hand,** through `closeSoftKeyboard()` — a no-op on Android and iOS.
+The fork opens a maliit session when a field takes focus and then parks in `awaitCancellation()`
+with no `finally`, so it never stops one: the field is done being edited and maliit still believes
+it is feeding it. A session outliving its field is the likeliest trigger for the freeze where the
+app keeps drawing and polling but never receives another tap.
+
+Everything that ends editing therefore leaves through one door — the field losing focus — and that
+is where the session is closed. `Done` and picking a name from the list clear the focus to get
+there; so does a tap on the dim; and so does `ModalHost` when the poll says the keyboard went away
+while the field still held focus, which is the gesture testing reports the freeze on and the one
+case where nothing else would have noticed. `freeFocus()` used to stand in for this and could not
+work: it releases *captured* focus, and nothing here captures any.
+
+**How to read a run off the device.** The keyboard says what it is doing under the `SoftKeyboard`
+tag, the field under `OrganizerPicker`, the modal under `ModalHost`:
+
+```sh
+journalctl --since '<HH:MM>' --no-pager | grep -E 'SoftKeyboard|OrganizerPicker|ModalHost|Uncaught'
+```
+
+Picking a name from the list reads `field focus: true` → `overlap 0px -> Npx` → the key events →
+`field focus: false` → `closed the session` → `overlap Npx -> 0px`. Swiping the keyboard away
+instead leaves the field focused, so `overlap Npx -> 0px` → `keyboard gone on its own, field still
+focused: true` → `field focus: false` → `closed the session`; verified on the dev phone, where the
+whole sequence comes out in that order and the app stays alive.
+
+`keyboard was already down` on that line is normal and not a sign the close was pointless:
+`isOpen()` says whether the keyboard is on screen, maliit takes it down as soon as the Qt focus
+goes, and the session being closed outlives both.
+
+Every call into the fork's keyboard binding is wrapped, so a Kotlin exception from it is logged
+rather than fatal; a native crash inside the binding is not catchable that way, and the last line
+before silence is then the thing to look at.
+
+**This is aimed at the tablet, and only the tablet.** On the Quadro T the keyboard comes up along
+the bottom of the content, where the shared `ModalHost` geometry expects it. On the dev phone it
+comes up along the right-hand side instead, where a vertical shift does nothing.
+
+It is not the split it once looked like. Both windows arrive portrait and both are rotated — the
+probe measures 720x1600 on the phone and 1200x2000 on the tablet, with the scene equal to the
+window on each — so an earlier guess here, that the tablet's window was landscape and the phone's
+was not, was wrong. What differs is where maliit puts its keys: along the window's bottom on the
+phone, which the rotation turns into the content's right-hand side, and along the content's bottom
+on the tablet.
+
+**Why two layers and not just the root.** The fork renders `Popup` and `Dialog` as separate scenes,
+in the untouched window and with the system density. Nothing applied at the root reaches them, so
+both wrappers are re-applied in every layer that is one. Only the date/time picker's `Dialog` still
+is: the modals are state-driven overlays in the main scene (see AppNavHost for why), and the
+organizer list is content inside the modal's card rather than a popup at all.
+
+**Why the organizer list is not a popup here.** A `Popup` on this fork is a scene of its own — a
+second window created on demand. It takes a visible pause to come up, arrives without the rotation,
+density and inactivity tracking applied around everything else, and has to be aimed by carrying the
+field's coordinates into it. That last part is what killed the approach: the anchor came from
+`positionInWindow()`, which maps a node's position up through every ancestor, `ForcedLandscape`
+included, so the Y it reports for a node inside the rotated content is that node's content-X. The
+list duly landed off to the side. This document and the code both claimed the opposite for a while,
+on the strength of the list appearing roughly beside the field; the same confusion cost the keyboard
+shift a fortnight before `ModalHostState` settled it.
+
+So the list is content now, not a window: `ModalHost` exposes an overlay slot, the linux
+`OrganizerListPopup` writes into it, and the slot is composed inside the card's own box. It shows up
+on the frame it opens, inherits everything already applied around the card, and anchors against the
+field's row through their nearest shared ancestor — where the keyboard shift and the rotation are on
+both sides of the measurement and cancel. There is no popup fallback: the only user is the booking
+editor, and it is only ever composed inside a modal.
+
+**The row, not the field inside it.** The list takes its width from the row (`mTextFieldSize`), so
+that is what it has to be positioned by; anchored to the `TextField` instead, it started 20.dp — the
+row's horizontal padding — to the right of where it was drawn from, and hung the same 20.dp past the
+card's right edge. Measured on the emulator: card 1259 wide, row at x=61 and 1137 wide, field at
+x=96 and 854 wide, list 1137 wide drawn from x=96 — so 96..1233 against the row's 61..1198. This is
+the second time this list has been diagnosed off a screenshot and the second time the screenshot was
+not enough to tell "offset" from "wrong width"; the `OrganizerList` log line exists so the third
+time is arithmetic. Its sizes are written `1137 x 262` rather than `1137x262` on purpose — the
+deploy plugin scans the app's output for a native backtrace and reads a bare `0x0`, which is what an
+unmeasured list logs, as an address, failing the run with "Application crashed with critical
+errors".
+
+**The list opens on the press, not on the focus.** Aurora grants focus at the end of the maliit
+handshake — seconds, and up to six of them on the Quadro T — so a list opened from the focus
+callback arrived after the keyboard: press, card jumps, pause, keyboard, pause, list. Nothing about
+the list needs focus, and it now opens where the keyboard shift is already triggered, in the press
+handler. Android and iOS grant focus on the same gesture, so the two moments were never apart there.
+
+**The three window wrappers, and why their order is not free.** Rotation, status-bar inset and dp
+scale all live in one composable, `AuroraWindowFrame`, because written out by hand the order gets
+forgotten — and each ordering mistake has been made at least once.
+
+- **The inset goes inside the rotation.** Applied outside, the padding lands in the window's
+  portrait coordinate space and shows up as a stripe down the side rather than a band along the top.
+- **The inset goes inside the scale**, not the other way round. `ScaledUiDensity` normalises
+  whatever constraints it is given, so under the padding it would normalise 1157 px instead of the
+  window's 1200 — and 1200/686 = 1.7493 against the reference tablet's 1.75 is the whole point of
+  the baseline. Measured against the padded height that parity is gone and the UI comes out ~3.6%
+  larger, which is exactly what happened when the two were briefly swapped.
+- **The theme goes outside the frame.** `AppTheme` paints the background through its own `Surface`,
+  so it has to sit above the inset or the strip the inset leaves bare is not painted at all. With
+  the theme inside `AppRoot` — where it used to be — that strip came out **white**: the bare Aurora
+  window is not dark, whatever one might assume from a dark app. Hence the entry points apply the
+  theme and the frame in that order, and `AppRoot` applies neither.
+
+`AuroraWindowFrame` is called in exactly two places: the linux `application {}` block, and the linux
+actual of `DialogSceneFrame` — the seam that re-applies it around content the fork gives a scene of
+its own. Android and iOS call neither: all three layers are no-ops there, so their entry points
+start `AppRoot` with the theme alone.
 
 ## UI scale baseline
 
@@ -285,10 +552,12 @@ The scene density cannot be set on Aurora: the fork creates the scene as
 instead — `ScaledUiDensity` substitutes `LocalDensity` with `short_side_px / uiScaleBaseline` and
 pins `fontScale` to 1 so the system font scale does not multiply on top of ours.
 
-The measurements were taken with the version overlay, which prints `win` (window size in px), `d`
-and `fs` (density and font scale from the system) and `ui` (what `ScaledUiDensity` computed). The
-overlay deliberately sits outside `ScaledUiDensity` — inside it, it would report the substituted
-values instead of the system ones it exists to show.
+The measurements below were taken with a metrics line the version overlay used to carry: `win`
+(window size in px), `d` and `fs` (density and font scale from the system) and `ui` (what
+`ScaledUiDensity` computed), read outside `ScaledUiDensity` so the numbers were the system's rather
+than the substituted ones. That line was scaffolding and is gone; the overlay itself stays and now
+shows the version alone. `ScaledUiDensity` still logs its own answer under the `UiScale` tag on
+every change, which covers most of what the line was read for.
 
 | device | window px | system density | dp space |
 |---|---|---|---|
@@ -301,17 +570,20 @@ compared different builds, and the fork draws text wider than Android does (most
 different fallback font for Cyrillic). So the baseline is not correcting a density mismatch; it
 buys room for wider text.
 
-Three candidates, with what each costs:
+**The baseline is `686.dp`, and the parity it gives is exact rather than approximate.** Both real
+devices are **1200 px on the short side** — the Quadro's window is 1200x2000, the Android reference
+1920x1200 — so 1200/686 = 1.7493 against Android's own 1.75. The two lay out identically, in dp and
+in pixels. The ~3% in the table above is the gap between the devices' *system* densities, which is
+not what the app ends up using.
 
-- **`800.dp` — what is in the code.** Aurora lays out in 1333x800 dp, ~15% more room than the
-  Android reference; the wrapping is gone, verified on the device. Price: everything is ~15%
-  smaller than drawn.
-- **`686.dp`** — exact parity with the reference tablet. The UI is the size it was designed at,
-  but the wrapping comes back and has to be fixed in the texts and layout.
-- **`~740.dp`** — the middle, ~8% smaller than the reference. Untested.
+The alternative was **`800.dp`**, which is what the code carried first: it lays Aurora out in
+1333x800 dp, ~15% more room than the reference, which hides the fact that the fork draws Cyrillic
+wider — at the price of everything being ~15% smaller than it was drawn. Parity is the better
+default; the wrapping that 800 was hiding has to be fixed in the texts and layout instead.
 
-The metrics overlay and `ScaledUiDensity` are scaffolding: once the baseline is settled, the
-debug line should come out.
+One caveat on the current number: it has not been looked at on the Quadro since the change. The
+arithmetic is solid, what it does to the wrapping is not. Confirming it now means reading the
+`UiScale` log line off the device, or putting the metrics back on the overlay for one run.
 
 ## Gotchas
 
@@ -325,23 +597,34 @@ Each of these cost at least one round of on-device debugging.
 - **stdout is fully buffered under journald,** hence the flush after every log line.
 - **The window arrives portrait** on every device seen so far, so `ForcedLandscape` rotates
   everywhere; it is not a phone-only path.
+- **The system's own gestures stay in the portrait window,** because `ForcedLandscape` is a
+  `rotate(90f)` — a drawing effect that never touches the window's geometry. Confirmed on a
+  TrustPhone T1: holding the phone sideways so the content reads horizontally, the close gesture
+  fires from the physical *side* edge and swiping up from the bottom does nothing. Nothing in the
+  app can move those zones; it needs real window orientation from the fork
+  (`ru.auroraos.kmp.window`).
+- **Keyboard input works** — verified on a TrustPhone T1: the organizer field types from the maliit
+  keyboard and the list filters as you go. The fork delivers the input as ordinary key events and
+  fills `codePoint` only for `Char` events; they are logged under the `OrganizerPicker` tag if this
+  ever needs looking at again.
 
 ## Not finished yet
 
-- **Keyboard input.** The fork delivers maliit input as ordinary key events and fills `codePoint`
-  only for `Char` events; whether the field actually types is unverified. The key events are
-  logged under the `OrganizerPicker` tag.
-- **Settings live in memory** — the selected room does not survive a restart. See the settings
-  section; `ru.auroraos.kmp:ak-shared-preferences` is the intended fix.
 - **The locale is hardcoded** to `ru`, and with it the month names. Aurora exposes the system
   locale through Qt; wiring it up and localising the dates belong together.
-- **The time ticker is naive** — one coroutine tick a minute, so clock and timezone changes are
-  noticed late.
-- **No FCM,** so room updates never arrive by push.
+- **The time ticker is naive on Aurora** — one coroutine tick a minute (aligned to `:00`, so the
+  displayed minute flips with the wall clock), but clock and timezone changes are still noticed
+  only at the next tick. Android and iOS are woken by the system and see them at once.
+- **No FCM,** so room updates arrive by polling once a minute rather than by push.
 - **No kiosk mode** — there is no Aurora equivalent of the Android device-admin / lock-task path.
-- **The icons are wrong.** `clients/tablet/composeApp/icons` holds four PNGs of the right sizes,
-  but they are not the application's icons and need replacing.
-- **The dropdown position differs between devices** — next to the field on the tablet, off to the
-  side on the dev phone. Unexplained.
-- **The scale baseline has not been re-checked** on the target tablet since the number was
-  chosen — see the baseline section.
+- ~~**The dropdown landing off to the side**~~ — fixed and verified on the Quadro T emulator: the
+  list is no longer a popup, no longer anchored through window space, and now anchored on the same
+  node it is sized to. It draws exactly over the row, 61..1198 in a 1259-wide card.
+- **The scale baseline has not been looked at on the target tablet** since it was moved to 686 dp
+  for parity. The arithmetic is exact; whether the text wrapping that 800 dp was hiding is
+  acceptable is unverified. See the baseline section — this now needs the `UiScale` log off the
+  device, since the overlay no longer carries the metrics.
+- **Not an Aurora bug, but it is found here first:** a failed first load latches the error screen,
+  and the once-a-minute refresh succeeding afterwards does not clear it. Deploying a build before
+  the local backend is up reproduces it every time and reads as "the emulator cannot connect".
+  Written up in `clients/tablet/feature/main/README.md`.

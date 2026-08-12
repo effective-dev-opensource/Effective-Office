@@ -6,6 +6,9 @@ import band.effective.office.tablet.isDebug
 import org.koin.dsl.module
 
 val appModule = module {
+
+    includes(timeReceiverModule())
+
     single {
         ApiConfig(
             url = if (isDebug) BuildKonfig.API_URL_DEBUG else BuildKonfig.API_URL_RELEASE,

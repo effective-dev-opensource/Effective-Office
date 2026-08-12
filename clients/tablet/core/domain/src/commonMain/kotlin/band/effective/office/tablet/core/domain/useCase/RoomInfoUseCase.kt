@@ -1,12 +1,12 @@
 package band.effective.office.tablet.core.domain.useCase
 
 import band.effective.office.shared.core.domain.map
+import band.effective.office.shared.core.utils.defaultTimeZone
 import band.effective.office.tablet.core.domain.model.RoomInfo
 import band.effective.office.shared.core.domain.unbox
 import kotlin.collections.filter
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.map
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 
 /** Use case for getting info about rooms */
@@ -18,7 +18,6 @@ class RoomInfoUseCase(
     private val getRoomByNameUseCase: GetRoomByNameUseCase,
     private val getCurrentRoomInfosUseCase: GetCurrentRoomInfosUseCase,
 ) {
-    private val timeZone: TimeZone = TimeZone.currentSystemDefault()
     private val clock: Clock = Clock.System
 
     /** Get all room names */
@@ -35,6 +34,7 @@ class RoomInfoUseCase(
             errorMapper = { it },
             successMapper = {
                 val now = clock.now()
+                val timeZone = defaultTimeZone
                 it.map { room ->
                     room.copy(eventList = room.eventList.filter { event ->
                         event.startTime.toInstant(timeZone) > now
@@ -59,6 +59,7 @@ class RoomInfoUseCase(
 
     private fun List<RoomInfo>.mapRoomsInfo(): List<RoomInfo> {
         val now = clock.now()
+        val timeZone = defaultTimeZone
         return map { room ->
             room.copy(eventList = room.eventList.filter { event ->
                 event.startTime.toInstant(timeZone) > now

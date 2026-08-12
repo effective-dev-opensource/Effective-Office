@@ -1,6 +1,8 @@
 package band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,11 +18,18 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import band.effective.office.tablet.core.ui.common.CrossButtonView
+import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
+import band.effective.office.tablet.core.ui.platform.DialogSceneFrame
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.header8
 import band.effective.office.tablet.core.ui.time_booked
@@ -32,15 +41,99 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import org.jetbrains.compose.resources.stringResource
 
+/** Opens the picker for [dateTimePickerComponent], translating its state and intents. */
+@Composable
+fun DateTimePicker(dateTimePickerComponent: DateTimePickerComponent) {
+    val state by dateTimePickerComponent.state.collectAsState()
+
+    DateTimePicker(
+        currentDate = state.currentDate,
+        onCloseRequest = {
+            dateTimePickerComponent.sendIntent(DateTimePickerComponent.Intent.CloseModal)
+        },
+        onChangeDate = {
+            dateTimePickerComponent.sendIntent(DateTimePickerComponent.Intent.OnChangeDate(it))
+        },
+        onChangeTime = {
+            dateTimePickerComponent.sendIntent(DateTimePickerComponent.Intent.OnChangeTime(it))
+        },
+        enableDateButton = state.isEnabledButton,
+    )
+}
+
 /**
- * Date/time picker UI. Rendered directly inside the `dialog<DateTimePickerRoute>` destination — that
- * navigation dialog IS the Compose Dialog window, so there is no extra Dialog here. On iOS the dialog
- * window's present animation masks the frame where calf's native UIKit picker hasn't applied our
- * colors yet, and the pickers set all colors from the theme, so no delay/alpha/warm-up masking is
- * needed. Plain `Box` (no `BoxWithConstraints`/`SubcomposeLayout`) — landscape layout only.
+ * Date/time picker UI in its own Compose `Dialog`, and it has to be the ONLY dialog window in the
+ * chain — the booking editor that opens it is a state-driven overlay, not a `dialog<>` destination.
+ * Both halves matter on iOS: calf's pickers are native UIKit views, which receive no touches at all
+ * when they sit inside a nested dialog window (Calf issue #115), while the Dialog's own present
+ * animation is what masks the frame where calf hasn't applied our colors yet. The pickers set all
+ * colors from the theme, so no delay/alpha/warm-up masking is needed on top. Plain `Box` (no
+ * `BoxWithConstraints`/`SubcomposeLayout`) — landscape layout only.
+ *
+ * This arrangement is easy to undo by accident and has been undone twice. Rendering the picker
+ * in-place removes the animation and the flash comes back (`524d54d`, put right by `3f7a199`);
+ * making any modal above it a `dialog<>` destination nests two dialog windows and the pickers stop
+ * receiving touches at all. The second one arrived with the compose-navigation swap (`5725761`):
+ * the branch that first fixed it with overlays later went back to `dialog<>` destinations, and the
+ * Aurora port carried that end state over, so the fix was lost on the way in and had to be found
+ * again from a black screen (`0e4f793`). Anything that reworks navigation should check this.
  */
 @Composable
 fun DateTimePicker(
+    currentDate: LocalDateTime,
+    onCloseRequest: () -> Unit,
+    onChangeDate: (LocalDate) -> Unit,
+    onChangeTime: (LocalTime) -> Unit,
+    enableDateButton: Boolean,
+) {
+    Dialog(
+        onDismissRequest = onCloseRequest,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        // A dialog is a window of its own on Android and a scene of its own in the Aurora fork, so
+        // nothing installed around the root reaches in here. The inactivity tracker is needed on
+        // every platform; whatever else has to be re-applied is per-platform and lives behind
+        // DialogSceneFrame, which is the Aurora window frame on linux and nothing anywhere else.
+        InactivityTracker(modifier = Modifier.fillMaxSize()) {
+            DialogSceneFrame {
+                // Dismiss-on-tap-outside by hand, the way ModalHost does it: those wrappers make the
+                // dialog's content fill the window, so there is no area left for the platform's own
+                // dismissOnClickOutside to detect. Transparent, not dimmed — the modal host under
+                // this window already draws the dim. The inner Box absorbs taps on the card so they
+                // do not reach the dismissing one.
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onCloseRequest,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {},
+                        ),
+                    ) {
+                        DateTimePickerBody(
+                            currentDate = currentDate,
+                            onCloseRequest = onCloseRequest,
+                            onChangeDate = onChangeDate,
+                            onChangeTime = onChangeTime,
+                            enableDateButton = enableDateButton,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DateTimePickerBody(
     currentDate: LocalDateTime,
     onCloseRequest: () -> Unit,
     onChangeDate: (LocalDate) -> Unit,

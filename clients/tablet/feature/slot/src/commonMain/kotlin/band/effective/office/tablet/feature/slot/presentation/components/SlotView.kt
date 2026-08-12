@@ -35,10 +35,11 @@ fun SlotView(
         .fillMaxWidth()
         .clip(borderShape)
         .then(
-            if (slotUi is SlotUi.MultiSlot)
-                Modifier.clickable { slotUi.onToggle() }
-            else
-                Modifier.clickable { slotUi.onClick() }
+            when {
+                slotUi is SlotUi.MultiSlot -> Modifier.clickable { slotUi.onToggle() }
+                slotUi.opensSomething -> Modifier.clickable { slotUi.onClick() }
+                else -> Modifier
+            }
         )
         .background(MaterialTheme.colorScheme.surface)
         .border(
@@ -71,6 +72,20 @@ fun SlotView(
         )
     }
 }
+
+/**
+ * Whether tapping this slot leads anywhere.
+ *
+ * A booking made outside the tablet cannot be changed from it — the tablets book through one shared
+ * account, and the calendar only lets that account edit what it organised. Opening the editor for
+ * one leaves the reader with a form whose every button is dead, so such a slot takes no taps at all,
+ * the way it did before the slot list became interactive.
+ */
+private val SlotUi.opensSomething: Boolean
+    get() = when (val slot = slot) {
+        is Slot.EventSlot -> slot.eventInfo.isEditable
+        else -> true
+    }
 
 @Composable
 private fun SlotUi.borderColor() = when (this) {

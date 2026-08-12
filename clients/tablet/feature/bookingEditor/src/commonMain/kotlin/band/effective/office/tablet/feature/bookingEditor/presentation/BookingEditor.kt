@@ -38,6 +38,7 @@ import band.effective.office.tablet.core.ui.theme.h3
 import band.effective.office.tablet.core.ui.theme.h6
 import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
 import band.effective.office.tablet.feature.bookingEditor.Res
+import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.DateTimePicker
 import band.effective.office.tablet.feature.bookingEditor.booking_time_button
 import band.effective.office.tablet.feature.bookingEditor.booking_view_title
 import band.effective.office.tablet.feature.bookingEditor.create_view_title
@@ -51,19 +52,20 @@ import kotlinx.datetime.LocalDateTime
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Booking create/edit modal. Hosted as a `dialog<>` destination — the surrounding dialog window
- * is provided by the NavHost.
+ * Booking create/edit modal. Hosted as a state-driven overlay in the main composition (ModalHost),
+ * not a dialog window.
+ *
+ * The date/time picker is opened from here as editor state ([State.showSelectDate]) rather than as a
+ * separate destination: it needs its own Compose `Dialog`, and that only works while nothing else in
+ * the chain is one — see [DateTimePicker].
  *
  * @param viewModel manages the booking-editor state and logic
- * @param onClose called when the flow requests to close (pops the dialog destination)
- * @param onOpenDateTimePicker called when the date/time field is tapped; navigates to the
- *   `dialog<DateTimePickerRoute>` destination (which shares this editor's ViewModel).
+ * @param onClose called when the flow requests to close (dismisses the overlay)
  */
 @Composable
 fun BookingEditor(
     viewModel: BookingEditorViewModel,
     onClose: () -> Unit,
-    onOpenDateTimePicker: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -71,12 +73,16 @@ fun BookingEditor(
         viewModel.closeEvents.collect { onClose() }
     }
 
+    if (state.showSelectDate) {
+        DateTimePicker(dateTimePickerComponent = viewModel.dateTimePickerComponent)
+    }
+
     Box(modifier = Modifier.widthIn(max = 720.dp)) {
         BookingEditor(
             onDismissRequest = { viewModel.sendIntent(Intent.OnClose) },
             incrementData = { viewModel.sendIntent(Intent.OnUpdateDate(1)) },
             decrementData = { viewModel.sendIntent(Intent.OnUpdateDate(-1)) },
-            onOpenDateTimePickerModal = onOpenDateTimePicker,
+            onOpenDateTimePickerModal = { viewModel.sendIntent(Intent.OnOpenSelectDateDialog) },
             incrementDuration = { viewModel.sendIntent(Intent.OnUpdateLength(30)) },
             decrementDuration = { viewModel.sendIntent(Intent.OnUpdateLength(-15)) },
             onExpandedChange = { viewModel.sendIntent(Intent.OnExpandedChange) },
