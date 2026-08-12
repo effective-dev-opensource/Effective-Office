@@ -148,7 +148,7 @@ class MainViewModel(
             // Re-reading rooms here is the local read; the network is only touched when the cache
             // has nothing, which is the same rule every other caller gets.
             CurrentTimeHolder.currentTime.collect {
-                loadRooms(state.value.indexSelectRoom)
+                loadRooms(state.value.indexSelectRoom, refreshSlots = false)
                 updateTimeToNextEvent()
             }
         }
@@ -273,11 +273,25 @@ class MainViewModel(
     /**
      * Loads room information.
      */
-    private fun loadRooms(roomIndex: Int? = null) = coroutineScope.launch {
+    /**
+     * [refreshSlots] is false for the once-a-minute tick and true for everything else.
+     *
+     * The slot list is re-sliced from *now*, so a minute later it is a different list — the first
+     * slot has a new start, and a group of consecutive bookings is a different group. The slot
+     * component tries to carry `isOpen` across an update and cannot match anything to carry it to,
+     * so an expanded group collapses. Rebuilding it under a finger is worse than untidy: a rebuild
+     * landing mid-scroll leaves the list taking no touches at all until the room is switched away
+     * and back.
+     *
+     * What the tick is for is the room itself — busy or free, and the countdown. That comes from
+     * [RoomsResult] and needs no slot rebuild. The list is left to the events that really change
+     * it: a poll, a push, or something the user did.
+     */
+    private fun loadRooms(roomIndex: Int? = null, refreshSlots: Boolean = true) = coroutineScope.launch {
         val result = roomInfoUseCase()
         val roomsResult = processRoomInfoResult(result, roomIndex)
 
-        updateStateWithRoomsResult(roomsResult)
+        updateStateWithRoomsResult(roomsResult, refreshSlots)
     }
 
     /**
@@ -308,7 +322,7 @@ class MainViewModel(
     /**
      * Updates the state with room information.
      */
-    private fun updateStateWithRoomsResult(roomsResult: RoomsResult) {
+    private fun updateStateWithRoomsResult(roomsResult: RoomsResult, refreshSlots: Boolean = true) {
         mutableState.update {
             if (roomsResult.roomList.isEmpty()) {
                 it.copy(
@@ -321,7 +335,9 @@ class MainViewModel(
                 )
             } else {
                 val selectedRoom = roomsResult.roomList[roomsResult.indexSelectRoom.coerceIn(0, roomsResult.roomList.size - 1)]
-                slotComponent.sendIntent(SlotIntent.UpdateRequest(selectedRoom.name, state.value.selectedDate))
+                if (refreshSlots) {
+                    slotComponent.sendIntent(SlotIntent.UpdateRequest(selectedRoom.name, state.value.selectedDate))
+                }
                 it.copy(
                     isLoad = false,
                     isData = roomsResult.isSuccess,
