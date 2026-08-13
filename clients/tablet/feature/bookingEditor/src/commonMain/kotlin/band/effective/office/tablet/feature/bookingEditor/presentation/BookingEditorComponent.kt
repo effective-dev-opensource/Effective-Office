@@ -197,6 +197,7 @@ class BookingEditorComponent(
                 selectOrganizer = organizer,
                 inputText = organizer.fullName,
                 isInputError = isOrganizerIncorrect,
+                selectOrganizers = it.organizers,
             )
         }
     }
@@ -429,6 +430,7 @@ class BookingEditorComponent(
                 selectOrganizer = organizer,
                 inputText = organizer.fullName,
                 isInputError = false,
+                selectOrganizers = it.organizers,
             )
         }
     }
