@@ -1,5 +1,6 @@
 package band.effective.office.tablet.core.domain.di
 
+import band.effective.office.tablet.core.domain.platform.roomRefreshInterval
 import band.effective.office.tablet.core.domain.useCase.CheckBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
 import band.effective.office.tablet.core.domain.useCase.CreateBookingUseCase
@@ -10,6 +11,7 @@ import band.effective.office.tablet.core.domain.useCase.GetRoomByNameUseCase
 import band.effective.office.tablet.core.domain.useCase.GetRoomNamesUseCase
 import band.effective.office.tablet.core.domain.useCase.GetRoomsInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.OrganizersInfoUseCase
+import band.effective.office.tablet.core.domain.useCase.PeriodicRoomRefreshUseCase
 import band.effective.office.tablet.core.domain.useCase.RefreshDataUseCase
 import band.effective.office.tablet.core.domain.useCase.ResourceDisposerUseCase
 import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
@@ -52,7 +54,19 @@ val domainModule = module {
     single { GetRoomByNameUseCase(localRoomRepository = get()) }
     single { GetRoomsInfoUseCase(localRoomRepository = get(), refreshDataUseCase = get()) }
     single { GetRoomNamesUseCase(getRoomsInfoUseCase = get()) }
-    single { ResourceDisposerUseCase(networkRoomRepository = get(), refreshDataUseCase = get()) }
+    single {
+        PeriodicRoomRefreshUseCase(
+            refreshDataUseCase = get(),
+            interval = roomRefreshInterval,
+        )
+    }
+    single {
+        ResourceDisposerUseCase(
+            networkRoomRepository = get(),
+            refreshDataUseCase = get(),
+            periodicRoomRefreshUseCase = get(),
+        )
+    }
 
     single {
         RoomInfoUseCase(

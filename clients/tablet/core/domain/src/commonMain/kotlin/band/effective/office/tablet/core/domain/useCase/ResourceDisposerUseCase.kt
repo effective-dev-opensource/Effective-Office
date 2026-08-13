@@ -17,13 +17,16 @@ import kotlinx.coroutines.launch
  *
  * @property networkRoomRepository Repository for network room operations
  * @property refreshDataUseCase Use case for refreshing room information
+ * @property periodicRoomRefreshUseCase Polling for platforms without push
  */
 class ResourceDisposerUseCase(
     private val networkRoomRepository: RoomRepository,
     private val refreshDataUseCase: RefreshDataUseCase,
+    private val periodicRoomRefreshUseCase: PeriodicRoomRefreshUseCase,
 ) {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var updateJob: Job? = null
+    private var pollJob: Job? = null
 
     operator fun invoke() {
         updateJob = scope.launch {
@@ -31,6 +34,8 @@ class ResourceDisposerUseCase(
                 refreshDataUseCase()
             }
         }
+        pollJob?.cancel()
+        pollJob = periodicRoomRefreshUseCase.start(scope)
     }
 
     /**
@@ -39,6 +44,7 @@ class ResourceDisposerUseCase(
      */
     fun dispose() {
         updateJob?.cancel()
+        pollJob?.cancel()
         scope.cancel()
     }
 }
