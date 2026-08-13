@@ -144,7 +144,9 @@ fun AppTheme(
             colorScheme = colorScheme,
             typography = typography,
             content = {
-                Surface(content = content)
+                // Without an explicit color Surface takes colorScheme.surface, which is lighter
+                // than the page background.
+                Surface(color = colorScheme.background, content = content)
             }
         )
     }

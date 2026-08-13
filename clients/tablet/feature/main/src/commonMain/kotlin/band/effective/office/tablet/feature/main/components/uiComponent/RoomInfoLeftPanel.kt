@@ -48,6 +48,7 @@ fun RoomInfoLeftPanel(
         modifier = Modifier
             .fillMaxHeight()
             .fillMaxWidth(0.6f)
+            .background(color = MaterialTheme.colorScheme.background)
     ) {
         LazyColumn(
             modifier = Modifier
@@ -75,7 +76,6 @@ fun RoomInfoLeftPanel(
                 // indexSelectRoom is -1 until the saved room turns up in the list from the backend.
                 val safeIndex = indexSelectRoom.coerceIn(0, (roomList.size - 1).coerceAtLeast(0))
                 RoomInfoComponent(
-                    modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
                     room = roomList[safeIndex],
                     onOpenFreeRoomModalRequest = { onCancelEventRequest() },
                     timeToNextEvent = timeToNextEvent,

@@ -104,6 +104,11 @@ fun BusyRoomInfoComponent(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colorButton
                     ),
+                    // The Material shadow over the button's own border reads as a second frame.
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 0.dp,
+                        pressedElevation = 0.dp,
+                    ),
                     interactionSource = interactionSource,
                     onClick = onButtonClick
                 ) {
