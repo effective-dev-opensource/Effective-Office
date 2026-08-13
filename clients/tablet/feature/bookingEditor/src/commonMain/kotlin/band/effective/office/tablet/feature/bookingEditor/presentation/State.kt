@@ -22,11 +22,21 @@ data class State(
     val isLoadCreate: Boolean,
     val isErrorCreate: Boolean,
     val showSelectDate: Boolean,
-    val enableUpdateButton: Boolean,
     val isBusyEvent: Boolean,
     val isTimeInPastError: Boolean,
+    val isFinishTimeExceeded: Boolean,
     val canIncrementDuration: Boolean
 ) {
+    /**
+     * Whether the booking may be saved. [isInputError] is deliberately not part of it — that one
+     * only paints the organizer field red once the user has finished typing.
+     */
+    val enableUpdateButton: Boolean
+        get() = organizers.contains(selectOrganizer) &&
+            !isBusyEvent &&
+            !isTimeInPastError &&
+            !isFinishTimeExceeded
+
     companion object {
         val defaultValue = State(
             duration = 30,
@@ -45,9 +55,9 @@ data class State(
             isLoadCreate = false,
             isErrorCreate = false,
             showSelectDate = false,
-            enableUpdateButton = false,
             isBusyEvent = false,
             isTimeInPastError = false,
+            isFinishTimeExceeded = false,
             canIncrementDuration = true
         )
     }
