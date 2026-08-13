@@ -1,44 +1,70 @@
 package band.effective.office.tablet.time
 
 import band.effective.office.tablet.feature.main.domain.CurrentTimeHolder
-import kotlinx.coroutines.flow.StateFlow
 import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import platform.Foundation.NSNotificationCenter
-import platform.Foundation.NSDefaultRunLoopMode
-import platform.Foundation.NSRunLoop
 import platform.Foundation.NSDate
+import platform.Foundation.NSDefaultRunLoopMode
+import platform.Foundation.NSNotificationCenter
+import platform.Foundation.NSOperationQueue
+import platform.Foundation.NSRunLoop
+import platform.Foundation.NSSystemClockDidChangeNotification
+import platform.Foundation.NSSystemTimeZoneDidChangeNotification
 import platform.Foundation.NSTimer
-import platform.Foundation.timeIntervalSince1970
+import platform.Foundation.dateWithTimeIntervalSinceNow
+import platform.darwin.NSObjectProtocol
+
+private const val MINUTE_SECONDS = 60.0
+private const val MINUTE_MILLIS = 60_000L
 
 /**
- * iOS implementation of TimeReceiver that uses a timer to update the current time.
+ * iOS: an NSTimer on the main run loop, its first fire pushed to the next whole minute so the time
+ * flips at :00 rather than a minute after launch. The timer keeps its own cadence and does not
+ * follow the wall clock, so a clock or zone moved under the app arrives by notification instead.
  */
 actual class TimeReceiver {
-    actual val currentTime: StateFlow<LocalDateTime> = CurrentTimeHolder.currentTime
 
     private var timer: NSTimer? = null
+    private val observers = mutableListOf<NSObjectProtocol>()
 
-    init {
-        // Update time every minute
-        timer = NSTimer.scheduledTimerWithTimeInterval(
-            60.0, // 60 seconds
-            true, // repeats
-            {
-                CurrentTimeHolder.updateTime(getCurrentTime())
-            }
-        )
+    actual fun start() {
+        if (timer != null) return
+        val newTimer = NSTimer.timerWithTimeInterval(
+            interval = MINUTE_SECONDS,
+            repeats = true,
+        ) { _ -> publishCurrentTime() }
+        newTimer.fireDate = NSDate.dateWithTimeIntervalSinceNow(secondsToNextMinute())
+        NSRunLoop.mainRunLoop.addTimer(newTimer, NSDefaultRunLoopMode)
+        timer = newTimer
 
-        // Add timer to the main run loop
-        NSRunLoop.mainRunLoop.addTimer(timer!!, NSDefaultRunLoopMode)
+        observe(NSSystemClockDidChangeNotification)
+        observe(NSSystemTimeZoneDidChangeNotification)
     }
 
-    /**
-     * Gets the current time as a LocalDateTime.
-     */
-    private fun getCurrentTime(): LocalDateTime {
-        return Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    actual fun stop() {
+        timer?.invalidate()
+        timer = null
+        observers.forEach { NSNotificationCenter.defaultCenter.removeObserver(it) }
+        observers.clear()
     }
+
+    private fun observe(notificationName: String?) {
+        observers += NSNotificationCenter.defaultCenter.addObserverForName(
+            name = notificationName,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue,
+        ) { _ -> publishCurrentTime() }
+    }
+
+    private fun publishCurrentTime() {
+        CurrentTimeHolder.updateTime(getCurrentTime())
+    }
+
+    private fun secondsToNextMinute(): Double =
+        (MINUTE_MILLIS - Clock.System.now().toEpochMilliseconds() % MINUTE_MILLIS) / 1000.0
+
+    private fun getCurrentTime(): LocalDateTime =
+        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
 }

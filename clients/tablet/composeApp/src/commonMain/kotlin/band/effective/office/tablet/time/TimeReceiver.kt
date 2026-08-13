@@ -1,14 +1,13 @@
 package band.effective.office.tablet.time
 
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.datetime.LocalDateTime
-
 /**
- * A receiver that emits the current time.
+ * Moves [band.effective.office.tablet.feature.main.domain.CurrentTimeHolder] once a minute, each
+ * platform on the wake-up its own system already provides rather than on a timer of ours — this
+ * runs for days on a wall. [start] and [stop] are idempotent.
  */
 expect class TimeReceiver {
-    /**
-     * A flow that emits the current time.
-     */
-    val currentTime: StateFlow<LocalDateTime>
+
+    fun start()
+
+    fun stop()
 }

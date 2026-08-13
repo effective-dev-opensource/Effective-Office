@@ -8,6 +8,7 @@ import band.effective.office.tablet.di.KoinInitializer
 import com.google.firebase.messaging.FirebaseMessaging
 import com.russhwolf.settings.SharedPreferencesSettings
 import org.koin.android.ext.android.get
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import kotlin.time.Duration.Companion.minutes
 
@@ -16,7 +17,7 @@ class  App : Application() {
     override fun onCreate() {
         super.onCreate()
         LoggerInitializer().init()
-        KoinInitializer().init()
+        KoinInitializer().init { androidContext(this@App) }
         SettingsManager.init(
             SharedPreferencesSettings(
                 this.getSharedPreferences(

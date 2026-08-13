@@ -6,6 +6,9 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val appModule = module {
+
+    includes(timeReceiverModule())
+
     single(qualifier = named("ApiUrl")) {
         if (isDebug) BuildKonfig.API_URL_DEBUG else BuildKonfig.API_URL_RELEASE
     }

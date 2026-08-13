@@ -5,11 +5,13 @@ import band.effective.office.tablet.core.domain.di.domainModule
 import band.effective.office.tablet.feature.bookingEditor.di.bookingEditorModule
 import band.effective.office.tablet.feature.main.di.mainScreenModule
 import band.effective.office.tablet.feature.slot.di.slotDiModule
+import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
 
 class KoinInitializer {
-    fun init() {
+    fun init(platformDeclaration: KoinApplication.() -> Unit = {}) {
         startKoin {
+            platformDeclaration()
             modules(
                 appModule,
                 firebaseTopicsModule,
