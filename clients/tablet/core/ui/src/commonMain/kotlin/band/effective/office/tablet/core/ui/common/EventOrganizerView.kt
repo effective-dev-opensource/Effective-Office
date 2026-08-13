@@ -15,11 +15,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -178,7 +178,7 @@ fun EventOrganizerView(
                 popupPositionProvider = popupPositionProvider,
                 onDismissRequest = { },
             ) {
-                Column(
+                LazyColumn(
                     modifier = Modifier
                         .width(with(density) { mTextFieldSize.width.toDp() })
                         .heightIn(max = 150.dp)
@@ -188,9 +188,8 @@ fun EventOrganizerView(
                             RoundedCornerShape(8.dp)
                         )
                         .border(3.dp, Color.DarkGray, RoundedCornerShape(8.dp))
-                        .verticalScroll(rememberScrollState())
                 ) {
-                    selectOrganizers.forEach { organizer ->
+                    items(selectOrganizers) { organizer ->
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
