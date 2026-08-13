@@ -102,7 +102,7 @@ class DateTimePickerComponent(
         val busyEvents: List<EventInfo> = checkBookingUseCase.busyEvents(
             event = event.copy(startTime = startDate, finishTime = finishDate),
             room = room
-        ).filter { it.startTime != startDate }
+        ).filter { busy -> event.id.isBlank() || busy.id != event.id }
 
         val isEnabled = busyEvents.isEmpty()
         mutableState.update { it.copy(isEnabledButton = isEnabled) }
