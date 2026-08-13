@@ -81,7 +81,9 @@ class SlotComponent(
     private suspend fun updateSlots(uiSlots: List<SlotUi>) = withContext(Dispatchers.Main.immediate) {
         if (uiSlots.isNotEmpty()) {
             val firstSlotStartInstant = uiSlots.first().slot.start.asInstant
-            val delayDuration = (firstSlotStartInstant - currentInstant) + UPDATE_BEFORE_SLOT_START_MS
+            // The first slot may have started already, and a non-positive delay makes the timer spin.
+            val delayDuration = ((firstSlotStartInstant - currentInstant) + UPDATE_BEFORE_SLOT_START_MS)
+                .coerceAtLeast(UPDATE_BEFORE_SLOT_START_MS)
 
             updateTimer.restart(delayDuration)
         }

@@ -20,7 +20,7 @@ class SlotUseCase {
         currentEvent: EventInfo?,
     ): List<Slot> {
         return events
-            .filter { it.startTime >= start && it.startTime < finish && it.finishTime <= finish }
+            .filter { it.finishTime > start && it.startTime < finish && it.finishTime <= finish }
             .fold(
                 getEmptyMinSlots(start, finish, minSlotDur)
             ) { acc, eventInfo -> acc.addEvent(eventInfo) }
