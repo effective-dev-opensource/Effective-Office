@@ -137,7 +137,12 @@ class MainComponent(
         }
 
         coroutineScope.launch {
-            CurrentTimeHolder.currentTime.collect { updateTimeToNextEvent() }
+            // Which booking is the current one is decided in the repository, and only while it
+            // emits, so without this re-read a room stays free until data happens to arrive.
+            CurrentTimeHolder.currentTime.collect {
+                loadRooms(state.value.indexSelectRoom)
+                updateTimeToNextEvent()
+            }
         }
     }
 
