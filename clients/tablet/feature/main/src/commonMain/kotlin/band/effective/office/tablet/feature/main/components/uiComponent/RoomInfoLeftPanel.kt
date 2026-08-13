@@ -69,6 +69,7 @@ fun RoomInfoLeftPanel(
                     increment = onIncrementData,
                     decrement = onDecrementData,
                     onOpenDateTimePickerModal = onOpenDateTimePickerModal,
+                    canDecrement = selectedDate.date > currentDate.date,
                 )
             }
 

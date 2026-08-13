@@ -53,7 +53,8 @@ fun DateTimeView(
     increment: () -> Unit,
     decrement: () -> Unit,
     onOpenDateTimePickerModal: () -> Unit,
-    showTitle: Boolean = false
+    showTitle: Boolean = false,
+    canDecrement: Boolean = true,
 ) {
     Column(modifier = modifier) {
         if (showTitle) {
@@ -61,7 +62,7 @@ fun DateTimeView(
             Spacer(modifier = Modifier.height(10.dp))
         }
         Row {
-            PreviousDateButton(decrement)
+            PreviousDateButton(decrement = decrement, enabled = canDecrement)
             Spacer(modifier = Modifier.width(10.dp))
             SelectedDate(onOpenDateTimePickerModal, selectDate, currentDate)
             Spacer(modifier = Modifier.width(10.dp))
@@ -178,10 +179,11 @@ private fun AnimatedContentTransitionScope.SlideDirection.opposite(): AnimatedCo
 }
 
 @Composable
-private fun RowScope.PreviousDateButton(decrement: () -> Unit) {
+private fun RowScope.PreviousDateButton(decrement: () -> Unit, enabled: Boolean) {
     Button(
         modifier = Modifier.fillMaxHeight().weight(1f).clip(RoundedCornerShape(15.dp)),
         onClick = { decrement() },
+        enabled = enabled,
         colors = ButtonDefaults.buttonColors(
             containerColor = LocalCustomColorsPalette.current.elevationBackground
         )
