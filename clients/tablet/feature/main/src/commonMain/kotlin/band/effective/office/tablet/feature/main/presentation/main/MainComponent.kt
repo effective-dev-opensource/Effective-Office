@@ -140,7 +140,7 @@ class MainComponent(
             // Which booking is the current one is decided in the repository, and only while it
             // emits, so without this re-read a room stays free until data happens to arrive.
             CurrentTimeHolder.currentTime.collect {
-                loadRooms(state.value.indexSelectRoom)
+                loadRooms(state.value.indexSelectRoom, refreshSlots = false)
                 updateTimeToNextEvent()
             }
         }
@@ -268,13 +268,15 @@ class MainComponent(
     )
 
     /**
-     * Loads room information.
+     * Loads room information. [refreshSlots] is false for the once-a-minute tick: the list is
+     * re-sliced from now, so rebuilding it collapses expanded groups and, if it lands mid-gesture,
+     * leaves the list taking no touches until the room is switched away and back.
      */
-    private fun loadRooms(roomIndex: Int? = null) = coroutineScope.launch {
+    private fun loadRooms(roomIndex: Int? = null, refreshSlots: Boolean = true) = coroutineScope.launch {
         val result = roomInfoUseCase()
         val roomsResult = processRoomInfoResult(result, roomIndex)
 
-        updateStateWithRoomsResult(roomsResult)
+        updateStateWithRoomsResult(roomsResult, refreshSlots)
     }
 
     /**
@@ -311,7 +313,7 @@ class MainComponent(
     /**
      * Updates the state with room information.
      */
-    private fun updateStateWithRoomsResult(roomsResult: RoomsResult) {
+    private fun updateStateWithRoomsResult(roomsResult: RoomsResult, refreshSlots: Boolean = true) {
         mutableState.update {
             if (roomsResult.roomList.isEmpty()) {
                 it.copy(
@@ -324,7 +326,9 @@ class MainComponent(
                 )
             } else {
                 val selectedRoom = roomsResult.roomList[roomsResult.indexSelectRoom.coerceIn(0, roomsResult.roomList.size - 1)]
-                slotComponent.sendIntent(SlotIntent.UpdateRequest(selectedRoom.name, state.value.selectedDate))
+                if (refreshSlots) {
+                    slotComponent.sendIntent(SlotIntent.UpdateRequest(selectedRoom.name, state.value.selectedDate))
+                }
                 it.copy(
                     isLoad = false,
                     isData = roomsResult.isSuccess,
