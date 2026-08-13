@@ -31,6 +31,7 @@ import band.effective.office.tablet.core.ui.common.FailureFastSelectRoomView
 import band.effective.office.tablet.core.ui.common.Loader
 import band.effective.office.tablet.core.ui.common.SuccessFastSelectRoomView
 import band.effective.office.tablet.core.ui.error
+import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h2
 import band.effective.office.tablet.core.ui.theme.h4
@@ -55,57 +56,59 @@ fun FastBooking(component: FastBookingComponent) {
                 usePlatformDefaultWidth = modal.instance != FastBookingComponent.ModalConfig.LoadingModal
             )
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Spacer(modifier = Modifier.height(50.dp))
-                Text(
-                    text = DateDisplayMapper.formatTime(state.currentTime),
-                    style = MaterialTheme.typography.h2,
-                    color = LocalCustomColorsPalette.current.primaryTextAndIcon
-                )
-                Row(
-                    modifier = Modifier.fillMaxHeight(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+            InactivityTracker {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    when (val modalInstance = modal.instance) {
-                        FastBookingComponent.ModalConfig.LoadingModal -> LoadingView(
-                            onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) }
-                        )
+                    Spacer(modifier = Modifier.height(50.dp))
+                    Text(
+                        text = DateDisplayMapper.formatTime(state.currentTime),
+                        style = MaterialTheme.typography.h2,
+                        color = LocalCustomColorsPalette.current.primaryTextAndIcon
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxHeight(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        when (val modalInstance = modal.instance) {
+                            FastBookingComponent.ModalConfig.LoadingModal -> LoadingView(
+                                onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) }
+                            )
 
-                        is FastBookingComponent.ModalConfig.FailureModal -> {
-                            // Show failure view - either due to no available rooms or an error
-                            if (state.isError) {
-                                ErrorView(onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) })
-                            } else {
-                                FailureFastSelectRoomView(
-                                    onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) },
-                                    minutes = state.minutesLeft,
-                                    room = modalInstance.room
-                                )
+                            is FastBookingComponent.ModalConfig.FailureModal -> {
+                                // Show failure view - either due to no available rooms or an error
+                                if (state.isError) {
+                                    ErrorView(onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) })
+                                } else {
+                                    FailureFastSelectRoomView(
+                                        onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) },
+                                        minutes = state.minutesLeft,
+                                        room = modalInstance.room
+                                    )
+                                }
                             }
-                        }
 
-                        is FastBookingComponent.ModalConfig.SuccessModal -> {
-                            // Only show success view if there's no error
-                            if (state.isError) {
-                                ErrorView(onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) })
-                            } else {
-                                SuccessFastSelectRoomView(
-                                    roomName = modalInstance.room,
-                                    finishTime = modalInstance.eventInfo.finishTime,
-                                    close = { component.sendIntent(Intent.OnCloseWindowRequest) },
-                                    onFreeRoomRequest = {
-                                        component.sendIntent(
-                                            Intent.OnFreeSelectRequest(
-                                                it
+                            is FastBookingComponent.ModalConfig.SuccessModal -> {
+                                // Only show success view if there's no error
+                                if (state.isError) {
+                                    ErrorView(onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) })
+                                } else {
+                                    SuccessFastSelectRoomView(
+                                        roomName = modalInstance.room,
+                                        finishTime = modalInstance.eventInfo.finishTime,
+                                        close = { component.sendIntent(Intent.OnCloseWindowRequest) },
+                                        onFreeRoomRequest = {
+                                            component.sendIntent(
+                                                Intent.OnFreeSelectRequest(
+                                                    it
+                                                )
                                             )
-                                        )
-                                    },
-                                    isLoading = state.isLoad
-                                )
+                                        },
+                                        isLoading = state.isLoad
+                                    )
+                                }
                             }
                         }
                     }

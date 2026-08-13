@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import band.effective.office.tablet.components.VersionOverlay
+import band.effective.office.tablet.core.domain.manager.DateResetManager
+import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
+import band.effective.office.tablet.core.ui.inactivity.InactivityTracking
 import band.effective.office.tablet.feature.main.domain.RefreshOnTimeZoneChangeUseCase
 import band.effective.office.tablet.time.TimeReceiver
 import org.koin.compose.koinInject
@@ -23,10 +26,16 @@ fun App(rootComponent: RootComponent) {
     }
     val refreshOnTimeZoneChange = koinInject<RefreshOnTimeZoneChangeUseCase>()
     LaunchedEffect(Unit) { refreshOnTimeZoneChange() }
+    DisposableEffect(Unit) {
+        InactivityTracking.start { DateResetManager.resetDate() }
+        onDispose { InactivityTracking.stop() }
+    }
     AppTheme {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Root(rootComponent)
-            VersionOverlay()
+        InactivityTracker(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Root(rootComponent)
+                VersionOverlay()
+            }
         }
     }
 }

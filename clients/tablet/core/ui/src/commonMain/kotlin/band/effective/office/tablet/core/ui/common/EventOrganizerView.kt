@@ -56,6 +56,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.arrow_to_down
+import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
 import band.effective.office.tablet.core.ui.selectbox_organizer_error
 import band.effective.office.tablet.core.ui.selectbox_organizer_title
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
@@ -178,34 +179,36 @@ fun EventOrganizerView(
                 popupPositionProvider = popupPositionProvider,
                 onDismissRequest = { },
             ) {
-                LazyColumn(
-                    modifier = Modifier
-                        .width(with(density) { mTextFieldSize.width.toDp() })
-                        .heightIn(max = 150.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(
-                            LocalCustomColorsPalette.current.elevationBackground,
-                            RoundedCornerShape(8.dp)
-                        )
-                        .border(3.dp, Color.DarkGray, RoundedCornerShape(8.dp))
-                ) {
-                    items(selectOrganizers) { organizer ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onSelectItem(organizer)
-                                    focusRequester.freeFocus()
-                                    focusManager.clearFocus()
-                                    onExpandedChange()
-                                }
-                                .padding(16.dp),
-                        ) {
-                            Text(
-                                text = organizer,
+                InactivityTracker {
+                    LazyColumn(
+                        modifier = Modifier
+                            .width(with(density) { mTextFieldSize.width.toDp() })
+                            .heightIn(max = 150.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                LocalCustomColorsPalette.current.elevationBackground,
+                                RoundedCornerShape(8.dp)
                             )
+                            .border(3.dp, Color.DarkGray, RoundedCornerShape(8.dp))
+                    ) {
+                        items(selectOrganizers) { organizer ->
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onSelectItem(organizer)
+                                        focusRequester.freeFocus()
+                                        focusManager.clearFocus()
+                                        onExpandedChange()
+                                    }
+                                    .padding(16.dp),
+                            ) {
+                                Text(
+                                    text = organizer,
+                                )
+                            }
+                            HorizontalDivider()
                         }
-                        HorizontalDivider()
                     }
                 }
             }

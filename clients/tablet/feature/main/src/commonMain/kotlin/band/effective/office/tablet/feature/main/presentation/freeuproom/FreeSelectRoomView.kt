@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import band.effective.office.tablet.core.ui.common.CrossButtonView
 import band.effective.office.tablet.core.ui.common.Loader
+import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h4
 import band.effective.office.tablet.core.ui.theme.h6
@@ -63,59 +64,61 @@ private fun FreeSelectRoomView(
     Dialog(
         onDismissRequest = { onCloseRequest() }
     ) {
-        Column(
-            modifier = Modifier
-                .clip(RoundedCornerShape(5))
-                .background(LocalCustomColorsPalette.current.elevationBackground),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
-        ) {
-            Spacer(modifier = Modifier.height(30.dp))
-            CrossButtonView(
-                Modifier.width(518.dp).padding(end = 42.dp),
-                onDismissRequest = {
-                    onCloseRequest()
-                }
-            )
-            Spacer(modifier = Modifier.height(30.dp))
-            Box(
-                modifier = Modifier.padding(0.dp),
-                contentAlignment = Alignment.CenterStart
+        InactivityTracker {
+            Column(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(5))
+                    .background(LocalCustomColorsPalette.current.elevationBackground),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
             ) {
-                Text(
-                    text = stringResource(Res.string.free_select_room),
-                    style = MaterialTheme.typography.h4,
-                    color = LocalCustomColorsPalette.current.primaryTextAndIcon
+                Spacer(modifier = Modifier.height(30.dp))
+                CrossButtonView(
+                    Modifier.width(518.dp).padding(end = 42.dp),
+                    onDismissRequest = {
+                        onCloseRequest()
+                    }
                 )
-            }
-            Spacer(modifier = Modifier.height(30.dp))
-            Button(
-                modifier = Modifier.size(290.dp, 64.dp),
-                colors = ButtonDefaults.buttonColors(colorButton),
-                shape = shape,
-                onClick = {
-                    isPressed.value = !isPressed.value
-                    onFreeRoomRequest()
+                Spacer(modifier = Modifier.height(30.dp))
+                Box(
+                    modifier = Modifier.padding(0.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        text = stringResource(Res.string.free_select_room),
+                        style = MaterialTheme.typography.h4,
+                        color = LocalCustomColorsPalette.current.primaryTextAndIcon
+                    )
                 }
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    when {
-                        isLoading -> Loader()
-                        isFail -> Text(
-                            text = stringResource(Res.string.try_again),
-                            style = MaterialTheme.typography.h6,
-                            color = textButton,
-                        )
+                Spacer(modifier = Modifier.height(30.dp))
+                Button(
+                    modifier = Modifier.size(290.dp, 64.dp),
+                    colors = ButtonDefaults.buttonColors(colorButton),
+                    shape = shape,
+                    onClick = {
+                        isPressed.value = !isPressed.value
+                        onFreeRoomRequest()
+                    }
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        when {
+                            isLoading -> Loader()
+                            isFail -> Text(
+                                text = stringResource(Res.string.try_again),
+                                style = MaterialTheme.typography.h6,
+                                color = textButton,
+                            )
 
-                        else -> Text(
-                            text = stringResource(Res.string.free_select_room_button),
-                            style = MaterialTheme.typography.h6,
-                            color = textButton,
-                        )
+                            else -> Text(
+                                text = stringResource(Res.string.free_select_room_button),
+                                style = MaterialTheme.typography.h6,
+                                color = textButton,
+                            )
+                        }
                     }
                 }
+                Spacer(modifier = Modifier.height(60.dp))
             }
-            Spacer(modifier = Modifier.height(60.dp))
         }
     }
 }
