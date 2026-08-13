@@ -83,8 +83,9 @@ class SlotComponent(
             val delayDuration = (firstSlotStartInstant - currentInstant) + UPDATE_BEFORE_SLOT_START_MS
 
             updateTimer.restart(delayDuration)
-            mutableState.update { it.copy(slots = uiSlots) }
         }
+        // Publish even an empty list, or a day without free slots keeps the previous day's ones.
+        mutableState.update { it.copy(slots = uiSlots) }
     }
 
     fun sendIntent(intent: SlotIntent) {
