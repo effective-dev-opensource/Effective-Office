@@ -47,7 +47,7 @@ class DateTimePickerComponent(
             is Intent.OnChangeDate -> changeDate(
                 intent.date.year,
                 intent.date.month,
-                intent.date.dayOfMonth,
+                intent.date.day,
             )
             is Intent.OnChangeTime -> changeTime(
                 intent.time.hour,
@@ -59,13 +59,13 @@ class DateTimePickerComponent(
     private fun changeDate(
         year: Int,
         month: Month,
-        dayOfMonth: Int
+        day: Int
     ) = scope.launch {
         val currentDate = state.value.currentDate
         val newDate = LocalDateTime(
             year = year,
             month = month,
-            dayOfMonth = dayOfMonth,
+            day = day,
             hour = currentDate.hour,
             minute = currentDate.minute,
             second = 0,
@@ -84,7 +84,7 @@ class DateTimePickerComponent(
         val newDate = LocalDateTime(
             year = currentDate.year,
             month = currentDate.month,
-            dayOfMonth = currentDate.dayOfMonth,
+            day = currentDate.day,
             hour = hour,
             minute = minute,
             second = 0,
