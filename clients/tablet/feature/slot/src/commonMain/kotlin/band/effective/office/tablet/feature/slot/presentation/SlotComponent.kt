@@ -7,6 +7,7 @@ import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.TimerUseCase
 import band.effective.office.tablet.core.domain.util.BootstrapperTimer
+import band.effective.office.tablet.core.domain.util.stableKey
 import band.effective.office.shared.core.utils.asInstant
 import band.effective.office.shared.core.utils.asLocalDateTime
 import band.effective.office.shared.core.utils.currentInstant
@@ -85,7 +86,24 @@ class SlotComponent(
             updateTimer.restart(delayDuration)
         }
         // Publish even an empty list, or a day without free slots keeps the previous day's ones.
-        mutableState.update { it.copy(slots = uiSlots) }
+        mutableState.update { it.copy(slots = uiSlots.keepGroupsOpenedIn(it.slots)) }
+    }
+
+    private fun List<SlotUi>.keepGroupsOpenedIn(previous: List<SlotUi>): List<SlotUi> {
+        val openedKeys = previous
+            .filterIsInstance<SlotUi.MultiSlot>()
+            .filter { it.isOpen }
+            .mapTo(mutableSetOf()) { it.slot.stableKey() }
+
+        if (openedKeys.isEmpty()) return this
+
+        return map {
+            if (it is SlotUi.MultiSlot && it.slot.stableKey() in openedKeys) {
+                it.copy(isOpen = true)
+            } else {
+                it
+            }
+        }
     }
 
     fun sendIntent(intent: SlotIntent) {
@@ -127,11 +145,18 @@ class SlotComponent(
     }
 
     private fun openMultislot(multislot: SlotUi.MultiSlot) {
-        val slots = state.value.slots.toMutableList()
-        val index = slots.indexOf(multislot)
-        if (index < 0) return
-        slots[index] = multislot.copy(isOpen = !multislot.isOpen)
-        mutableState.update { it.copy(slots = slots) }
+        val key = multislot.slot.stableKey()
+        mutableState.update { state ->
+            state.copy(
+                slots = state.slots.map {
+                    if (it is SlotUi.MultiSlot && it.slot.stableKey() == key) {
+                        it.copy(isOpen = !it.isOpen)
+                    } else {
+                        it
+                    }
+                },
+            )
+        }
     }
 
     private fun executeFreeSlot(slot: Slot.EmptySlot) {

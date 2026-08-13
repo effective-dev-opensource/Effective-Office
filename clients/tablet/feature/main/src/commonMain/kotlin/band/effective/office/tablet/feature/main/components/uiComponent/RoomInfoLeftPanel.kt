@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.domain.model.RoomInfo
+import band.effective.office.tablet.core.domain.util.stableKey
 import band.effective.office.tablet.core.ui.common.Disconnect
 import band.effective.office.tablet.core.ui.date.DateTimeView
 import band.effective.office.tablet.feature.main.components.RoomInfoComponent
@@ -80,7 +81,7 @@ fun RoomInfoLeftPanel(
                 )
             }
 
-            items(slotState.slots, key = { it.slot.hashCode() }) {
+            items(slotState.slots, key = { it.slot.stableKey() }) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
