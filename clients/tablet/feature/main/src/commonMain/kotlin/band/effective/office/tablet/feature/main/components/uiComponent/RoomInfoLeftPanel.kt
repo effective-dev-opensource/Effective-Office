@@ -72,9 +72,11 @@ fun RoomInfoLeftPanel(
             }
 
             stickyHeader {
+                // indexSelectRoom is -1 until the saved room turns up in the list from the backend.
+                val safeIndex = indexSelectRoom.coerceIn(0, (roomList.size - 1).coerceAtLeast(0))
                 RoomInfoComponent(
                     modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
-                    room = roomList[indexSelectRoom],
+                    room = roomList[safeIndex],
                     onOpenFreeRoomModalRequest = { onCancelEventRequest() },
                     timeToNextEvent = timeToNextEvent,
                     isError = isDisconnect,
