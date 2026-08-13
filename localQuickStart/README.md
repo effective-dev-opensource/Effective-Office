@@ -74,12 +74,17 @@ The client reads its config from the **repo-root `local.properties`**
 
 ⚠️ **The base URL is baked into the build**, and it differs per platform:
 
-| Target | `api.url.debug` |
-|--------|-----------------|
-| **iOS simulator** (shares the host network) | `http://localhost:8080` |
-| **Android emulator** (host is reachable via a special IP) | `http://10.0.2.2:8080` |
+| Target | Property | Value |
+|--------|----------|-------|
+| **iOS simulator** (shares the host network) | `api.url.debug` | `http://localhost:8080` |
+| **Android emulator** (host is reachable via a special IP) | `api.url.debug` | `http://10.0.2.2:8080` |
+| **Aurora emulator** (same IP, but the build is release) | `api.url.release` | `http://10.0.2.2:8080` |
 
-Change that one line and rebuild when you switch platforms.
+Switching platforms means editing that line and rebuilding. The script does the editing:
+
+```bash
+localQuickStart/point-client-at-local.sh ios|android|aurora
+```
 
 ### Android emulator
 
