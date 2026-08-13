@@ -1,20 +1,16 @@
 package band.effective.office.tablet.feature.main.domain
 
+import band.effective.office.shared.core.utils.currentLocalDateTime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 
 /**
  * A singleton that holds the current time.
  */
 object CurrentTimeHolder {
-    private val defaultTimeZone = TimeZone.Companion.currentSystemDefault()
-
-    private val _currentTime = MutableStateFlow(Clock.System.now().toLocalDateTime(defaultTimeZone))
+    private val _currentTime = MutableStateFlow(currentLocalDateTime)
     val currentTime: StateFlow<LocalDateTime> = _currentTime.asStateFlow()
 
     /**

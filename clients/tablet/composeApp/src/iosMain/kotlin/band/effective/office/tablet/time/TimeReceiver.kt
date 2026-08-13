@@ -1,10 +1,9 @@
 package band.effective.office.tablet.time
 
+import band.effective.office.shared.core.utils.currentLocalDateTime
 import band.effective.office.tablet.feature.main.domain.CurrentTimeHolder
 import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import platform.Foundation.NSDate
 import platform.Foundation.NSDefaultRunLoopMode
 import platform.Foundation.NSNotificationCenter
@@ -65,6 +64,5 @@ actual class TimeReceiver {
     private fun secondsToNextMinute(): Double =
         (MINUTE_MILLIS - Clock.System.now().toEpochMilliseconds() % MINUTE_MILLIS) / 1000.0
 
-    private fun getCurrentTime(): LocalDateTime =
-        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    private fun getCurrentTime(): LocalDateTime = currentLocalDateTime
 }

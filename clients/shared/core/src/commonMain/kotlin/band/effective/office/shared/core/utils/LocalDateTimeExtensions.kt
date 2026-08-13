@@ -11,9 +11,11 @@ import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
 /**
- * Default system time zone
+ * Default system time zone, read on every access. Captured once it keeps converting in the zone the
+ * app was launched in, so after a zone change the clock still moves while everything derived from
+ * "what time is it now" stays wrong by the offset until a restart.
  */
-val defaultTimeZone: TimeZone = TimeZone.currentSystemDefault()
+val defaultTimeZone: TimeZone get() = TimeZone.currentSystemDefault()
 
 /**
  * Current local date and time in system time zone

@@ -4,11 +4,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import band.effective.office.shared.core.utils.currentLocalDateTime
 import band.effective.office.tablet.feature.main.domain.CurrentTimeHolder
-import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 
 /**
  * Android: `ACTION_TIME_TICK` is the system's own once-a-minute wake-up, so there is no timer here
@@ -48,6 +46,5 @@ actual class TimeReceiver(private val context: Context) {
         registered = false
     }
 
-    private fun getCurrentTime(): LocalDateTime =
-        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    private fun getCurrentTime(): LocalDateTime = currentLocalDateTime
 }

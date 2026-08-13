@@ -12,6 +12,7 @@ import band.effective.office.tablet.core.domain.useCase.OrganizersInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.UpdateBookingUseCase
 import band.effective.office.shared.core.utils.asInstant
 import band.effective.office.shared.core.utils.asLocalDateTime
+import band.effective.office.shared.core.utils.currentLocalDateTime
 import band.effective.office.tablet.core.ui.common.ModalWindow
 import band.effective.office.shared.core.utils.componentCoroutineScope
 import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.DateTimePickerComponent
@@ -31,10 +32,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -324,8 +322,7 @@ class BookingEditorComponent(
     /**
      * Gets the current time
      */
-    private fun getCurrentTime(): LocalDateTime =
-        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    private fun getCurrentTime(): LocalDateTime = currentLocalDateTime
 
     /**
      * Checks for busy events that conflict with the given parameters
