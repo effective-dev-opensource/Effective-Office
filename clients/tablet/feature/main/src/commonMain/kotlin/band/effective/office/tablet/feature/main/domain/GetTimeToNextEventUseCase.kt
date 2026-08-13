@@ -6,8 +6,15 @@ import band.effective.office.tablet.core.domain.model.nextEvent
 import kotlin.time.Clock
 import kotlinx.datetime.toInstant
 
+private const val SECONDS_PER_MINUTE = 60
+
 class GetTimeToNextEventUseCase {
 
+    /**
+     * Minutes left, rounded up so that the header clock plus this number is the booking's end.
+     * The header shows the minute it is in, so a rounded-down remainder reads one minute short of
+     * the end for 59 seconds out of every 60.
+     */
     operator fun invoke(rooms: List<RoomInfo>, selectedRoomIndex: Int): Int {
         val now = Clock.System.now()
         val timeZone = defaultTimeZone
@@ -20,6 +27,9 @@ class GetTimeToNextEventUseCase {
             else -> return 0
         }
 
-        return ((finishInstant - now).inWholeMinutes).toInt()
+        val secondsLeft = (finishInstant - now).inWholeSeconds
+        if (secondsLeft <= 0) return 0
+
+        return ((secondsLeft + SECONDS_PER_MINUTE - 1) / SECONDS_PER_MINUTE).toInt()
     }
 }
