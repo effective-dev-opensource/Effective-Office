@@ -325,7 +325,8 @@ class MainComponent(
                     timeToNextEvent = 0
                 )
             } else {
-                val selectedRoom = roomsResult.roomList[roomsResult.indexSelectRoom.coerceIn(0, roomsResult.roomList.size - 1)]
+                val indexSelectRoom = roomsResult.indexSelectRoom.coerceIn(0, roomsResult.roomList.size - 1)
+                val selectedRoom = roomsResult.roomList[indexSelectRoom]
                 if (refreshSlots) {
                     slotComponent.sendIntent(SlotIntent.UpdateRequest(selectedRoom.name, state.value.selectedDate))
                 }
@@ -334,10 +335,10 @@ class MainComponent(
                     isData = roomsResult.isSuccess,
                     isError = !roomsResult.isSuccess,
                     roomList = roomsResult.roomList,
-                    indexSelectRoom = roomsResult.indexSelectRoom,
+                    indexSelectRoom = indexSelectRoom,
                     timeToNextEvent = getTimeToNextEventUseCase(
                         rooms = roomsResult.roomList,
-                        selectedRoomIndex = roomsResult.indexSelectRoom
+                        selectedRoomIndex = indexSelectRoom
                     )
                 )
             }
