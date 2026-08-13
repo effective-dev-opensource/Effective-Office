@@ -107,6 +107,10 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -sdk iphonesimulator 
 To iterate on Kotlin/Native compile errors fast (without Xcode):
 `./gradlew :clients:tablet:composeApp:linkDebugFrameworkIosSimulatorArm64`
 
+⚠️ **Typing into the simulator is ASCII-only and goes through the active macOS layout.**
+With a Russian layout `an` arrives as `фт`, and filtering the organizer list then looks broken
+when it is not. Switch to an English layout before typing.
+
 ---
 
 ## Files this quick-start needs elsewhere in the repo
