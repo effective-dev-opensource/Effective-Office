@@ -65,6 +65,9 @@ class MainComponent(
     private val deleteBookingUseCase: DeleteBookingUseCase by inject()
 
     private val dateResetManager: DateResetManager by inject()
+    private val currentTimeHolder: CurrentTimeHolder by inject()
+
+    val currentTime: StateFlow<LocalDateTime> = currentTimeHolder.currentTime
 
     // Timers
     private val currentTimeTimer = BootstrapperTimer(timerUseCase, coroutineScope)
@@ -141,7 +144,7 @@ class MainComponent(
         coroutineScope.launch {
             // Which booking is the current one is decided in the repository, and only while it
             // emits, so without this re-read a room stays free until data happens to arrive.
-            CurrentTimeHolder.currentTime.collect {
+            currentTime.collect {
                 loadRooms(state.value.indexSelectRoom, refreshSlots = false)
                 updateTimeToNextEvent()
             }

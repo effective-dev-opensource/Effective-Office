@@ -13,7 +13,10 @@ import kotlinx.datetime.LocalDateTime
  * and the flip lands on :00 for free; it cannot be declared in the manifest, only registered at
  * runtime. The context has to be the application one — the receiver outlives any single activity.
  */
-actual class TimeReceiver(private val context: Context) {
+actual class TimeReceiver(
+    private val context: Context,
+    private val currentTimeHolder: CurrentTimeHolder,
+) {
 
     private var registered = false
 
@@ -23,7 +26,7 @@ actual class TimeReceiver(private val context: Context) {
                 Intent.ACTION_TIME_TICK,
                 Intent.ACTION_TIME_CHANGED,
                 Intent.ACTION_TIMEZONE_CHANGED -> {
-                    CurrentTimeHolder.updateTime(getCurrentTime())
+                    currentTimeHolder.updateTime(getCurrentTime())
                 }
             }
         }

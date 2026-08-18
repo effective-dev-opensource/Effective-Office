@@ -11,11 +11,12 @@ import kotlinx.datetime.TimeZone
  */
 class RefreshOnTimeZoneChangeUseCase(
     private val roomInfoUseCase: RoomInfoUseCase,
+    private val currentTimeHolder: CurrentTimeHolder,
 ) {
     private var knownTimeZone: TimeZone = defaultTimeZone
 
     suspend operator fun invoke() {
-        CurrentTimeHolder.currentTime.collect {
+        currentTimeHolder.currentTime.collect {
             val currentTimeZone = defaultTimeZone
             if (currentTimeZone == knownTimeZone) return@collect
             knownTimeZone = currentTimeZone

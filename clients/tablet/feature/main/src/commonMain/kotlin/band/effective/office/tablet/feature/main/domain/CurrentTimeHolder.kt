@@ -7,9 +7,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.datetime.LocalDateTime
 
 /**
- * A singleton that holds the current time.
+ * Holds the wall clock the screens read, moved by the platform's time receiver.
  */
-object CurrentTimeHolder {
+class CurrentTimeHolder {
     private val _currentTime = MutableStateFlow(currentLocalDateTime)
     val currentTime: StateFlow<LocalDateTime> = _currentTime.asStateFlow()
 

@@ -23,7 +23,9 @@ private const val MINUTE_MILLIS = 60_000L
  * flips at :00 rather than a minute after launch. The timer keeps its own cadence and does not
  * follow the wall clock, so a clock or zone moved under the app arrives by notification instead.
  */
-actual class TimeReceiver {
+actual class TimeReceiver(
+    private val currentTimeHolder: CurrentTimeHolder,
+) {
 
     private var timer: NSTimer? = null
     private val observers = mutableListOf<NSObjectProtocol>()
@@ -58,7 +60,7 @@ actual class TimeReceiver {
     }
 
     private fun publishCurrentTime() {
-        CurrentTimeHolder.updateTime(getCurrentTime())
+        currentTimeHolder.updateTime(getCurrentTime())
     }
 
     private fun secondsToNextMinute(): Double =
