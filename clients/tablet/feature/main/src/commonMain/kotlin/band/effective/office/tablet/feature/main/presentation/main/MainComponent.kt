@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -144,7 +145,9 @@ class MainComponent(
         coroutineScope.launch {
             // Which booking is the current one is decided in the repository, and only while it
             // emits, so without this re-read a room stays free until data happens to arrive.
-            currentTime.collect {
+            // The first value of a StateFlow arrives on subscription, before the initial load has
+            // resolved the saved room, and would re-read against the default index instead.
+            currentTime.drop(1).collect {
                 loadRooms(state.value.indexSelectRoom, refreshSlots = false)
                 updateTimeToNextEvent()
             }
