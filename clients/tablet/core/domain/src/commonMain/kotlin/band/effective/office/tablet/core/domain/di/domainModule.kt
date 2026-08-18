@@ -1,5 +1,6 @@
 package band.effective.office.tablet.core.domain.di
 
+import band.effective.office.tablet.core.domain.manager.DateResetManager
 import band.effective.office.tablet.core.domain.platform.roomRefreshInterval
 import band.effective.office.tablet.core.domain.useCase.CheckBookingUseCase
 import band.effective.office.tablet.core.domain.useCase.CheckSettingsUseCase
@@ -78,6 +79,8 @@ val domainModule = module {
             getCurrentRoomInfosUseCase = get(),
         )
     }
+
+    single { DateResetManager() }
 
     // Other use cases
     single { OrganizersInfoUseCase(repository = get()) }

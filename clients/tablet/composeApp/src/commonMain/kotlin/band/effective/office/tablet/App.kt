@@ -26,8 +26,9 @@ fun App(rootComponent: RootComponent) {
     }
     val refreshOnTimeZoneChange = koinInject<RefreshOnTimeZoneChangeUseCase>()
     LaunchedEffect(Unit) { refreshOnTimeZoneChange() }
+    val dateResetManager = koinInject<DateResetManager>()
     DisposableEffect(Unit) {
-        InactivityTracking.start { DateResetManager.resetDate() }
+        InactivityTracking.start { dateResetManager.resetDate() }
         onDispose { InactivityTracking.stop() }
     }
     AppTheme {

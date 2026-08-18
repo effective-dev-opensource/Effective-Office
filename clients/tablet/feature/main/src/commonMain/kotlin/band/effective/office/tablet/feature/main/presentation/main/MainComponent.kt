@@ -64,6 +64,8 @@ class MainComponent(
     private val timerUseCase: TimerUseCase by inject()
     private val deleteBookingUseCase: DeleteBookingUseCase by inject()
 
+    private val dateResetManager: DateResetManager by inject()
+
     // Timers
     private val currentTimeTimer = BootstrapperTimer(timerUseCase, coroutineScope)
 
@@ -105,7 +107,7 @@ class MainComponent(
      * when inactivity is detected.
      */
     private fun initializeDateResetManager() {
-        DateResetManager.registerDateResetCallback { date ->
+        dateResetManager.registerDateResetCallback { date ->
             mutableState.update { it.copy(selectedDate = date) }
             reboot(refresh = true, resetSelectRoom = true)
             updateTimeToNextEvent()
