@@ -17,20 +17,21 @@ fun InactivityTracker(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
+    val tracking = LocalInactivityTracking.current
     Box(
         modifier = modifier
-            .pointerInput(Unit) {
+            .pointerInput(tracking) {
                 awaitPointerEventScope {
                     while (true) {
                         // The initial pass runs root-down; on the main pass a clickable child
                         // would already have taken the event.
                         awaitPointerEvent(PointerEventPass.Initial)
-                        InactivityTracking.onUserInteraction()
+                        tracking.onUserInteraction()
                     }
                 }
             }
             .onPreviewKeyEvent {
-                InactivityTracking.onUserInteraction()
+                tracking.onUserInteraction()
                 false
             },
     ) {
