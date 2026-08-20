@@ -41,9 +41,12 @@ fun AppRoot() {
     LaunchedEffect(Unit) { refreshOnTimeZoneChange() }
     val dateResetManager = koinInject<DateResetManager>()
     val inactivityTracking = koinInject<InactivityTracking>()
-    DisposableEffect(inactivityTracking, dateResetManager) {
-        val owner = inactivityTracking.start { dateResetManager.resetDate() }
+    DisposableEffect(inactivityTracking) {
+        val owner = inactivityTracking.start()
         onDispose { inactivityTracking.stop(owner) }
+    }
+    LaunchedEffect(inactivityTracking, dateResetManager) {
+        inactivityTracking.timeouts.collect { dateResetManager.resetDate() }
     }
     val checkSettingsUseCase = koinInject<CheckSettingsUseCase>()
     val startRoomConfigured = remember { checkSettingsUseCase().isNotEmpty() }

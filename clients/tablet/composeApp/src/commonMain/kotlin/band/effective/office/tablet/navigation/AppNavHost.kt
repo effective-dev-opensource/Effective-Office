@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +23,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import band.effective.office.tablet.core.domain.model.EventInfo
+import band.effective.office.tablet.core.ui.inactivity.LocalInactivityTracking
 import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditor
 import band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditorViewModel
 import band.effective.office.tablet.feature.fastBooking.presentation.FastBooking
@@ -47,6 +49,13 @@ fun AppNavHost(startRoomConfigured: Boolean) {
     val navController = rememberNavController()
     var activeModal by remember { mutableStateOf<ActiveModal?>(null) }
     val startDestination: Any = if (startRoomConfigured) MainRoute else SettingsRoute
+
+    // The screen underneath goes back to the room the tablet was set up with, so a modal left up
+    // would address one room over a schedule for another.
+    val inactivityTracking = LocalInactivityTracking.current
+    LaunchedEffect(inactivityTracking) {
+        inactivityTracking.timeouts.collect { activeModal = null }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(navController = navController, startDestination = startDestination) {
