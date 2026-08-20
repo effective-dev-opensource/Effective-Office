@@ -31,7 +31,9 @@ fastbooking/
 - **FastBookingViewModel**: built by Koin with the minimum duration, the selected room and the room
   list as assisted parameters — the caller already holds them, so nothing is re-fetched here. Emits
   a close event when the flow is done.
-- **FastBookingModal**: which of the four views the flow is showing.
+- **FastBookingModal**: which of its three cases the flow is in — `Loading`, `Success` or
+  `Failure`. The error view is not one of them: `State.isError` puts it up in place of the success
+  or failure card.
 
 The success and failure cards themselves — `SuccessFastSelectRoomView`, `FailureFastSelectRoomView`
 — live in the core UI module.

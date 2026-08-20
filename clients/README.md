@@ -137,7 +137,7 @@ tablet/
 └── feature/           # Feature-specific modules
     ├── bookingEditor/ # Booking creation and editing
     ├── fastbooking/   # Streamlined booking process
-    ├── main/          # Main screen and navigation
+    ├── main/          # Main screen and the free-up-room modal
     ├── settings/      # Application settings
     └── slot/          # Time slot management
 ```
