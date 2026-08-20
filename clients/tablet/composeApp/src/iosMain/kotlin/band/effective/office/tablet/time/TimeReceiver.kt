@@ -17,11 +17,12 @@ import platform.darwin.NSObjectProtocol
 
 private const val MINUTE_SECONDS = 60.0
 private const val MINUTE_MILLIS = 60_000L
+private const val PAST_BOUNDARY_SECONDS = 0.05
 
 /**
- * iOS: an NSTimer on the main run loop, its first fire pushed to the next whole minute so the time
- * flips at :00 rather than a minute after launch. The timer keeps its own cadence and does not
- * follow the wall clock, so a clock or zone moved under the app arrives by notification instead.
+ * iOS: an NSTimer on the main run loop, re-aimed at the next whole minute after every fire, so it
+ * follows the wall clock instead of drifting away from it on its own 60-second cadence.
+ * A clock or zone moved under the app arrives by notification rather than by tick.
  */
 actual class TimeReceiver(
     private val currentTimeHolder: CurrentTimeHolder,
@@ -35,7 +36,10 @@ actual class TimeReceiver(
         val newTimer = NSTimer.timerWithTimeInterval(
             interval = MINUTE_SECONDS,
             repeats = true,
-        ) { _ -> publishCurrentTime() }
+        ) { firedTimer ->
+            publishCurrentTime()
+            firedTimer?.fireDate = NSDate.dateWithTimeIntervalSinceNow(secondsToNextMinute())
+        }
         newTimer.fireDate = NSDate.dateWithTimeIntervalSinceNow(secondsToNextMinute())
         NSRunLoop.mainRunLoop.addTimer(newTimer, NSDefaultRunLoopMode)
         timer = newTimer
@@ -63,8 +67,13 @@ actual class TimeReceiver(
         currentTimeHolder.updateTime(getCurrentTime())
     }
 
+    /**
+     * Seconds until just *past* the next whole minute. The offset keeps the fire off the boundary
+     * itself, so the clock is never read while the minute that is ending is still current.
+     */
     private fun secondsToNextMinute(): Double =
-        (MINUTE_MILLIS - Clock.System.now().toEpochMilliseconds() % MINUTE_MILLIS) / 1000.0
+        (MINUTE_MILLIS - Clock.System.now().toEpochMilliseconds() % MINUTE_MILLIS) / 1000.0 +
+            PAST_BOUNDARY_SECONDS
 
     private fun getCurrentTime(): LocalDateTime = currentLocalDateTime
 }
