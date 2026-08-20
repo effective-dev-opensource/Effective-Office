@@ -26,6 +26,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import band.effective.office.tablet.core.ui.common.CrossButtonView
 import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
+import band.effective.office.tablet.core.ui.inactivity.LocalInactivityTracking
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.header8
 import band.effective.office.tablet.core.ui.time_booked
@@ -67,6 +68,18 @@ fun DateTimePicker(
     onChangeTime: (LocalTime) -> Unit,
     enableDateButton: Boolean,
 ) {
+    // The pickers are native views on iOS and take their touches themselves, so the tracker around
+    // them never sees a date being picked. Their reported changes are the interaction it can see.
+    val tracking = LocalInactivityTracking.current
+    val onDatePicked: (LocalDate) -> Unit = {
+        tracking.onUserInteraction()
+        onChangeDate(it)
+    }
+    val onTimePicked: (LocalTime) -> Unit = {
+        tracking.onUserInteraction()
+        onChangeTime(it)
+    }
+
     Dialog(
         onDismissRequest = onCloseRequest,
         properties = DialogProperties(
@@ -96,13 +109,13 @@ fun DateTimePicker(
                         TimePickerView(
                             modifier = Modifier.fillMaxWidth(0.3f),
                             currentDate = currentDate,
-                            onSnap = onChangeTime
+                            onSnap = onTimePicked
                         )
                         Spacer(Modifier.width(40.dp))
                         DatePickerView(
                             modifier = Modifier.fillMaxWidth(0.6f).fillMaxHeight(),
                             currentDate = currentDate,
-                            onChangeDate = onChangeDate,
+                            onChangeDate = onDatePicked,
                         )
                     }
                     Box(modifier = Modifier.fillMaxSize()) {
