@@ -1,7 +1,7 @@
 package band.effective.office.tv.feature.stories.presentation
 
 import band.effective.office.shared.core.domain.Either
-import band.effective.office.shared.core.utils.componentCoroutineScope
+import band.effective.office.tv.core.ui.utils.componentCoroutineScope
 import band.effective.office.tv.feature.stories.domain.service.StoriesDataProvider
 import com.arkivanov.decompose.ComponentContext
 import io.github.aakira.napier.Napier
