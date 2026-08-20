@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -25,19 +26,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import band.effective.office.tablet.core.domain.model.Organizer
 import band.effective.office.tablet.core.ui.button.SuccessButton
 import band.effective.office.tablet.core.ui.common.AlertButton
 import band.effective.office.tablet.core.ui.common.CrossButtonView
 import band.effective.office.tablet.core.ui.common.EventDurationView
 import band.effective.office.tablet.core.ui.common.EventOrganizerView
-import band.effective.office.tablet.core.ui.common.FailureSelectRoomView
 import band.effective.office.tablet.core.ui.common.Loader
-import band.effective.office.tablet.core.ui.common.SuccessSelectRoomView
 import band.effective.office.tablet.core.ui.date.DateTimeView
-import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
 import band.effective.office.tablet.core.ui.theme.h3
 import band.effective.office.tablet.core.ui.theme.h6
 import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
@@ -50,83 +46,74 @@ import band.effective.office.tablet.feature.bookingEditor.error
 import band.effective.office.tablet.feature.bookingEditor.error_creating_event
 import band.effective.office.tablet.feature.bookingEditor.error_deleting_event
 import band.effective.office.tablet.feature.bookingEditor.is_time_in_past_error
-import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.DateTimePickerModalView
+import band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.DateTimePicker
 import band.effective.office.tablet.feature.bookingEditor.update_button
-import com.arkivanov.decompose.extensions.compose.stack.Children
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Keeps the editor a centered card: its fields are `fillMaxWidth` and would otherwise stretch to
+ * the full width of the overlay.
+ */
+private val MAX_EDITOR_WIDTH = 720.dp
+
+/**
+ * Booking create/edit modal, hosted as a state-driven overlay rather than a dialog window. The
+ * date/time picker is editor state, not a destination, because it needs the only `Dialog` in the
+ * chain — see [DateTimePicker].
+ */
 @Composable
 fun BookingEditor(
-    component: BookingEditorComponent
+    viewModel: BookingEditorViewModel,
+    onClose: () -> Unit,
 ) {
-    val state by component.state.collectAsState()
+    val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.closeEvents.collect { onClose() }
+    }
 
     if (state.showSelectDate) {
-        DateTimePickerModalView(
-            dateTimePickerComponent = component.dateTimePickerComponent
+        DateTimePicker(dateTimePickerComponent = viewModel.dateTimePickerComponent)
+    }
+
+    Box(modifier = Modifier.widthIn(max = MAX_EDITOR_WIDTH)) {
+        BookingEditor(
+            onDismissRequest = { viewModel.sendIntent(Intent.OnClose) },
+            incrementData = { viewModel.sendIntent(Intent.OnUpdateDate(1)) },
+            decrementData = { viewModel.sendIntent(Intent.OnUpdateDate(-1)) },
+            onOpenDateTimePickerModal = { viewModel.sendIntent(Intent.OnOpenSelectDateDialog) },
+            incrementDuration = { viewModel.sendIntent(Intent.OnUpdateLength(30)) },
+            decrementDuration = { viewModel.sendIntent(Intent.OnUpdateLength(-15)) },
+            onExpandedChange = { viewModel.sendIntent(Intent.OnExpandedChange) },
+            onSelectOrganizer = { viewModel.sendIntent(Intent.OnSelectOrganizer(it)) },
+            selectData = state.date,
+            selectDuration = state.duration,
+            selectOrganizer = state.selectOrganizer,
+            organizers = state.selectOrganizers,
+            expended = state.expanded,
+            onUpdateEvent = { viewModel.sendIntent(Intent.OnUpdateEvent(viewModel.roomName)) },
+            onDeleteEvent = { viewModel.sendIntent(Intent.OnDeleteEvent) },
+            inputText = state.inputText,
+            onInput = { viewModel.sendIntent(Intent.OnInput(it)) },
+            isInputError = state.isInputError,
+            onDoneInput = { viewModel.sendIntent(Intent.OnDoneInput) },
+            isDeleteError = state.isErrorDelete,
+            isDeleteLoad = state.isLoadDelete,
+            isUpdateError = state.isErrorUpdate,
+            isUpdateLoad = state.isLoadUpdate,
+            isCreateError = state.isErrorCreate,
+            isCreateLoad = state.isLoadCreate,
+            enableUpdateButton = state.enableUpdateButton,
+            isNewEvent = !state.isCreatedEvent(),
+            onCreateEvent = { viewModel.sendIntent(Intent.OnBooking) },
+            start = DateDisplayMapper.formatTime(state.event.startTime),
+            finish = DateDisplayMapper.formatTime(state.event.finishTime),
+            room = viewModel.roomName,
+            isTimeInPastError = state.isTimeInPastError,
+            isEditable = state.event.isEditable,
+            canIncrementDuration = state.canIncrementDuration
         )
-    } else {
-        Children(stack = component.childStack, modifier = Modifier.padding(35.dp)) {
-            Dialog(
-                onDismissRequest = { component.sendIntent(Intent.OnClose) },
-                properties = DialogProperties(
-                    usePlatformDefaultWidth = it.instance != BookingEditorComponent.ModalConfig.FailureModal
-                )
-            ) {
-                InactivityTracker {
-                    when (it.instance) {
-                        BookingEditorComponent.ModalConfig.FailureModal -> FailureSelectRoomView(
-                            onDismissRequest = { component.sendIntent(Intent.OnClose) })
-
-                        BookingEditorComponent.ModalConfig.SuccessModal -> SuccessSelectRoomView(
-                            roomName = component.roomName,
-                            organizerName = state.selectOrganizer.fullName,
-                            startTime = state.event.startTime,
-                            finishTime = state.event.finishTime,
-                            close = { component.sendIntent(Intent.OnClose) }
-                        )
-
-                        BookingEditorComponent.ModalConfig.UpdateModal -> BookingEditor(
-                            onDismissRequest = { component.sendIntent(Intent.OnClose) },
-                            incrementData = { component.sendIntent(Intent.OnUpdateDate(1)) },
-                            decrementData = { component.sendIntent(Intent.OnUpdateDate(-1)) },
-                            onOpenDateTimePickerModal = { component.sendIntent(Intent.OnOpenSelectDateDialog) },
-                            incrementDuration = { component.sendIntent(Intent.OnUpdateLength(30)) },
-                            decrementDuration = { component.sendIntent(Intent.OnUpdateLength(-15)) },
-                            onExpandedChange = { component.sendIntent(Intent.OnExpandedChange) },
-                            onSelectOrganizer = { component.sendIntent(Intent.OnSelectOrganizer(it)) },
-                            selectData = state.date,
-                            selectDuration = state.duration,
-                            selectOrganizer = state.selectOrganizer,
-                            organizers = state.selectOrganizers,
-                            expended = state.expanded,
-                            onUpdateEvent = { component.sendIntent(Intent.OnUpdateEvent(component.roomName)) },
-                            onDeleteEvent = { component.sendIntent(Intent.OnDeleteEvent) },
-                            inputText = state.inputText,
-                            onInput = { component.sendIntent(Intent.OnInput(it)) },
-                            isInputError = state.isInputError,
-                            onDoneInput = { component.sendIntent(Intent.OnDoneInput) },
-                            isDeleteError = state.isErrorDelete,
-                            isDeleteLoad = state.isLoadDelete,
-                            isUpdateError = state.isErrorUpdate,
-                            isUpdateLoad = state.isLoadUpdate,
-                            isCreateError = state.isErrorCreate,
-                            isCreateLoad = state.isLoadCreate,
-                            enableUpdateButton = state.enableUpdateButton,
-                            isNewEvent = !state.isCreatedEvent(),
-                            onCreateEvent = { component.sendIntent(Intent.OnBooking) },
-                            start = DateDisplayMapper.formatTime(state.event.startTime),
-                            finish = DateDisplayMapper.formatTime(state.event.finishTime),
-                            room = component.roomName,
-                            isTimeInPastError = state.isTimeInPastError,
-                            isEditable = state.event.isEditable,
-                            canIncrementDuration = state.canIncrementDuration
-                        )
-                    }
-                }
-            }
-        }
     }
 }
 

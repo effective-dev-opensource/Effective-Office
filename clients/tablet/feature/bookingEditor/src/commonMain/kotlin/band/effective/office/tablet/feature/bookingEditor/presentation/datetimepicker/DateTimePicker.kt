@@ -37,14 +37,13 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import org.jetbrains.compose.resources.stringResource
 
+/** Opens the picker for [dateTimePickerComponent], translating its state and intents. */
 @Composable
-fun DateTimePickerModalView(
-    dateTimePickerComponent: DateTimePickerComponent
-) {
-    val stateDateTime by dateTimePickerComponent.state.collectAsState()
+fun DateTimePicker(dateTimePickerComponent: DateTimePickerComponent) {
+    val state by dateTimePickerComponent.state.collectAsState()
 
-    DateTimePickerModalView(
-        currentDate = stateDateTime.currentDate,
+    DateTimePicker(
+        currentDate = state.currentDate,
         onCloseRequest = { dateTimePickerComponent.sendIntent(DateTimePickerComponent.Intent.CloseModal) },
         onChangeDate = {
             dateTimePickerComponent.sendIntent(DateTimePickerComponent.Intent.OnChangeDate(it))
@@ -52,17 +51,23 @@ fun DateTimePickerModalView(
         onChangeTime = {
             dateTimePickerComponent.sendIntent(DateTimePickerComponent.Intent.OnChangeTime(it))
         },
-        enableDateButton = stateDateTime.isEnabledButton
+        enableDateButton = state.isEnabledButton,
     )
 }
 
+/**
+ * The picker owns the only `Dialog` in the chain: on iOS calf's pickers are native UIKit views and
+ * get no touches inside a nested dialog window, while the dialog's own present animation masks the
+ * frame before calf applies our colors. A dialog is a scene of its own, so the inactivity tracker
+ * installed by the app root does not reach in here and is re-applied.
+ */
 @Composable
-fun DateTimePickerModalView(
+fun DateTimePicker(
     currentDate: LocalDateTime,
     onCloseRequest: () -> Unit,
     onChangeDate: (LocalDate) -> Unit,
     onChangeTime: (LocalTime) -> Unit,
-    enableDateButton: Boolean
+    enableDateButton: Boolean,
 ) {
     Dialog(
         onDismissRequest = onCloseRequest,

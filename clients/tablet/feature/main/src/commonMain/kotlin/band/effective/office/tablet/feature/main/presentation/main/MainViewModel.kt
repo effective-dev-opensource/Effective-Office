@@ -1,5 +1,7 @@
 package band.effective.office.tablet.feature.main.presentation.main
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import band.effective.office.shared.core.domain.Either
 import band.effective.office.tablet.core.domain.ErrorWithData
 import band.effective.office.tablet.core.domain.manager.DateResetManager
@@ -14,19 +16,18 @@ import band.effective.office.tablet.core.domain.util.BootstrapperTimer
 import band.effective.office.shared.core.utils.currentLocalDateTime
 import band.effective.office.shared.core.utils.minus
 import band.effective.office.shared.core.utils.plus
-import band.effective.office.shared.core.utils.componentCoroutineScope
 import band.effective.office.tablet.feature.main.domain.CurrentTimeHolder
 import band.effective.office.tablet.feature.main.domain.GetRoomIndexUseCase
 import band.effective.office.tablet.feature.main.domain.GetTimeToNextEventUseCase
-import band.effective.office.tablet.feature.slot.presentation.SlotComponent
+import band.effective.office.tablet.feature.slot.presentation.SlotComponentFactory
 import band.effective.office.tablet.feature.slot.presentation.SlotIntent
-import com.arkivanov.decompose.ComponentContext
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,38 +36,31 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 /**
- * Main component responsible for managing room information, bookings, and navigation.
- * Handles room selection, date selection, and modal windows for booking and room management.
+ * ViewModel responsible for managing room information, bookings, and navigation requests.
+ * Handles room selection, date selection, and requests to open modal windows.
  */
 @OptIn(ExperimentalTime::class)
-class MainComponent(
-    private val componentContext: ComponentContext,
-    val onFastBooking: (minDuration: Int, selectedRoom: RoomInfo, rooms: List<RoomInfo>) -> Unit,
-    val onOpenFreeRoomModal: (currentEvent: EventInfo, roomName: String) -> Unit,
-    private val openBookingDialog: (event: EventInfo, room: String) -> Unit,
-) : ComponentContext by componentContext, KoinComponent {
+class MainViewModel(
+    private val checkSettingsUseCase: CheckSettingsUseCase,
+    private val roomInfoUseCase: RoomInfoUseCase,
+    private val getRoomIndexUseCase: GetRoomIndexUseCase,
+    private val getTimeToNextEventUseCase: GetTimeToNextEventUseCase,
+    private val updateUseCase: UpdateUseCase,
+    private val timerUseCase: TimerUseCase,
+    private val deleteBookingUseCase: DeleteBookingUseCase,
+    private val dateResetManager: DateResetManager,
+    currentTimeHolder: CurrentTimeHolder,
+    slotComponentFactory: SlotComponentFactory,
+) : ViewModel() {
 
-    private val coroutineScope = componentCoroutineScope()
-
-    // Use cases
-    private val checkSettingsUseCase: CheckSettingsUseCase by inject()
-    private val roomInfoUseCase: RoomInfoUseCase by inject()
-    private val getRoomIndexUseCase: GetRoomIndexUseCase by inject()
-    private val getTimeToNextEventUseCase: GetTimeToNextEventUseCase by inject()
-    private val updateUseCase: UpdateUseCase by inject()
-    private val timerUseCase: TimerUseCase by inject()
-    private val deleteBookingUseCase: DeleteBookingUseCase by inject()
-
-    private val dateResetManager: DateResetManager by inject()
-    private val currentTimeHolder: CurrentTimeHolder by inject()
+    private val coroutineScope = viewModelScope
 
     val currentTime: StateFlow<LocalDateTime> = currentTimeHolder.currentTime
 
@@ -80,15 +74,26 @@ class MainComponent(
     private val mutableLabel = MutableSharedFlow<Label>()
     val label: SharedFlow<Label> = mutableLabel.asSharedFlow()
 
+    private val navEventChannel = Channel<MainNavEvent>(Channel.BUFFERED)
+    val navEvents = navEventChannel.receiveAsFlow()
+
     // Child components
-    val slotComponent = SlotComponent(
-        componentContext = componentContext,
+    val slotComponent = slotComponentFactory.create(
+        coroutineScope = coroutineScope,
         roomName = ::getCurrentRoomName,
-        openBookingDialog = openBookingDialog
+        openBookingDialog = ::openBookingDialog,
     )
 
     init {
         initializeComponent()
+    }
+
+    private fun emitNav(event: MainNavEvent) {
+        coroutineScope.launch { navEventChannel.send(event) }
+    }
+
+    private fun openBookingDialog(event: EventInfo, room: String) {
+        emitNav(MainNavEvent.OpenBookingEditor(event = event, room = room))
     }
 
     /**
@@ -198,12 +203,7 @@ class MainComponent(
      * Handles the fast booking intent.
      */
     private fun handleFastBookingIntent(intent: Intent.OnFastBooking) {
-        val currentState = state.value
-        onFastBooking(
-            intent.minDuration,
-            currentState.roomList[currentState.indexSelectRoom],
-            currentState.roomList
-        )
+        emitNav(MainNavEvent.OpenFastBooking(minDuration = intent.minDuration))
     }
 
     /**
@@ -214,7 +214,7 @@ class MainComponent(
         val currentEvent = currentState.roomList[currentState.indexSelectRoom].currentEvent
 
         if (currentEvent != null) {
-            onOpenFreeRoomModal(currentEvent, getCurrentRoomName())
+            emitNav(MainNavEvent.OpenFreeRoom(event = currentEvent, roomName = getCurrentRoomName()))
         }
     }
 
@@ -395,4 +395,13 @@ class MainComponent(
             )
         }
     }
+}
+
+/** One-time navigation requests emitted by [MainViewModel], handled by the host NavController. */
+sealed interface MainNavEvent {
+    data class OpenFastBooking(val minDuration: Int) : MainNavEvent
+
+    data class OpenFreeRoom(val event: EventInfo, val roomName: String) : MainNavEvent
+
+    data class OpenBookingEditor(val event: EventInfo, val room: String) : MainNavEvent
 }

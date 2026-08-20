@@ -7,11 +7,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.lifecycle.lifecycleScope
-import band.effective.office.tablet.root.RootComponent
 import band.effective.office.tablet.utils.KioskCommandBus
 import band.effective.office.tablet.utils.KioskLifecycleObserver
 import band.effective.office.tablet.utils.KioskManager
-import com.arkivanov.decompose.defaultComponentContext
 
 val LocalKioskManager = staticCompositionLocalOf<KioskManager?> { null }
 
@@ -26,11 +24,9 @@ class AppActivity : ComponentActivity() {
 
         lifecycle.addObserver(KioskLifecycleObserver(this, kioskManager, kioskCommandBus, lifecycleScope))
 
-        val root = RootComponent(componentContext = defaultComponentContext())
-
         setContent {
             CompositionLocalProvider(LocalKioskManager provides kioskManager) {
-                App(root)
+                AppRoot()
             }
         }
     }

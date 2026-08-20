@@ -5,7 +5,7 @@ import band.effective.office.shared.core.utils.currentLocalDateTime
 import kotlinx.datetime.LocalDateTime
 
 /**
- * State for the FastBookingComponent.
+ * State for the FastBookingViewModel.
  */
 data class State(
     val isLoad: Boolean,
@@ -14,6 +14,7 @@ data class State(
     val event: EventInfo,
     val minutesLeft: Int,
     val currentTime: LocalDateTime,
+    val modal: FastBookingModal,
 ) {
     companion object {
         val defaultState =
@@ -24,6 +25,16 @@ data class State(
                 event = EventInfo.emptyEvent,
                 minutesLeft = 0,
                 currentTime = currentLocalDateTime,
+                modal = FastBookingModal.Loading,
             )
     }
+}
+
+/** Which view the fast-booking flow is currently showing. */
+sealed interface FastBookingModal {
+    data object Loading : FastBookingModal
+
+    data class Success(val room: String, val eventInfo: EventInfo) : FastBookingModal
+
+    data class Failure(val room: String) : FastBookingModal
 }

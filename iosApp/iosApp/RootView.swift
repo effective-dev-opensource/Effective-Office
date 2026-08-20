@@ -9,10 +9,8 @@ import Foundation
 import SwiftUI
 
 struct RootView: UIViewControllerRepresentable {
-    let root: RootComponent
-
     func makeUIViewController(context: Context) -> UIViewController {
-        return MainKt.rootViewController(root: root)
+        return MainKt.rootViewController()
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {

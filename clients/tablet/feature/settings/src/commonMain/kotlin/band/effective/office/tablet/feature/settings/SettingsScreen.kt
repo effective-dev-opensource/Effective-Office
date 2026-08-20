@@ -12,6 +12,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -21,10 +22,24 @@ import band.effective.office.tablet.feature.settings.components.ChooseButtonView
 import band.effective.office.tablet.feature.settings.components.ExitButtonView
 import band.effective.office.tablet.feature.settings.components.GridRooms
 import band.effective.office.tablet.feature.settings.components.TitleView
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun SettingsScreen(component: SettingsComponent) {
-    val state by component.state.collectAsState()
+fun SettingsScreen(
+    onNavigateToMain: () -> Unit,
+    onExitApp: () -> Unit = {},
+    viewModel: SettingsViewModel = koinViewModel(),
+) {
+    val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.navEvents.collect { event ->
+            when (event) {
+                SettingsNavEvent.NavigateToMain -> onNavigateToMain()
+                SettingsNavEvent.ExitApp -> onExitApp()
+            }
+        }
+    }
 
     if (state.loading) {
         LoadMainScreen()
@@ -39,12 +54,12 @@ fun SettingsScreen(component: SettingsComponent) {
         SettingsView(
             listRooms = state.rooms,
             nameCurrentRoom = state.currentName,
-            onExitApp = { component.sendIntent(Intent.OnExitApp) },
+            onExitApp = { viewModel.sendIntent(Intent.OnExitApp) },
             onChangeCurrentName = { name: String ->
-                component.sendIntent(Intent.ChangeCurrentNameRoom(name))
+                viewModel.sendIntent(Intent.ChangeCurrentNameRoom(name))
             },
             onSaveData = {
-                component.sendIntent(Intent.SaveData)
+                viewModel.sendIntent(Intent.SaveData)
             }
         )
     }
