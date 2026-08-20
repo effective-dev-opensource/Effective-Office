@@ -35,12 +35,11 @@ import band.effective.office.tablet.feature.main.free_select_room
 import band.effective.office.tablet.feature.main.free_select_room_button
 import band.effective.office.tablet.feature.main.try_again
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun FreeSelectRoom(
     onClose: () -> Unit,
-    viewModel: FreeSelectRoomViewModel = koinViewModel(),
+    viewModel: FreeSelectRoomViewModel,
 ) {
     val state by viewModel.state.collectAsState()
 

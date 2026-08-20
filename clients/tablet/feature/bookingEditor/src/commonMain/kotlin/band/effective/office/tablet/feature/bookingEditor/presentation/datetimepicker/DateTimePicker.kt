@@ -56,10 +56,8 @@ fun DateTimePicker(dateTimePickerComponent: DateTimePickerComponent) {
 }
 
 /**
- * The picker owns the only `Dialog` in the chain: on iOS calf's pickers are native UIKit views and
- * get no touches inside a nested dialog window, while the dialog's own present animation masks the
- * frame before calf applies our colors. A dialog is a scene of its own, so the inactivity tracker
- * installed by the app root does not reach in here and is re-applied.
+ * The picker owns the only `Dialog` in the chain, and re-applies the inactivity tracker that a
+ * scene of its own does not inherit. See knowledge/window-model.md.
  */
 @Composable
 fun DateTimePicker(

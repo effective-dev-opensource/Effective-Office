@@ -71,8 +71,14 @@ fun AppRoot() {
 }
 
 @Composable
-private fun rememberRootViewModelStoreOwner(): ViewModelStoreOwner = remember {
-    object : ViewModelStoreOwner {
-        override val viewModelStore: ViewModelStore = ViewModelStore()
+private fun rememberRootViewModelStoreOwner(): ViewModelStoreOwner {
+    val owner = remember {
+        object : ViewModelStoreOwner {
+            override val viewModelStore: ViewModelStore = ViewModelStore()
+        }
     }
+    DisposableEffect(owner) {
+        onDispose { owner.viewModelStore.clear() }
+    }
+    return owner
 }

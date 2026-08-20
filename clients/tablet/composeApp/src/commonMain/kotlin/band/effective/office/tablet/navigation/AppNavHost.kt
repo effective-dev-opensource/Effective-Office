@@ -40,8 +40,7 @@ private const val MODAL_SCRIM_ALPHA = 0.9f
 
 /**
  * The app's navigation graph. Settings and Main are destinations; the modals are state-driven
- * overlays rather than `dialog<>` destinations, because calf's native iOS pickers receive no
- * touches inside a nested dialog window.
+ * overlays rather than `dialog<>` destinations. See knowledge/window-model.md.
  */
 @Composable
 fun AppNavHost(startRoomConfigured: Boolean) {
