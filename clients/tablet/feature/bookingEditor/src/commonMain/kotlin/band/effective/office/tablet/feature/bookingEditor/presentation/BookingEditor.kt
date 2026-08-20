@@ -60,7 +60,7 @@ private val MAX_EDITOR_WIDTH = 720.dp
 /**
  * Booking create/edit modal, hosted as a state-driven overlay rather than a dialog window. The
  * date/time picker is editor state, not a destination, because it needs the only `Dialog` in the
- * chain — see [DateTimePicker] and knowledge/window-model.md.
+ * chain — see [DateTimePicker] and Navigation in clients/tablet/composeApp/README.md.
  */
 @Composable
 fun BookingEditor(

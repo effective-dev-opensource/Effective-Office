@@ -57,7 +57,7 @@ fun DateTimePicker(dateTimePickerComponent: DateTimePickerComponent) {
 
 /**
  * The picker owns the only `Dialog` in the chain, and re-applies the inactivity tracker that a
- * scene of its own does not inherit. See knowledge/window-model.md.
+ * scene of its own does not inherit. See Navigation in clients/tablet/composeApp/README.md.
  */
 @Composable
 fun DateTimePicker(

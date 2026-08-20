@@ -42,7 +42,8 @@ private const val MODAL_SCRIM_ALPHA = 0.9f
 
 /**
  * The app's navigation graph. Settings and Main are destinations; the modals are state-driven
- * overlays rather than `dialog<>` destinations. See knowledge/window-model.md.
+ * overlays rather than `dialog<>` destinations. See Navigation in
+ * clients/tablet/composeApp/README.md.
  */
 @Composable
 fun AppNavHost(startRoomConfigured: Boolean) {
