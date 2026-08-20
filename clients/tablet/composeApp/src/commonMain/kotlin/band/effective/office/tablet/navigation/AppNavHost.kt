@@ -136,10 +136,9 @@ private sealed interface ActiveModal {
 }
 
 /**
- * Dimmed backdrop with a centered card. Owns a modal-scoped [ViewModelStoreOwner] cleared on
- * dispose, so the next modal starts on a fresh ViewModel. Tapping the dim dismisses; taps on the
- * card are absorbed. The back gesture, unlike the wrappers `AppRoot` installs, has to be caught
- * here — see [ModalBackHandler].
+ * Dimmed backdrop with a centered card: tapping the dim dismisses, taps on the card are absorbed,
+ * and the back gesture is taken by [ModalBackHandler]. Owns a modal-scoped [ViewModelStoreOwner]
+ * cleared on dispose, so the next modal starts on a fresh ViewModel.
  */
 @Composable
 private fun ModalHost(

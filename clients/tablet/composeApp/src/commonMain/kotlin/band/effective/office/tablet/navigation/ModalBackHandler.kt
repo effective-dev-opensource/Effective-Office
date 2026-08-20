@@ -3,10 +3,9 @@ package band.effective.office.tablet.navigation
 import androidx.compose.runtime.Composable
 
 /**
- * Routes the platform's back gesture to [onBack] while a modal overlay is on screen, since an
- * overlay is not on the nav back stack. Not `androidx.compose.ui.backhandler.BackHandler`: this
- * Compose version ships no `ui-backhandler` artifact, and a new dependency would also have to
- * clear the Aurora fork's maven.
+ * Sends the platform's back gesture to [onBack] while a modal overlay is on screen. The overlay is
+ * not a nav destination, so an uncaught gesture reaches the back stack instead and closes the app
+ * with the modal still on screen.
  */
 @Composable
 expect fun ModalBackHandler(onBack: () -> Unit)
