@@ -39,6 +39,11 @@ bin/
 ### Mac OS ###
 .DS_Store
 
+### Xcode (per-user, machine-specific — should never be committed) ###
+**/xcuserdata/
+*.xcuserstate
+DerivedData/
+
 ### Kotlin ###
 .kotlin/
 
@@ -81,6 +86,7 @@ coverage/
 /oldProject/
 /clients/tablet/composeApp/google-services.json
 /local.properties
+/localQuickStart/.local-fake-credentials.json
 /deploy/dev/.env
 /deploy/dev/*.jar
 /deploy/prod/.env

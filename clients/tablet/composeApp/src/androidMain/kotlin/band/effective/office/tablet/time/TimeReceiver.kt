@@ -7,7 +7,7 @@ import android.content.IntentFilter
 import android.util.Log
 import band.effective.office.tablet.feature.main.domain.CurrentTimeHolder
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
