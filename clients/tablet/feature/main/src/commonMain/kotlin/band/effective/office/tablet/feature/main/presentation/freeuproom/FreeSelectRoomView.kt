@@ -15,6 +15,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import band.effective.office.tablet.core.ui.common.CrossButtonView
 import band.effective.office.tablet.core.ui.common.Loader
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
@@ -35,13 +35,22 @@ import band.effective.office.tablet.feature.main.free_select_room
 import band.effective.office.tablet.feature.main.free_select_room_button
 import band.effective.office.tablet.feature.main.try_again
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun FreeSelectRoomView(freeSelectRoomComponent: FreeSelectRoomComponent) {
-    val state by freeSelectRoomComponent.state.collectAsState()
+fun FreeSelectRoomView(
+    onClose: () -> Unit,
+    viewModel: FreeSelectRoomViewModel = koinViewModel(),
+) {
+    val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.closeEvents.collect { onClose() }
+    }
+
     FreeSelectRoomView(
-        onCloseRequest = { freeSelectRoomComponent.sendIntent(Intent.OnCloseWindowRequest) },
-        onFreeRoomRequest = { freeSelectRoomComponent.sendIntent(Intent.OnFreeSelectRequest) },
+        onCloseRequest = { viewModel.sendIntent(Intent.OnCloseWindowRequest) },
+        onFreeRoomRequest = { viewModel.sendIntent(Intent.OnFreeSelectRequest) },
         isLoading = state.isLoad,
         isFail = !state.isSuccess
     )
@@ -60,16 +69,13 @@ private fun FreeSelectRoomView(
     val colorButton = if (isPressed.value)
         LocalCustomColorsPalette.current.pressedPrimaryButton else MaterialTheme.colorScheme.primary
 
-    Dialog(
-        onDismissRequest = { onCloseRequest() }
+    Column(
+        modifier = Modifier
+            .clip(RoundedCornerShape(5))
+            .background(LocalCustomColorsPalette.current.elevationBackground),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
     ) {
-        Column(
-            modifier = Modifier
-                .clip(RoundedCornerShape(5))
-                .background(LocalCustomColorsPalette.current.elevationBackground),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
-        ) {
             Spacer(modifier = Modifier.height(30.dp))
             CrossButtonView(
                 Modifier.width(518.dp).padding(end = 42.dp),
@@ -118,4 +124,3 @@ private fun FreeSelectRoomView(
             Spacer(modifier = Modifier.height(60.dp))
         }
     }
-}

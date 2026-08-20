@@ -12,35 +12,36 @@ import band.effective.office.shared.core.utils.asLocalDateTime
 import band.effective.office.shared.core.utils.currentInstant
 import band.effective.office.tablet.feature.slot.domain.usecase.GetSlotsByRoomUseCase
 import band.effective.office.tablet.feature.slot.presentation.mapper.SlotUiMapper
-import com.arkivanov.decompose.ComponentContext
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 private val SLOT_UPDATE_INTERVAL_MINUTES = 15.minutes
 private val UPDATE_BEFORE_SLOT_START_MS = 60_000L.milliseconds
 
+/**
+ * Presenter for a room's time slots. Owned by [band.effective.office.tablet.feature.main.presentation.main.MainViewModel];
+ * its lifecycle is bound to the parent's [coroutineScope] (i.e. `viewModelScope`).
+ *
+ * Created via [SlotComponentFactory] so the parent ViewModel supplies only the runtime params
+ * (scope + callbacks) and never resolves this presenter's use cases itself.
+ */
 class SlotComponent(
-    private val componentContext: ComponentContext,
+    private val coroutineScope: CoroutineScope,
     val roomName: () -> String,
     private val openBookingDialog: (event: EventInfo, room: String) -> Unit,
-) : ComponentContext by componentContext, KoinComponent {
+    private val roomInfoUseCase: RoomInfoUseCase,
+    private val timerUseCase: TimerUseCase,
+    private val getSlotsByRoomUseCase: GetSlotsByRoomUseCase,
+    private val slotUiMapper: SlotUiMapper,
+) {
 
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private val roomInfoUseCase: RoomInfoUseCase by inject()
-    private val timerUseCase: TimerUseCase by inject()
-    private val getSlotsByRoomUseCase: GetSlotsByRoomUseCase by inject()
-
-    private val slotUiMapper: SlotUiMapper by inject()
     private val updateTimer = BootstrapperTimer(
         timerUseCase = timerUseCase,
         coroutineScope = coroutineScope,
@@ -83,8 +84,10 @@ class SlotComponent(
             val delayDuration = (firstSlotStartInstant - currentInstant) + UPDATE_BEFORE_SLOT_START_MS
 
             updateTimer.restart(delayDuration)
-            mutableState.update { it.copy(slots = uiSlots) }
         }
+        // Always publish the new list — including an empty one — so that switching to a day
+        // with no slots clears the previous day's (stale) slots instead of keeping them.
+        mutableState.update { it.copy(slots = uiSlots) }
     }
 
     fun sendIntent(intent: SlotIntent) {
@@ -169,4 +172,16 @@ class SlotComponent(
             }
         }
     }
+}
+
+/**
+ * Assisted-injection factory for [SlotComponent]: Koin supplies the use cases, the caller supplies
+ * the runtime params (scope + callbacks). Provided by `slotDiModule`.
+ */
+fun interface SlotComponentFactory {
+    fun create(
+        coroutineScope: CoroutineScope,
+        roomName: () -> String,
+        openBookingDialog: (event: EventInfo, room: String) -> Unit,
+    ): SlotComponent
 }

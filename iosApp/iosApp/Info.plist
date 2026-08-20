@@ -4,6 +4,10 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<!-- App is dark-only (Compose AppTheme forces dark); force native UIKit views (e.g. calf's
+	     native date/time pickers) to dark too, so they don't flash a light default appearance. -->
+	<key>UIUserInterfaceStyle</key>
+	<string>Dark</string>
 	<key>CFBundleDevelopmentRegion</key>
         <string>en</string>
         <key>CFBundleLocalizations</key>

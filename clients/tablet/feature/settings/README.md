@@ -18,18 +18,18 @@ The module follows a feature-based architecture:
 
 ```
 settings/
-├── components/      # Feature-specific UI components
-├── Intent.kt        # User actions/intents
-├── SettingsComponent.kt # Component implementation
-├── SettingsScreen.kt # Main settings screen
-└── State.kt         # UI state definitions
+├── components/          # Feature-specific UI components
+├── Intent.kt            # User actions/intents
+├── SettingsViewModel.kt # koin ViewModel (MVI) implementation
+├── SettingsScreen.kt    # Main settings screen
+└── State.kt             # UI state definitions
 ```
 
 ## Key Components
 
 ### Main Components
 - **SettingsScreen**: Main UI screen for settings
-- **SettingsComponent**: Implementation of the settings component following MVI architecture
+- **SettingsViewModel**: koin ViewModel for the settings screen, following MVI architecture
 
 ### State Management
 - **Intent**: Defines user actions and events that can occur in the settings screen

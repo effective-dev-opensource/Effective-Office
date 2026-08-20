@@ -5,11 +5,9 @@ import band.effective.office.tablet.core.domain.useCase.CheckBookingUseCase
 import band.effective.office.shared.core.utils.asInstant
 import band.effective.office.shared.core.utils.asLocalDateTime
 import band.effective.office.shared.core.utils.currentLocalDateTime
-import band.effective.office.tablet.core.ui.common.ModalWindow
-import band.effective.office.shared.core.utils.componentCoroutineScope
-import com.arkivanov.decompose.ComponentContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,21 +17,24 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.Month
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
+/**
+ * Presenter for the date/time picker. Owned by [band.effective.office.tablet.feature.bookingEditor.presentation.BookingEditorViewModel];
+ * its lifecycle is bound to the parent's [scope] (i.e. `viewModelScope`).
+ *
+ * Created via [DateTimePickerComponentFactory] so the parent ViewModel supplies only the runtime
+ * params and never resolves this presenter's use case itself.
+ */
 class DateTimePickerComponent(
-    private val componentContext: ComponentContext,
+    private val scope: CoroutineScope,
     private val onSelectDate: (LocalDateTime) -> Unit,
     private val onCloseRequest: () -> Unit,
     val event: EventInfo,
     val room: String,
     val duration: Int,
     val initDate: () -> LocalDateTime,
-) : ComponentContext by componentContext, ModalWindow, KoinComponent {
-
-    private val checkBookingUseCase: CheckBookingUseCase by inject()
-    private val scope = componentCoroutineScope()
+    private val checkBookingUseCase: CheckBookingUseCase,
+) {
 
     private val mutableState = MutableStateFlow(State.default.copy(currentDate = initDate()))
     val state: StateFlow<State> = mutableState.asStateFlow()
@@ -131,4 +132,20 @@ class DateTimePickerComponent(
         val newInstant = instant.plus(duration)
         return newInstant.asLocalDateTime
     }
+}
+
+/**
+ * Assisted-injection factory for [DateTimePickerComponent]: Koin supplies the use case, the caller
+ * supplies the runtime params. Provided by `bookingEditorModule`.
+ */
+fun interface DateTimePickerComponentFactory {
+    fun create(
+        scope: CoroutineScope,
+        onSelectDate: (LocalDateTime) -> Unit,
+        onCloseRequest: () -> Unit,
+        event: EventInfo,
+        room: String,
+        duration: Int,
+        initDate: () -> LocalDateTime,
+    ): DateTimePickerComponent
 }

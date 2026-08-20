@@ -1,6 +1,7 @@
 package band.effective.office.tablet.feature.bookingEditor.presentation.datetimepicker.components
 
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerLayoutType
 import androidx.compose.runtime.Composable
@@ -33,12 +34,28 @@ fun TimePickerView(
         onSnap(LocalTime(hour, minute, 0))
     }
 
+    val palette = LocalCustomColorsPalette.current
+    val accent = MaterialTheme.colorScheme.primary
+    val onAccent = MaterialTheme.colorScheme.onPrimary
+
     AdaptiveTimePicker(
         state = state,
         modifier = modifier,
         layoutType = TimePickerLayoutType.Vertical,
         colors = TimePickerDefaults.colors(
-            containerColor = LocalCustomColorsPalette.current.elevationBackground,
+            containerColor = palette.elevationBackground,
+            clockDialColor = MaterialTheme.colorScheme.surface,
+            selectorColor = accent,
+            clockDialSelectedContentColor = onAccent,
+            clockDialUnselectedContentColor = palette.primaryTextAndIcon,
+            periodSelectorSelectedContainerColor = accent,
+            periodSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surface,
+            periodSelectorSelectedContentColor = onAccent,
+            periodSelectorUnselectedContentColor = palette.primaryTextAndIcon,
+            timeSelectorSelectedContainerColor = accent,
+            timeSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surface,
+            timeSelectorSelectedContentColor = onAccent,
+            timeSelectorUnselectedContentColor = palette.primaryTextAndIcon,
         )
     )
 }

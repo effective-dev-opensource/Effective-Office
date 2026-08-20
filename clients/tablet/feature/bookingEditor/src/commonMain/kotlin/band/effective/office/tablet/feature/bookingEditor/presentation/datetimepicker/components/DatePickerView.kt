@@ -3,6 +3,7 @@ package band.effective.office.tablet.feature.bookingEditor.presentation.datetime
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -41,13 +42,30 @@ fun DatePickerView(
         }
     }
 
+    val palette = LocalCustomColorsPalette.current
+    val accent = MaterialTheme.colorScheme.primary
+    val onAccent = MaterialTheme.colorScheme.onPrimary
+
     Column {
-        // Display the date picker
         AdaptiveDatePicker(
             state = state,
             modifier = modifier,
             colors = DatePickerDefaults.colors(
-                containerColor = LocalCustomColorsPalette.current.elevationBackground,
+                containerColor = palette.elevationBackground,
+                titleContentColor = palette.primaryTextAndIcon,
+                headlineContentColor = palette.primaryTextAndIcon,
+                weekdayContentColor = palette.secondaryTextAndIcon,
+                subheadContentColor = palette.primaryTextAndIcon,
+                navigationContentColor = accent,
+                yearContentColor = palette.primaryTextAndIcon,
+                currentYearContentColor = accent,
+                selectedYearContentColor = onAccent,
+                selectedYearContainerColor = accent,
+                dayContentColor = palette.primaryTextAndIcon,
+                selectedDayContentColor = onAccent,
+                selectedDayContainerColor = accent,
+                todayContentColor = accent,
+                todayDateBorderColor = accent,
             ),
         )
     }
