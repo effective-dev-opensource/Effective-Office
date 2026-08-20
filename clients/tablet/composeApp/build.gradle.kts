@@ -50,6 +50,10 @@ kotlin {
             api(libs.calf.ui)
             api(libs.kotlinx.datetime)
 
+            implementation(libs.jetbrains.navigation.compose)
+            implementation(libs.jetbrains.lifecycle.viewmodel)
+            implementation(libs.kotlinx.serialization.json)
+
             implementation(libs.kotlin.coroutines.core)
 
             implementation(libs.bundles.koin)
