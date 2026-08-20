@@ -1,61 +1,57 @@
 # Data Module
 
 ## Overview
-The Data module is part of the core layer of the Effective Office tablet application. It handles all data operations, including API communication, local storage, and data transformations. This module implements the repository pattern to provide a clean API for the domain layer.
+The Data module is part of the core layer of the Effective Office tablet application. It talks to
+the backend over Ktor, keeps the last known room state in memory, and implements the repository
+interfaces the domain module declares.
 
-## Features
-- API client implementation
-- Local database management
-- Data caching and synchronization
-- Repository implementations
-- Data source abstractions
-- Data mapping between network, database, and domain models
+There is no local database. What survives a screen change is the in-memory `Buffer`; the only thing
+persisted between launches is the configured room name, and that is kept by the domain module.
 
 ## Architecture
-The module follows a layered architecture:
 
 ```
 data/
-├── api/              # API client and service interfaces
-├── database/         # Local database implementation
-├── di/               # Dependency injection setup
-├── mapper/           # Data mappers between different models
-├── model/            # Data models (network and database entities)
-├── repository/       # Repository implementations
-└── source/           # Data source implementations (remote and local)
+├── api/              # Backend interfaces and their Ktor implementations (api/impl)
+├── di/               # Koin module for the data layer
+├── dto/              # Network models: booking, user, workspace
+├── mapper/           # DTO to domain model mapping
+├── repository/       # Repository implementations, network and in-memory
+└── utils/            # Buffer, Converter
 ```
 
 ## Key Components
 
 ### API
-- **ApiClient**: Handles HTTP communication with the backend
-- **ApiService**: Defines the API endpoints and operations
+- **BookingApi**, **UserApi**, **WorkspaceApi**: the backend surface the tablet uses, each with a
+  Ktor implementation in `api/impl` over the shared `HttpClientProvider`.
+- **Collector**: a small helper that turns emitted values into a shared flow.
 
 ### Repository
-- **Repository Implementations**: Concrete implementations of domain repository interfaces
-- **Data Sources**: Remote and local data source implementations
+- **BookingRepositoryImpl**, **RoomRepositoryImpl**, **OrganizerRepositoryImpl**: network-backed
+  implementations of the domain interfaces.
+- **LocalBookingRepositoryImpl**, **LocalRoomRepositoryImpl**: in-memory implementations over
+  `Buffer`. The room one also recomputes which event of a room is the current one as time passes.
+- **Buffer**: a single `MutableStateFlow` holding the last known room list, shared by both local
+  repositories so an update from either is seen by both.
 
-## Integration
-The Data module integrates with:
-- Domain module for providing repository implementations
-- External libraries for networking (Ktor)
+### Mappers
+- **EventInfoMapper**, **RoomInfoMapper**: booking and workspace DTOs to domain models.
+- **Converter**: the way back, for the few requests that need a domain model as a DTO.
 
 ## Error Handling
-The module provides error handling for:
-- Network errors and timeouts
-- API response errors
-- Database errors
-- Data mapping exceptions
+Every API and repository call returns `Either`, defined in the shared core module. Room lookups
+carry `ErrorWithData`, which keeps the last good data alongside the error, so the screen can stay
+populated while the tablet is disconnected.
+
+## Integration
+The Data module is used by:
+- the Domain module, whose repository interfaces it implements;
+- the shared core module, for `Either`, `ErrorResponse` and the HTTP client.
 
 ## Development
 ### Adding a New Repository
-To add a new repository:
 1. Define the repository interface in the domain module
-2. Create data models in the data/model package
-3. Implement the repository in the data/repository package
-4. Register the repository in the dependency injection setup
-
-### Testing
-The module includes:
-- Unit tests for repositories and data sources
-- Mock implementations for testing
+2. Add the DTOs it needs under `dto/`
+3. Implement the repository under `repository/`, mapping DTOs to domain models
+4. Register the implementation in `di/DataModule.kt`

@@ -1,175 +1,74 @@
 # Domain Module
 
 ## Overview
-The Domain module is the core business logic layer of the Effective Office tablet application. It contains use cases, domain models, and repository interfaces that define the business rules of the application. This module is independent of any framework or platform-specific code, making it highly testable and reusable.
-
-## Features
-- Business logic implementation through use cases
-- Domain model definitions
-- Repository interfaces
-- Business rule validation
-- Platform-independent code
+The Domain module holds the business rules of the Effective Office tablet application: the models
+the screens speak in, the use cases that operate on them, and the repository interfaces the data
+module implements. It depends on no UI framework.
 
 ## Architecture
-The module follows a clean architecture approach:
 
 ```
 domain/
-├── model/           # Domain models
+├── di/              # Koin module wiring the use cases
+├── manager/         # DateResetManager
+├── model/           # Domain models and the settings storage
+├── platform/        # expect/actual platform values
 ├── repository/      # Repository interfaces
-├── usecase/         # Use cases implementing business logic
-├── exception/       # Domain-specific exceptions
-└── util/            # Utility classes and extensions
+├── useCase/         # Use cases
+├── util/            # BootstrapperTimer, slot helpers
+├── ErrorWithData.kt # An error that still carries the last good data
+└── OfficeTime.kt    # Working hours of the office
 ```
 
 ## Key Components
 
 ### Models
-- **Domain Models**: Business entities that represent the core concepts of the application
-- **Value Objects**: Immutable objects representing values with no identity
+- **RoomInfo**, **EventInfo**, **Organizer**, **Booking**: what a room, a booking and its organizer
+  look like to the rest of the app.
+- **Slot**: a stretch of the day — free, taken by an event, or a group of several.
+- **RoomsEnum**: the room names shown in Settings before the server answers.
+- **SettingsManager**: the one persisted setting, the room this tablet was set up with, over
+  Multiplatform Settings.
 
 ### Repositories
-- **Repository Interfaces**: Contracts that define how to access and manipulate data
-- **Data Source Abstractions**: Interfaces for different data sources
+Interfaces only: `RoomRepository`, `BookingRepository`, `OrganizerRepository` for the network, and
+`LocalRoomRepository`, `LocalBookingRepository` for the in-memory state. Implementations live in the
+data module.
 
 ### Use Cases
-- **Interactors**: Implementations of specific business operations
+- Bookings: `CreateBookingUseCase`, `UpdateBookingUseCase`, `DeleteBookingUseCase`,
+  `CheckBookingUseCase`.
+- Rooms: `RoomInfoUseCase` as the aggregate front door, over `GetRoomsInfoUseCase`,
+  `GetRoomByNameUseCase`, `GetRoomNamesUseCase`, `GetCurrentRoomInfosUseCase`,
+  `GetEventsFlowUseCase` and `RefreshDataUseCase`.
+- Refresh: `PeriodicRoomRefreshUseCase` polls where push is unavailable,
+  `ResourceDisposerUseCase` starts the subscriptions the app lives on, `UpdateUseCase` re-reads on a
+  timer.
+- Settings: `CheckSettingsUseCase` and `SetRoomUseCase` over `SettingsManager`.
+- Slots and time: `SlotUseCase` cuts a working day into slots, `TimerUseCase` provides the delays
+  the presenters schedule on.
+- Fast booking: `SelectRoomUseCase` picks the free room closest in capacity to the current one.
 
-### Error Handling
-- **Either Type**: A functional approach to handling success and error cases
+### Other
+- **DateResetManager**: carries an inactivity timeout from whoever detects it to whoever holds the
+  selected date.
+- **BootstrapperTimer**: a restartable timer the presenters use to re-read on a schedule.
+- **roomRefreshInterval**: `expect` value, `null` on Android because push covers it there and a
+  polling interval elsewhere.
+- **OfficeTime**: the working day, 8:00 to 22:00, that the slot grid is built over.
+
+## Error Handling
+Results are returned as `Either`, defined in the shared core module together with `unbox`, `map`,
+`fold` and friends. Room results carry `ErrorWithData`, which pairs the error with the last good
+data so a disconnected tablet keeps showing a schedule instead of an empty screen.
 
 ## Integration
 The Domain module is used by:
-- Feature modules that implement specific application features
-- Data module that implements the repository interfaces
+- the feature modules, which drive it from their ViewModels and presenters;
+- the Data module, which implements its repository interfaces.
 
 ## Development
 ### Adding a New Use Case
-To add a new use case:
-1. Define the input and output models if needed
-2. Create a new use case class in the appropriate package
-3. Implement the business logic
-4. Write unit tests for the use case
-
-### Testing
-The module is designed to be highly testable:
-- Unit tests for use cases with mock repositories
-- No dependencies on external frameworks or libraries
-
-## Using the Either Type for Error Handling
-
-### Overview
-The `Either` type is a functional programming construct used for representing a value that can be one of two possible types: a success value or an error value. In our application, it's used to handle operation results in a type-safe manner, eliminating the need for exceptions or null checks.
-
-### Structure
-```kotlin
-sealed interface Either<out ErrorType, out DataType> {
-    data class Error<out ErrorType>(val error: ErrorType) : Either<ErrorType, Nothing>
-    data class Success<out DataType>(val data: DataType) : Either<Nothing, DataType>
-}
-```
-
-### Extension Functions
-The `Either` type comes with several extension functions to make it easier to work with:
-
-1. **unbox**: Extracts the value from Either, handling both success and error cases
-   ```kotlin
-   fun <ErrorType, DataType> Either<ErrorType, DataType>.unbox(
-       errorHandler: (ErrorType) -> DataType,
-       successHandler: ((DataType) -> DataType)? = null
-   ): DataType
-   ```
-
-2. **map**: Transforms both the error and success values of an Either into new types
-   ```kotlin
-   fun <OldErrorType, oldDataType, ErrorType, DataType> Either<OldErrorType, oldDataType>.map(
-       errorMapper: (OldErrorType) -> ErrorType,
-       successMapper: (oldDataType) -> DataType,
-   ): Either<ErrorType, DataType>
-   ```
-
-3. **asyncMap**: A suspend version of map for asynchronous transformations
-   ```kotlin
-   suspend fun <OldErrorType, oldDataType, ErrorType, DataType> Either<OldErrorType, oldDataType>.asyncMap(
-       errorMapper: suspend (OldErrorType) -> ErrorType,
-       successMapper: suspend (oldDataType) -> DataType,
-   ): Either<ErrorType, DataType>
-   ```
-
-### Usage Examples
-
-#### 1. In Remote Data Source
-Remote data sources return `Either` to handle network errors:
-
-```kotlin
-interface BookingApi {
-    suspend fun getBooking(id: String): Either<ErrorResponse, BookingResponseDTO>
-    // Other methods...
-}
-
-class BookingApiImpl(private val httpClient: HttpClient) : BookingApi {
-    override suspend fun getBooking(id: String): Either<ErrorResponse, BookingResponseDTO> {
-        return try {
-            val response = httpClient.get("bookings/$id")
-            Either.Success(response.body())
-        } catch (e: Exception) {
-            Either.Error(ErrorResponse(e.message ?: "Unknown error"))
-        }
-    }
-}
-```
-
-#### 2. In Repository Layer
-Repositories use `map` to transform DTOs to domain models:
-
-```kotlin
-class BookingRepositoryImpl(
-    private val api: BookingApi,
-    private val mapper: EventInfoMapper,
-) : BookingRepository {
-    override suspend fun getBooking(eventInfo: EventInfo): Either<ErrorResponse, EventInfo> {
-        val response = api.getBooking(eventInfo.id)
-        return response.map(
-            errorMapper = { it }, // Pass through the error
-            successMapper = mapper::map, // Transform DTO to domain model
-        )
-    }
-}
-```
-
-#### 3. Processing Results in Presentation Layer
-Handle both success and error cases when processing results:
-
-```kotlin
-private fun processRoomInfoResult(result: Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>>): RoomsResult {
-    return when (result) {
-        is Either.Error -> RoomsResult(
-            isSuccess = false,
-            roomList = result.error.saveData ?: listOf(RoomInfo.defaultValue),
-            indexSelectRoom = 0
-        )
-        is Either.Success -> RoomsResult(
-            isSuccess = true,
-            roomList = result.data,
-            indexSelectRoom = calculateRoomIndex(result.data)
-        )
-    }
-}
-```
-
-#### 4. Using unbox to Extract Values
-Extract values with fallback handling:
-
-```kotlin
-val rooms = roomInfoResult.unbox(
-    errorHandler = { error -> error.saveData ?: emptyList() },
-    successHandler = { data -> data.filterAvailable() }
-)
-```
-
-### Best Practices
-1. Always handle both success and error cases
-2. Use `map` to transform data between layers
-3. Provide meaningful error types that contain enough information for error handling
-4. Consider including fallback data in error types for graceful degradation
-5. Use `unbox` when you need to extract the final value, typically in the presentation layer
+1. Add the models it needs under `model/`
+2. Add the use case under `useCase/`, taking the repositories it needs as constructor parameters
+3. Register it in `di/domainModule.kt`

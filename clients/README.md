@@ -10,10 +10,9 @@ The client applications for Effective Office provide user interfaces for interac
 
 The tablet application is a Compose Multiplatform app designed for:
 
-- Meeting room displays
-- Office space status indicators
-- Check-in kiosks
-- Resource availability displays
+- Meeting room displays hung outside the room
+- Showing the room's state and its schedule for the day
+- Booking and freeing the room from the display itself
 
 ### TV Application
 
@@ -26,9 +25,9 @@ The TV application is a Compose Multiplatform app designed for large-screen devi
 - **Framework**: Kotlin Multiplatform with Jetpack Compose
 - **Platforms**: Android and iOS
 - **UI**: Jetpack Compose
-- **Navigation**: Decompose
+- **Navigation**: Navigation Compose, with the modals as state-driven overlays
 - **Dependency Injection**: Koin
-- **State Management**: Decompose with MVI pattern
+- **State Management**: ViewModel and StateFlow, driven by intents
 - **API Communication**: Ktor Client
 - **Date/Time Handling**: Kotlinx.datetime
 - **Logging**: Napier

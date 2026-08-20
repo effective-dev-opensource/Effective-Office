@@ -1,67 +1,68 @@
 # UI Module
 
 ## Overview
-The UI module is part of the core layer of the Effective Office tablet application. It provides shared UI components, themes, styles, and utilities that are used across different features of the application. This module ensures a consistent look and feel throughout the app and promotes reusability of UI elements.
-
-## Features
-- Shared Compose UI components
-- Theme definition and styling
-- UI utilities
-- Date and time components
-- Booking-related components
-- Common UI elements
+The UI module is part of the core layer of the Effective Office tablet application. It holds the
+theme, the shared composables the feature modules build their screens out of, and the inactivity
+tracking that returns the tablet to its resting state.
 
 ## Architecture
-The module is organized in the package `band.effective.office.tablet.core.ui` with the following structure:
+The module is organized in the package `band.effective.office.tablet.core.ui`:
 
 ```
 band.effective.office.tablet.core.ui/
-├── booking/          # Booking-related components
-├── button/           # Button components
-├── common/           # Common UI components
-├── date/             # Date and time components
-├── theme/            # Theme definitions
-├── utils/            # UI utility functions
+├── booking/          # Booking alert
+├── button/           # SuccessButton
+├── common/           # Shared views: buttons, loader, error and disconnect states
+├── date/             # Date and time strip with arrows
+├── inactivity/       # Inactivity countdown and the tracker that feeds it
+├── theme/            # Color scheme, custom palette, typography
+├── utils/            # Date formatting and display mapping
+└── LoadMainScreen.kt # Full-screen loading state
 ```
+
+Strings and drawables live in `composeResources`, with a Russian translation in `values-ru`.
+
+## Key Components
+- **AppTheme**: applies the Material color scheme and typography, and provides
+  `LocalCustomColorsPalette` — the colors Material 3 has no slot for, such as busy and free room
+  status.
+- **InactivityTracking**: the countdown itself, held once for the whole app and started at the
+  composition root. Its `timeouts` flow is what resets the selected date and closes an open modal.
+- **InactivityTracker**: the composable that feeds the countdown with any input inside it. One
+  instance per scene layer — a dialog is a window of its own and never reaches the instance
+  installed at the root.
+- **DateTimeView**, **EventDurationView**, **EventOrganizerView**: the field rows the booking editor
+  is assembled from.
+- **Loader**, **LoadMainScreen**, **ErrorMainScreen**, **Disconnect**: the loading, error and
+  offline states shared across screens.
 
 ## Integration
 The UI module is used by:
-- Feature modules for building feature-specific screens
-- ComposeApp module for app-wide theming
+- the feature modules, for shared views, the palette and the typography;
+- the ComposeApp module, for `AppTheme` and the inactivity tracking installed at the root.
 
 ## Usage Examples
 
-### Using a Component
+### Applying the theme
 ```kotlin
 @Composable
-fun MyScreen() {
-    SuccessButton(
-        text = "Submit",
-        onClick = { /* handle click */ }
-    )
-}
-```
-
-### Applying Theme
-```kotlin
-@Composable
-fun MyApp() {
-    EffectiveOfficeTheme {
+fun Root() {
+    AppTheme {
         // App content
     }
 }
 ```
 
-## Development
-### Adding a New Component
-To add a new reusable component:
-1. Create a new file in the appropriate component package
-2. Implement the component using Compose
-3. Add preview functions for different states
-4. Document the component's parameters and usage
+### Using a shared button
+```kotlin
+SuccessButton(onClick = { /* handle click */ }) {
+    Text(text = stringResource(Res.string.apply_date_time_for_booking))
+}
+```
 
-### Design Guidelines
-- Follow Material Design principles
-- Ensure components are accessible
-- Support both light and dark themes
-- Make components responsive to different screen sizes
+## Development
+### Adding a New Shared View
+1. Put it in the package that matches its kind, or in `common/` if it fits nowhere else
+2. Take `Modifier` as the first parameter, defaulting to `Modifier`
+3. Take colors from `MaterialTheme` or `LocalCustomColorsPalette`, never as literals
+4. Put any user-visible text in `composeResources`, in both `values` and `values-ru`

@@ -1,59 +1,48 @@
 # Slot Feature Module
 
 ## Overview
-The Slot feature module provides functionality for managing and visualizing time slots for resource booking in the Effective Office tablet application. It enables users to view available time slots, understand resource availability, and select appropriate time periods for their bookings.
+The Slot module draws one room's day as a list of slots: what is free, what is booked and by whom,
+and what a tap on each of them does. It is the left panel of the main screen, not a screen of its
+own.
+
+There is one view — the working day of one room, from now (rounded up to the next quarter) to the
+end of office hours. There is no week or month view.
 
 ## Features
-- Time slot visualization
-- Resource availability display
-- Slot selection and interaction
-- Time grid navigation
-- Day, week, and month views
-- Conflict detection
-- Visual indicators for different slot states
-- Time zone handling
+- Free slots, showing how long they last
+- Booked slots, showing the organizer
+- A group slot when several bookings fall into one stretch, expanding on tap into the bookings
+  inside it
+- A placeholder while a booking is still being created on the calendar
+- Tapping a free slot or the tablet's own booking opens the booking editor on it
+- Re-reading the day every 15 minutes, and again a minute before the first slot starts
+- Collapsing every expanded group when the tablet is left untouched
 
 ## Architecture
-The module follows a feature-based architecture:
 
 ```
 slot/
-├── component/       # Feature-specific UI components
-├── di/              # Dependency injection setup
-├── model/           # UI models and state holders
-├── navigation/      # Navigation routes and arguments
-├── screen/          # Screens and composables
-│   ├── day/         # Day view screen
-│   ├── week/        # Week view screen
-│   └── month/       # Month view screen
-└── viewmodel/       # ViewModels for the screens
+├── di/                          # Koin module: the mapper, the use case and the presenter factory
+├── domain/usecase/              # GetSlotsByRoomUseCase
+└── presentation/
+    ├── SlotComponent.kt         # Presenter and its assisted-injection factory
+    ├── SlotIntent.kt            # Taps, date changes, inactivity
+    ├── SlotUi.kt                # The four kinds of slot the list can hold
+    ├── State.kt                 # The slot list
+    ├── components/              # SlotView and the views per slot kind
+    └── mapper/                  # Domain Slot to SlotUi
 ```
 
 ## Key Components
-
-### Screens
-- **DayViewScreen**: Detailed view of slots for a single day
-- **WeekViewScreen**: Overview of slots for a week
-- **MonthViewScreen**: Monthly calendar view with availability indicators
-
-### ViewModels
-- **DayViewModel**: Provides slot data for the day view
-- **WeekViewModel**: Manages slot data for the week view
-- **MonthViewModel**: Handles slot data for the month view
-
-### Components
-- **TimeSlot**: Visual representation of a time slot
-- **TimeGrid**: Grid layout for organizing time slots
-- **SlotLegend**: Legend explaining slot status indicators
-- **TimeSelector**: Component for selecting time ranges
-
-## Integration
-The Slot module integrates with:
-- Core domain module for business logic
-- Core data module for data operations
-- Core UI module for shared UI components
-- Booking Editor module for creating bookings
-- Fast Booking module for quick slot selection
+- **SlotComponent**: a presenter, not a ViewModel — it has no lifecycle of its own and runs on the
+  scope its owner, `MainViewModel`, hands it. Koin builds it through `SlotComponentFactory`,
+  supplying the use cases while the owner supplies the scope, the room name and the callback that
+  opens the editor. It keeps expanded groups expanded across a refresh, and publishes an empty list
+  rather than nothing so a day without free slots does not show the previous day's.
+- **SlotUi**: `SimpleSlot`, `MultiSlot`, `NestedSlot` and `LoadingSlot` — what the list is made of.
+- **SlotView**: routes a slot to the view for its kind and decides whether it takes a tap at all.
+- **GetSlotsByRoomUseCase**: cuts a room's bookings into slots over `SlotUseCase` from the domain
+  module.
 
 ## Bookings the tablet may not touch
 
@@ -71,37 +60,14 @@ applies to each booking inside it.
 `DummyCalendarProvider` never sets `isEditable`, so on a stand without Google every booking looks
 editable and this path cannot be exercised there.
 
-## User Flows
-
-### Viewing Available Slots
-1. User navigates to the slot view screen
-2. User selects a date or date range
-3. System displays available and occupied slots
-4. User can filter by resource type or specific resources
-
-### Selecting a Slot for Booking
-1. User browses available slots
-2. User selects a slot or time range
-3. System validates the selection
-4. User is directed to the booking creation flow with the selected slot
-
-## Time Handling
-The Slot module handles various time-related complexities:
-- Time zone conversions
-- Business hours vs. 24-hour display
-- Recurring availability patterns
-- Holiday and special day handling
+## Integration
+The Slot module integrates with:
+- Core domain module, for `Slot`, `SlotUseCase`, `RoomInfoUseCase` and the timer
+- Core UI module, for the strings, the palette and the typography
+- Main module, which owns the presenter and turns its editor requests into a modal
 
 ## Development
-### Adding a New Slot View
-To add a new way to visualize slots:
-1. Create a new screen in the screen package
-2. Implement the corresponding ViewModel
-3. Design the UI components needed for the view
-4. Add navigation routes and integrate with existing views
-
-### Customizing Slot Appearance
-To modify how slots are displayed:
-1. Update the TimeSlot component or create a variant
-2. Modify the styling in the theme
-3. Ensure the changes are consistent across all views
+### Changing How a Day Is Cut Into Slots
+The cutting itself is `SlotUseCase` in the domain module; `GetSlotsByRoomUseCase` only decides where
+the day starts and ends. What each kind of slot looks like is in `components/`, and which domain slot
+becomes which `SlotUi` is in `mapper/SlotUiMapper.kt`.
