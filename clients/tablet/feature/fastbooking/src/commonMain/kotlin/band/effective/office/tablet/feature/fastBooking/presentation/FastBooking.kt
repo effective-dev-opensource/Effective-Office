@@ -5,9 +5,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +41,13 @@ import org.jetbrains.compose.resources.stringResource
 private val MAX_FAST_BOOKING_WIDTH = 720.dp
 
 /**
+ * Caps the modal as a whole, clock included. The modal is centered in the scrim, so an unbounded
+ * column lifts the clock by half of whatever the card of the current state adds, up over the
+ * screen header; past the cap the content scrolls instead of growing.
+ */
+private val MAX_FAST_BOOKING_HEIGHT = 470.dp
+
+/**
  * Main composable for the Fast Booking feature.
  * Displays a view per [FastBookingModal] in the current state.
  *
@@ -56,7 +66,10 @@ fun FastBooking(
     }
 
     Column(
-        modifier = Modifier.widthIn(max = MAX_FAST_BOOKING_WIDTH),
+        modifier = Modifier
+            .widthIn(max = MAX_FAST_BOOKING_WIDTH)
+            .heightIn(max = MAX_FAST_BOOKING_HEIGHT)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
