@@ -1,7 +1,6 @@
 package band.effective.office.tablet.core.domain.model
-import com.russhwolf.settings.*
 
-class SettingsManager(private val settings: Settings) {
+class SettingsManager(private val settings: SettingsStore) {
 
     companion object {
         private const val KEY_NAME_ROOM = "nameRoom"
@@ -9,7 +8,7 @@ class SettingsManager(private val settings: Settings) {
         // Singleton-like instance
         private var currentInstance: SettingsManager? = null
 
-        fun init(settings: Settings) {
+        fun init(settings: SettingsStore) {
             if(currentInstance == null) {
                 currentInstance = SettingsManager(settings)
             }
