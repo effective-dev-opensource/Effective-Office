@@ -161,6 +161,7 @@ private fun ModalHost(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black.copy(alpha = MODAL_SCRIM_ALPHA))
+                .modalKeyboardPadding()
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
