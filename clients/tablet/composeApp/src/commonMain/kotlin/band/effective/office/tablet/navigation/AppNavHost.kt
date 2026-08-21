@@ -34,6 +34,8 @@ import band.effective.office.tablet.feature.main.presentation.main.MainNavEvent
 import band.effective.office.tablet.feature.main.presentation.main.MainScreen
 import band.effective.office.tablet.feature.main.presentation.main.MainViewModel
 import band.effective.office.tablet.feature.settings.SettingsScreen
+import band.effective.office.tablet.platform.ModalBackHandler
+import band.effective.office.tablet.platform.modalKeyboardPadding
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
