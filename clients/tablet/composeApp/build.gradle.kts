@@ -69,6 +69,12 @@ kotlin {
     }
 }
 
+compose.resources {
+    publicResClass = false
+    packageOfResClass = "band.effective.office.tablet"
+    generateResClass = auto
+}
+
 android {
     namespace = "band.effective.office.tablet"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
