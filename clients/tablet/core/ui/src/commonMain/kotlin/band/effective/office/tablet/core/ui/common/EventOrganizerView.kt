@@ -42,21 +42,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupPositionProvider
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.arrow_to_down
-import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
 import band.effective.office.tablet.core.ui.res.painterResource
 import band.effective.office.tablet.core.ui.selectbox_organizer_error
 import band.effective.office.tablet.core.ui.selectbox_organizer_title
@@ -84,24 +76,6 @@ fun EventOrganizerView(
     var textFieldCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val density = LocalDensity.current
 
-    val popupPositionProvider = remember(textFieldCoords) {
-        object : PopupPositionProvider {
-            override fun calculatePosition(
-                anchorBounds: IntRect,
-                windowSize: IntSize,
-                layoutDirection: LayoutDirection,
-                popupContentSize: IntSize
-            ): IntOffset {
-                return if (textFieldCoords != null) {
-                    val anchorTop = textFieldCoords!!.positionInWindow().y.toInt()
-                    val y = anchorTop - popupContentSize.height
-                    IntOffset(anchorBounds.left, y.coerceAtLeast(0) - 60)
-                } else {
-                    IntOffset.Zero
-                }
-            }
-        }
-    }
     Column(modifier = modifier) {
         Text(
             text = stringResource(Res.string.selectbox_organizer_title),
@@ -175,40 +149,35 @@ fun EventOrganizerView(
             )
         }
         if (expanded) {
-            Popup(
-                popupPositionProvider = popupPositionProvider,
-                onDismissRequest = { },
-            ) {
-                InactivityTracker {
-                    LazyColumn(
-                        modifier = Modifier
-                            .width(with(density) { mTextFieldSize.width.toDp() })
-                            .heightIn(max = 150.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(
-                                LocalCustomColorsPalette.current.elevationBackground,
-                                RoundedCornerShape(8.dp)
+            OrganizerListPopup(textFieldCoords = textFieldCoords) { listModifier ->
+                LazyColumn(
+                    modifier = listModifier
+                        .width(with(density) { mTextFieldSize.width.toDp() })
+                        .heightIn(max = 150.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(
+                            LocalCustomColorsPalette.current.elevationBackground,
+                            RoundedCornerShape(8.dp)
+                        )
+                        .border(3.dp, Color.DarkGray, RoundedCornerShape(8.dp))
+                ) {
+                    items(selectOrganizers) { organizer ->
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onSelectItem(organizer)
+                                    focusRequester.freeFocus()
+                                    focusManager.clearFocus()
+                                    onExpandedChange()
+                                }
+                                .padding(16.dp),
+                        ) {
+                            Text(
+                                text = organizer,
                             )
-                            .border(3.dp, Color.DarkGray, RoundedCornerShape(8.dp))
-                    ) {
-                        items(selectOrganizers) { organizer ->
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        onSelectItem(organizer)
-                                        focusRequester.freeFocus()
-                                        focusManager.clearFocus()
-                                        onExpandedChange()
-                                    }
-                                    .padding(16.dp),
-                            ) {
-                                Text(
-                                    text = organizer,
-                                )
-                            }
-                            HorizontalDivider()
                         }
+                        HorizontalDivider()
                     }
                 }
             }
