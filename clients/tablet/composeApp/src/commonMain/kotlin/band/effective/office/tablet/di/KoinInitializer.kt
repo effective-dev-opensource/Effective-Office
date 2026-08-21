@@ -9,14 +9,17 @@ import band.effective.office.tablet.feature.settings.di.settingsModule
 import band.effective.office.tablet.feature.slot.di.slotDiModule
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
+import org.koin.core.module.Module
 
 class KoinInitializer {
-    fun init(platformDeclaration: KoinApplication.() -> Unit = {}) {
+    fun init(
+        platformDeclaration: KoinApplication.() -> Unit = {},
+        platformModules: List<Module> = emptyList(),
+    ) {
         startKoin {
             platformDeclaration()
             modules(
                 appModule,
-                firebaseTopicsModule,
                 dataModule,
                 domainModule,
                 mainScreenModule,
@@ -24,6 +27,7 @@ class KoinInitializer {
                 fastBookingModule,
                 settingsModule,
                 slotDiModule,
+                *platformModules.toTypedArray(),
             )
         }
     }
