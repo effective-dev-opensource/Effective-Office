@@ -57,11 +57,11 @@ import androidx.compose.ui.window.PopupPositionProvider
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.arrow_to_down
 import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
+import band.effective.office.tablet.core.ui.res.painterResource
 import band.effective.office.tablet.core.ui.selectbox_organizer_error
 import band.effective.office.tablet.core.ui.selectbox_organizer_title
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h8
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)

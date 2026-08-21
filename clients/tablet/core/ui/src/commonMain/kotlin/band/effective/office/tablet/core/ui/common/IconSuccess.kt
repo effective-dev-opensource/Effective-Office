@@ -9,8 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.check
+import band.effective.office.tablet.core.ui.res.vectorResource
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
-import org.jetbrains.compose.resources.vectorResource
 
 @Composable
 fun IconSuccess() {

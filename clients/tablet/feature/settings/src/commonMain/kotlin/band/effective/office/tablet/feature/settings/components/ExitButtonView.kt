@@ -20,10 +20,10 @@ import androidx.compose.ui.unit.dp
 import band.effective.office.settings.generated.resources.Res
 import band.effective.office.settings.generated.resources.exit
 import band.effective.office.tablet.core.ui.exit
+import band.effective.office.tablet.core.ui.res.vectorResource
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h5
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 
 
 @Composable

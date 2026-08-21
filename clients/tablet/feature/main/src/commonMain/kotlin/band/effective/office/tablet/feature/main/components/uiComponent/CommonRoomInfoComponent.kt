@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.ethernet
 import band.effective.office.tablet.core.ui.quantity
+import band.effective.office.tablet.core.ui.res.painterResource
 import band.effective.office.tablet.core.ui.theme.h1
 import band.effective.office.tablet.core.ui.theme.h8
 import band.effective.office.tablet.core.ui.theme.roomInfoColor
@@ -33,7 +34,6 @@ import band.effective.office.tablet.core.ui.theme.undefineStateColor
 import band.effective.office.tablet.core.ui.tv
 import band.effective.office.tablet.feature.main.tv_property
 import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
