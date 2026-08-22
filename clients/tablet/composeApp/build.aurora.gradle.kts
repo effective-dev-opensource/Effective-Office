@@ -8,11 +8,25 @@ plugins {
     id("org.jetbrains.compose")
     alias(libs.plugins.kotlinx.serialization)
     id("com.codingfeline.buildkonfig")
+    id("ru.auroraos.kmp.aurora-build")
 }
 
 kotlin {
-    linuxArm64()
-    linuxX64()
+    listOf(
+        linuxArm64(),
+        linuxX64(),
+    ).forEach { target ->
+        target.binaries {
+            executable {
+                entryPoint = "band.effective.office.tablet.main"
+                // -Xoverride-konan-properties, without which the link against the sysroot fails.
+                freeCompilerArgs += auroraBuild.freeCompilerArgs(target.name)
+                // cmpLinkerOpts brings Qt5Core, maliit, skiko, wayland, EGL and dbus, but no
+                // networking, and the http client is ktor-curl.
+                linkerOpts.addAll(auroraBuild.cmpLinkerOpts(target.name, "Qt5Network"))
+            }
+        }
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -41,11 +55,48 @@ kotlin {
             implementation(project(":clients:tablet:core:data"))
             implementation(project(":clients:tablet:core:domain"))
         }
+
+        linuxMain.dependencies {
+            // Backs SettingsStore: multiplatform-settings has no linux target.
+            implementation(libs.aurora.ak.shared.preferences)
+        }
     }
 
     sourceSets.all {
         languageSettings.optIn("kotlin.time.ExperimentalTime")
     }
+}
+
+val composeResourcesPath = "src/commonMain/composeResources"
+val auroraComposeResourcesDir = layout.buildDirectory.dir("auroraComposeResources")
+
+val auroraResourceModules = listOf(
+    "clients/tablet/core/ui",
+    "clients/tablet/feature/main",
+    "clients/tablet/feature/settings",
+    "clients/tablet/feature/bookingEditor",
+)
+
+// aurora-build packages the preparedResources of this module alone and does not walk the project
+// dependencies, so every module's resources are gathered here first. A name clash has to fail the
+// build — see "Resource packaging on Aurora" in README.md.
+val stageAuroraResources by tasks.registering(Copy::class) {
+    description = "Gathers the composeResources of every tablet module into one directory."
+    duplicatesStrategy = DuplicatesStrategy.FAIL
+    into(auroraComposeResourcesDir)
+    from(layout.projectDirectory.dir(composeResourcesPath))
+    auroraResourceModules.forEach { module ->
+        from(rootProject.layout.projectDirectory.dir("$module/$composeResourcesPath"))
+    }
+}
+
+compose.resources {
+    // core:ui and feature/* generate the Res classes; this module only packages what they carry.
+    generateResClass = never
+    customDirectory(
+        sourceSetName = "commonMain",
+        directoryProvider = stageAuroraResources.map { auroraComposeResourcesDir.get() },
+    )
 }
 
 // AGP is not applied under Aurora, so gradleLocalProperties() is out of reach.

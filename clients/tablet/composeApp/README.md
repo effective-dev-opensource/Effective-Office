@@ -72,3 +72,13 @@ The module depends on the core modules (`data`, `domain`, `ui`) and on every fea
   Kiosk mode requires the app to be a Device Owner — see `clients/README.md`.
 - **iOS**: `Initializers` starts Koin and initializes `SettingsManager` on the keychain;
   `rootViewController()` wraps `AppRoot` in a `ComposeUIViewController`.
+- **Aurora**: `main` starts Koin, initializes `SettingsManager` on `ak-shared-preferences` and hands
+  off to `application { AppRoot() }` — the fork creates the window itself, so there is no `Window`
+  here and `AppRoot` is what provides the root `LocalViewModelStoreOwner`.
+
+### Resource packaging on Aurora
+Aurora packages compose resources flat and without a namespace: `<qualifier>/<file>` becomes
+`<qualifier>_<file>`. Two files that flatten alike collapse into a single `.cvr`, and whichever
+module's `Res` reaches it first reads the other module's bytes at its own offsets. That is why every
+tablet module names its string file differently, and why `stageAuroraResources` gathers them with
+`duplicatesStrategy = FAIL`: a future clash is a build error instead of a wrong read at runtime.

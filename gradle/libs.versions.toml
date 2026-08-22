@@ -254,6 +254,7 @@ aurora-ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.r
 aurora-ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "aurora-ktor" }
 aurora-kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "aurora-datetime" }
 aurora-ak-path-info = { module = "ru.auroraos.kmp:ak-path-info", version.ref = "aurora-ak" }
+aurora-ak-shared-preferences = { module = "ru.auroraos.kmp:ak-shared-preferences", version.ref = "aurora-ak" }
 
 [plugins]
 # Common
