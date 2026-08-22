@@ -17,6 +17,8 @@ Mattermost). It's meant for "just show me how it works" demos and local developm
 |------|---------|
 | `run-backend-local.sh` | Starts the Spring Boot backend with all providers set to dummy and every required env var filled with safe dummy values. |
 | `seed-local-db.sh` | Inserts an API key + one zone + two meeting rooms (`Sync`, `Focus`) so the tablet has something to show. Idempotent. |
+| `point-client-at-local.sh` | Rewrites `api.url.debug` / `api.url.release` in the repo-root `local.properties` for one platform. The URL is compiled in, so rebuild after running it. |
+| `slow-backend-proxy.py` | Puts a delay in front of the backend so a request can be caught in flight — closing quick booking mid-request, or seeing the loader at all. See step 5. |
 | `.local-fake-credentials.json` | A **self-generated, fake** Google service-account JSON (valid RSA key, never used to talk to Google). Auto-created by `run-backend-local.sh` if missing. **Git-ignored** (contains a private key → would trip the Gitleaks pre-commit hook). |
 
 ## Prerequisites
@@ -110,6 +112,38 @@ To iterate on Kotlin/Native compile errors fast (without Xcode):
 ⚠️ **Typing into the simulator is ASCII-only and goes through the active macOS layout.**
 With a Russian layout `an` arrives as `фт`, and filtering the organizer list then looks broken
 when it is not. Switch to an English layout before typing.
+
+## 5. Slow the backend down (to catch a request in flight)
+
+Some cases need the user to act while a request is still unanswered — closing quick booking
+mid-request, or seeing the loader at all. Against a local backend that is impossible: it
+answers in single-digit milliseconds, faster than a tap can land.
+
+```bash
+localQuickStart/slow-backend-proxy.py            # listens on 8081 -> 8080, holds 12 s
+```
+
+It forwards to the backend and holds each chunk on the way there; replies come back
+untouched. The delay is re-read from a control file on every chunk, so it can be changed
+while the proxy runs — the path is printed at startup:
+
+```bash
+echo 0 > "$TMPDIR/effective-office-slow-delay"   # full speed again, no restart
+```
+
+⚠️ **The client must be built against the proxy port** — the URL is compiled in, same as in
+step 4. `point-client-at-local.sh` always writes port **8080**, so run it first, then change
+the port on that line and rebuild:
+
+| Target | `api.url.debug` |
+|--------|-----------------|
+| iOS simulator | `http://localhost:8081` |
+| Android emulator | `http://10.0.2.2:8081` |
+
+A backend that is up but unreachable is also how the error-screen cases are staged: point the
+client at the proxy port and simply don't start the proxy.
+
+---
 
 ---
 
