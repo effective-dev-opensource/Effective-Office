@@ -9,6 +9,23 @@ plugins {
     alias(libs.plugins.kotlinx.serialization)
     id("com.codingfeline.buildkonfig")
     id("ru.auroraos.kmp.aurora-build")
+    id("ru.auroraos.kmp.aurora-devices")
+}
+
+// Ahead of kotlin{}: cmpLinkerOpts reads the id eagerly and bakes it into the rpath, and left
+// unset the plugin's own default sends the rpath to /usr/share/ru.auroraos.demo/lib, where
+// nothing of ours is installed.
+auroraBuild {
+    rpm {
+        id.set("band.effective.office.tablet")
+        name.set("Effective Office")
+        description.set("Meeting room tablet built with KMP for Aurora OS")
+        version.set(project.version.toString())
+        permissions.set(listOf("Internet"))
+        // The on-screen keyboard.
+        libs3rdParty.set(listOf("maliit-glib"))
+        icons.set(projectDir.toPath().resolve("icons"))
+    }
 }
 
 kotlin {
@@ -105,6 +122,44 @@ val localProperties = Properties().apply {
     if (file.exists()) file.inputStream().use { load(it) }
 }
 
+// The SDK emulator has no address of its own — qemu forwards its ssh onto a host port and the only
+// key it authorises is the SDK's own — so all three override the real device's defaults, from -P
+// first and then local.properties.
+val auroraDeviceIp: String = (project.findProperty("AURORA_DEVICE_IP") as? String)
+    ?: localProperties.getProperty("AURORA_DEVICE_IP")
+    ?: "192.168.0.22"
+
+val auroraDevicePort: Int = ((project.findProperty("AURORA_DEVICE_PORT") as? String)
+    ?: localProperties.getProperty("AURORA_DEVICE_PORT"))
+    ?.toInt()
+    ?: 22
+
+val auroraDeviceSshKey: String = (project.findProperty("AURORA_DEVICE_SSH_KEY") as? String)
+    ?: localProperties.getProperty("AURORA_DEVICE_SSH_KEY")
+    ?: ".ssh/qtc_id"
+
+auroraDevices {
+    devices {
+        // Unnamed, so the device is `device` and the deploy task is runReleaseOnDevice.
+        create {
+            host.set(auroraDeviceIp)
+            user.set("defaultuser")
+            port.set(auroraDevicePort)
+            // An absolute key path resolves to itself, a relative one against $HOME.
+            sshKey.set(File(System.getProperty("user.home")).resolve(auroraDeviceSshKey).toPath())
+        }
+    }
+    packages {
+        create("release") {
+            targets.set(listOf("aarch64", "x86_64"))
+            directory.set(
+                layout.buildDirectory.dir("rpm/release/{target}/RPMS/{target}").get().asFile.toPath(),
+            )
+            mask.set("""(?!.*debug).*\.rpm""")
+        }
+    }
+}
+
 buildkonfig {
     packageName = "band.effective.office.tablet"
     exposeObjectWithName = "BuildKonfig"
@@ -115,4 +170,9 @@ buildkonfig {
         buildConfigField(FieldSpec.Type.STRING, "API_URL_DEBUG", localProperties.getProperty("api.url.debug"))
         buildConfigField(FieldSpec.Type.STRING, "API_KEY", localProperties.getProperty("apiKey"))
     }
+}
+
+// Both tasks are registered by the fork's plugins in afterEvaluate, so tasks.named() throws here.
+tasks.matching { it.name == "runReleaseOnDevice" }.configureEach {
+    dependsOn("buildReleasePipeline")
 }
