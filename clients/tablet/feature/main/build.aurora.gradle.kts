@@ -11,6 +11,10 @@ kotlin {
     linuxX64()
 
     sourceSets {
+        commonMain {
+            kotlin.srcDir("src/previewStub/kotlin")
+        }
+
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)

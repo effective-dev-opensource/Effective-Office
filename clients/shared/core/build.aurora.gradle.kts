@@ -10,6 +10,10 @@ kotlin {
     linuxX64()
 
     sourceSets {
+        commonMain {
+            kotlin.srcDir("src/napierStub/kotlin")
+        }
+
         commonMain.dependencies {
             implementation(libs.bundles.aurora.koin)
             implementation(libs.kotlin.coroutines.core)
