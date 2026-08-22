@@ -19,6 +19,7 @@ Mattermost). It's meant for "just show me how it works" demos and local developm
 | `seed-local-db.sh` | Inserts an API key + one zone + two meeting rooms (`Sync`, `Focus`) so the tablet has something to show. Idempotent. |
 | `point-client-at-local.sh` | Rewrites `api.url.debug` / `api.url.release` in the repo-root `local.properties` for one platform. The URL is compiled in, so rebuild after running it. |
 | `slow-backend-proxy.py` | Puts a delay in front of the backend so a request can be caught in flight — closing quick booking mid-request, or seeing the loader at all. See step 5. |
+| `editable-proxy.py` | Rewrites `isEditable` in the backend's replies so a booking looks like somebody else's. Without it the read-only case cannot be staged at all. See step 6. |
 | `.local-fake-credentials.json` | A **self-generated, fake** Google service-account JSON (valid RSA key, never used to talk to Google). Auto-created by `run-backend-local.sh` if missing. **Git-ignored** (contains a private key → would trip the Gitleaks pre-commit hook). |
 
 ## Prerequisites
@@ -142,6 +143,28 @@ the port on that line and rebuild:
 
 A backend that is up but unreachable is also how the error-screen cases are staged: point the
 client at the proxy port and simply don't start the proxy.
+
+---
+
+## 6. Make a booking somebody else's (for the read-only case)
+
+The dummy calendar provider never sets `isEditable`, the REST API has no field for it, and
+`BookingDto` defaults it to `true` — so on a local stand every booking looks like your own,
+and "a booking somebody else owns must not open the editor" cannot be staged at all.
+
+```bash
+localQuickStart/editable-proxy.py --external min.kim@example.com
+```
+
+It forwards to the backend and flips `isEditable` to `false` on the way back for every
+booking owned by a listed address; repeat `--external` for several. No backend restart and
+no change to the repository.
+
+Same port rule as step 5: **the client must be built against the proxy port**, so run
+`point-client-at-local.sh`, change 8080 to 8081 on that line, and rebuild.
+
+> A booking marked this way is indistinguishable on screen — no colour, no icon, it simply
+> stops responding to touch. That is the app's behaviour, not a fault of the proxy.
 
 ---
 
