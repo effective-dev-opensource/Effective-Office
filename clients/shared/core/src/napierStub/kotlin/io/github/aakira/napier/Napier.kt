@@ -6,6 +6,9 @@ package io.github.aakira.napier
 
 enum class LogLevel { VERBOSE, DEBUG, INFO, WARNING, ERROR, ASSERT }
 
+// stdout is fully buffered under journald, so lines printed right before a crash never get out.
+internal expect fun flushLog()
+
 open class Antilog {
     open fun log(priority: LogLevel, tag: String?, throwable: Throwable?, message: String?) {
         println(
@@ -16,6 +19,7 @@ open class Antilog {
                 if (throwable != null) append(" | ${throwable.stackTraceToString()}")
             },
         )
+        flushLog()
     }
 }
 

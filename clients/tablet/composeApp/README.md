@@ -74,7 +74,9 @@ The module depends on the core modules (`data`, `domain`, `ui`) and on every fea
   `rootViewController()` wraps `AppRoot` in a `ComposeUIViewController`.
 - **Aurora**: `main` starts Koin, initializes `SettingsManager` on `ak-shared-preferences` and hands
   off to `application { AppRoot() }` — the fork creates the window itself, so there is no `Window`
-  here and `AppRoot` is what provides the root `LocalViewModelStoreOwner`.
+  here and `AppRoot` is what provides the root `LocalViewModelStoreOwner`. It installs the `Antilog`
+  itself rather than through `LoggerInitializer`: the Aurora variant links a *release* binary, so
+  `isDebug` is false and the gate there would leave the device with no log at all.
 
 ### Resource packaging on Aurora
 Aurora packages compose resources flat and without a namespace: `<qualifier>/<file>` becomes
