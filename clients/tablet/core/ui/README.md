@@ -60,6 +60,23 @@ SuccessButton(onClick = { /* handle click */ }) {
 }
 ```
 
+## Fork defects
+Corrections to the Aurora fork's own bugs. Each is expected to die when the fork is fixed, and each
+is marked `// Fork defect:` at its site.
+
+### The fork's resource loader renders SVG only
+`vectorResource` from `compose-resources` hands the drawable bytes straight to Skia's `SVGDOM`. Every
+icon this project ships is Android vector XML, so the call dies with `Can't wrap nullptr` and takes
+the process with it — the first icon on the first screen is enough. `painterResource` returns
+nothing instead of dying, which is worse to diagnose.
+
+`res/PainterResource.linux.kt` resolves the bytes itself and picks the decoder by their **signature,
+not their extension**: raster magic bytes go to `decodeToImageBitmap`, an `<svg` tag to `SVGDOM`,
+anything else to the vendored AOSP parser in `res/vectorxml/` (`javax.xml` has no Kotlin/Native
+target, hence the hand-rolled DOM beside it). The vector-XML path yields an `ImageVector`, so
+`Icon(tint = …)`, the intrinsic dp size and the dark theme keep working; an SVG has its colors baked
+in and gets none of that.
+
 ## Development
 ### Adding a New Shared View
 1. Put it in the package that matches its kind, or in `common/` if it fits nowhere else
