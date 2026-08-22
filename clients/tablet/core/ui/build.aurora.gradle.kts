@@ -15,7 +15,7 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.components.resources)
-            // Painter and ImageVector are used directly by the linux resource facade.
+            // Painter and ImageVector, which the resource facade signs its seam with.
             implementation(compose.ui)
 
             api(project(":clients:shared:core"))
