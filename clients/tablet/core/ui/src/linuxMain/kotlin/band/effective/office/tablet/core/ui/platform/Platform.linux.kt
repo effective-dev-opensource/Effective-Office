@@ -21,3 +21,5 @@ actual fun DialogSceneFrame(content: @Composable () -> Unit) {
 actual fun softKeyboardOverlapPx(): Int = auroraKeyboardOverlapPx()
 
 actual fun noteSoftKeyboardExpected() = noteAuroraKeyboardExpected()
+
+actual fun closeSoftKeyboard() = requestAuroraKeyboardClose()

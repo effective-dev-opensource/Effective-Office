@@ -178,6 +178,26 @@ Sizes are printed with spaces around the separator for the reason the `Organizer
 Corrections to the Aurora fork's own bugs. Each is expected to die when the fork is fixed, and each
 is marked `// Fork defect:` at its site.
 
+### The maliit session is never closed
+The fork opens a maliit session when a field takes focus and then parks in `awaitCancellation()`
+with no `finally`, so nothing ever stops it: the field is done being edited and maliit still
+believes it is feeding one. A leftover session is the likeliest reason input goes to the app no
+more, which on the tablet reads as a freeze. `closeSoftKeyboard()` does what the missing `finally`
+would have done.
+
+Where it is closed matters as much as that it is. `Keyboard.close()` called from inside maliit's own
+key dispatch deadlocks the process: `send_state` waits on the channel the `send_input` still on the
+stack is holding. Deferring with a `launch` does not help either — both of the fork's dispatchers
+run tasks inline on the main thread. So the request goes into a conflated channel and
+`AuroraKeyboardSessionCloser`, mounted once at the root, closes the session after a
+`withFrameNanos {}`: on this fork the frame clock is the only scheduler that genuinely defers.
+
+Every way out of editing is funnelled into one door, the field losing focus, and the field closes
+the session from there. That is why the Done action does not call `defaultKeyboardAction(Done)` —
+it hides the keyboard synchronously, inside that same dispatch — and why it clears the focus a frame
+later rather than at once. `freeFocus()` is not a way out at all: it releases focus that was
+*captured*, and nothing here captures any, so the field stayed focused with the keyboard up.
+
 ### The fork's resource loader renders SVG only
 `vectorResource` from `compose-resources` hands the drawable bytes straight to Skia's `SVGDOM`. Every
 icon this project ships is Android vector XML, so the call dies with `Can't wrap nullptr` and takes

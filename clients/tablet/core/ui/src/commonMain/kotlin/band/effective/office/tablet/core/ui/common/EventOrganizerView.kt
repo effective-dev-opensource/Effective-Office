@@ -30,16 +30,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -53,12 +57,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.arrow_to_down
+import band.effective.office.tablet.core.ui.platform.closeSoftKeyboard
 import band.effective.office.tablet.core.ui.platform.noteSoftKeyboardExpected
 import band.effective.office.tablet.core.ui.res.painterResource
 import band.effective.office.tablet.core.ui.selectbox_organizer_error
 import band.effective.office.tablet.core.ui.selectbox_organizer_title
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h8
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,11 +87,19 @@ fun EventOrganizerView(
     // it was handed on the first composition forever.
     val expandRequest by rememberUpdatedState(onExpandedChange)
     val isExpanded by rememberUpdatedState(expanded)
+    var isFocused by remember { mutableStateOf(false) }
 
     // The row around the field, not the field itself: the list is sized to the row, so anchoring it
     // to the field would place it the row's horizontal padding away from where it is drawn from.
     var rowCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
+
+    // The net under the focus-lost branch: the field can be taken off screen mid-edit — the back
+    // gesture, the inactivity reset — and no focus change is reported when that happens.
+    DisposableEffect(Unit) {
+        onDispose { if (isFocused) closeSoftKeyboard() }
+    }
 
     Column(modifier = modifier) {
         Text(
@@ -139,6 +153,15 @@ fun EventOrganizerView(
                             if (opening) expandRequest()
                         }
                     }
+                    .onFocusChanged(
+                        onFocusChanged = {
+                            // Only a real loss counts: Compose reports the field unfocused once
+                            // when it appears, and that is not the end of a session nobody started.
+                            val wasFocused = isFocused
+                            isFocused = it.isFocused
+                            if (wasFocused && !it.isFocused) closeSoftKeyboard()
+                        },
+                    )
                     .focusRequester(focusRequester)
                     .fillMaxWidth(0.8f),
                 value = inputText,
@@ -166,10 +189,20 @@ fun EventOrganizerView(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(
                     onDone = {
-                        defaultKeyboardAction(ImeAction.Done)
+                        // No defaultKeyboardAction(Done): it hides the keyboard synchronously, and
+                        // on Aurora this lambda runs inside maliit's own key dispatch, where that
+                        // deadlocks. Dropping the focus is what takes the keyboard down instead —
+                        // the one door everything leaves editing through.
                         onDoneInput(inputText)
                         onExpandedChange()
-                        focusRequester.freeFocus()
+                        // A frame late, because clearFocus() ends the text input session there and
+                        // then, and on Aurora that tears the maliit session down from inside the
+                        // dispatch still on the stack. The fork runs a bare launch inline, so only
+                        // the frame await really leaves it.
+                        scope.launch {
+                            withFrameNanos { }
+                            focusManager.clearFocus()
+                        }
                     }
                 ),
             )
@@ -198,7 +231,8 @@ fun EventOrganizerView(
                                 .fillMaxWidth()
                                 .clickable {
                                     onSelectItem(organizer)
-                                    focusRequester.freeFocus()
+                                    // clearFocus() alone: freeFocus() releases focus that was
+                                    // captured, and nothing here ever captures any.
                                     focusManager.clearFocus()
                                     onExpandedChange()
                                 }
