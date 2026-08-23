@@ -6,8 +6,8 @@ import androidx.compose.ui.layout.LayoutCoordinates
 
 @Composable
 internal actual fun OrganizerListPopup(
-    textFieldCoords: LayoutCoordinates?,
+    anchorCoords: LayoutCoordinates?,
     content: @Composable (Modifier) -> Unit,
 ) {
-    AnchoredOrganizerList(textFieldCoords = textFieldCoords, content = content)
+    AnchoredOrganizerList(anchorCoords = anchorCoords, content = content)
 }

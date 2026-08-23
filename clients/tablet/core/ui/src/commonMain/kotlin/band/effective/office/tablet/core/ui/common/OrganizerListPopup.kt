@@ -19,11 +19,11 @@ private const val LIST_GAP_PX = 60
 /**
  * The popup that holds the expanded organizer list. The list is the same everywhere, its placement
  * is not: [content] receives the modifier that positions it, empty where the popup positions
- * itself. [textFieldCoords] is `null` until the field has been laid out once.
+ * itself. [anchorCoords] is the row around the field, `null` until it has been laid out once.
  */
 @Composable
 internal expect fun OrganizerListPopup(
-    textFieldCoords: LayoutCoordinates?,
+    anchorCoords: LayoutCoordinates?,
     content: @Composable (Modifier) -> Unit,
 )
 
@@ -34,10 +34,10 @@ internal expect fun OrganizerListPopup(
  */
 @Composable
 internal fun AnchoredOrganizerList(
-    textFieldCoords: LayoutCoordinates?,
+    anchorCoords: LayoutCoordinates?,
     content: @Composable (Modifier) -> Unit,
 ) {
-    val popupPositionProvider = remember(textFieldCoords) {
+    val popupPositionProvider = remember(anchorCoords) {
         object : PopupPositionProvider {
             override fun calculatePosition(
                 anchorBounds: IntRect,
@@ -45,8 +45,8 @@ internal fun AnchoredOrganizerList(
                 layoutDirection: LayoutDirection,
                 popupContentSize: IntSize
             ): IntOffset {
-                return if (textFieldCoords != null) {
-                    val anchorTop = textFieldCoords.positionInWindow().y.toInt()
+                return if (anchorCoords != null) {
+                    val anchorTop = anchorCoords.positionInWindow().y.toInt()
                     val y = anchorTop - popupContentSize.height
                     IntOffset(anchorBounds.left, y.coerceAtLeast(0) - LIST_GAP_PX)
                 } else {

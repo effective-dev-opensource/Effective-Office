@@ -4,6 +4,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,18 +33,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -72,8 +76,14 @@ fun EventOrganizerView(
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
+    // The gesture detector below is remembered on Unit, so it would hold the lambda and the state
+    // it was handed on the first composition forever.
+    val expandRequest by rememberUpdatedState(onExpandedChange)
+    val isExpanded by rememberUpdatedState(expanded)
 
-    var textFieldCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    // The row around the field, not the field itself: the list is sized to the row, so anchoring it
+    // to the field would place it the row's horizontal padding away from where it is drawn from.
+    var rowCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val density = LocalDensity.current
 
     Column(modifier = modifier) {
@@ -83,7 +93,7 @@ fun EventOrganizerView(
             style = MaterialTheme.typography.h8
         )
         Spacer(modifier = Modifier.height(10.dp))
-        var mTextFieldSize by remember { mutableStateOf(Size.Zero) }
+        var rowSize by remember { mutableStateOf(Size.Zero) }
 
         Row(
             modifier = Modifier
@@ -91,7 +101,8 @@ fun EventOrganizerView(
                 .onGloballyPositioned { coordinates ->
                     // This value is used to assign to
                     // the DropDown the same width
-                    mTextFieldSize = coordinates.size.toSize()
+                    rowSize = coordinates.size.toSize()
+                    rowCoords = coordinates
                 }
                 .clip(RoundedCornerShape(15.dp))
                 .background(color = LocalCustomColorsPalette.current.elevationBackground)
@@ -100,16 +111,34 @@ fun EventOrganizerView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextField(
-                modifier = Modifier.onFocusChanged(
-                    onFocusChanged = {
-                        if (it.isFocused) {
-                            onExpandedChange()
+                modifier = Modifier
+                    // Initial pass and nothing consumed, so the field still takes the press
+                    // itself. See the Aurora window model in clients/tablet/core/ui/README.md.
+                    .pointerInput(Unit) {
+                        awaitEachGesture {
+                            awaitFirstDown(
+                                requireUnconsumed = false,
+                                pass = PointerEventPass.Initial,
+                            )
+                            // onExpandedChange is a toggle, so a press with the list already
+                            // open would close the list the press means to go on using.
+                            val opening = !isExpanded
+                            if (opening) expandRequest()
+                            // Initial again, not Main: on Main the field's own detector has
+                            // consumed the down before this wakes, and a consumed down reads as
+                            // a cancelled gesture on every tap. Here an up is answered before
+                            // consumption is looked at, so the only thing left to be consumed is
+                            // a move — which nothing but a scroll above us takes.
+                            if (waitForUpOrCancellation(PointerEventPass.Initial) != null) {
+                                return@awaitEachGesture
+                            }
+                            // The press never became a tap: the gesture left for the editor's
+                            // scroll, and the field it would have focused never takes focus.
+                            if (opening) expandRequest()
                         }
                     }
-                ).onSizeChanged({ mTextFieldSize = it.toSize() })
                     .focusRequester(focusRequester)
-                    .fillMaxWidth(0.8f)
-                    .onGloballyPositioned { textFieldCoords = it },
+                    .fillMaxWidth(0.8f),
                 value = inputText,
                 singleLine = true,
                 onValueChange = {
@@ -149,10 +178,10 @@ fun EventOrganizerView(
             )
         }
         if (expanded) {
-            OrganizerListPopup(textFieldCoords = textFieldCoords) { listModifier ->
+            OrganizerListPopup(anchorCoords = rowCoords) { listModifier ->
                 LazyColumn(
                     modifier = listModifier
-                        .width(with(density) { mTextFieldSize.width.toDp() })
+                        .width(with(density) { rowSize.width.toDp() })
                         .heightIn(max = 150.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .background(

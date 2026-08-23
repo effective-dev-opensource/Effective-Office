@@ -76,6 +76,42 @@ goes through the rotation, so the window-Y of a node inside the rotated content 
 anything positional has to be measured between two nodes on the same side of the rotation, where it
 cancels out.
 
+The organizer list is what that rule cost. A `Popup` on Aurora is a scene of its own: it comes up
+after a visible pause and shares no ancestor with the field, so it cannot be aimed — carrying the
+field's window coordinates across carries its content-X as a Y. The list goes into
+`ModalHostState.overlay` instead, a slot inside the card's own box, so it appears on the frame it
+opens and everything that moves the card moves it identically. It anchors on the row around the
+field and not on the field itself, because the row is also what it takes its width from: with the
+card 1259 wide, the row at x=61 spanning 1137 and the field at x=96 spanning 854, a list sized to
+the row but placed at the field ran 96..1233 against the row's 61..1198 and hung off the card's
+right edge — the row's own 20.dp horizontal padding, in full. The numbers go to the log under the
+`OrganizerList` tag: `anchor 61,612 in card 1259 x 947; row 1137 x 125; list 1137 x 262` on the
+tablet, `anchor 37,369 in card 756 x 570; row 682 x 75; list 682 x 157` on a small screen. Sizes are
+printed with spaces around the separator on purpose — the deploy plugin scans the app's output for a
+native backtrace, takes a bare `0x0` for an address and ends the run over a line that is only saying
+the list has not been measured yet.
+
+The list also opens on the raw press rather than on the focus callback. Aurora grants focus at the
+end of the maliit handshake, so waiting for it gave press, pause, keyboard, pause, list. Android and
+iOS grant focus on the same gesture, so there the two moments were never apart. A `TextField` asks
+for focus on the up, though, so the press alone is not yet an edit: a gesture that ends up scrolling
+the editor's column has to toggle the list back, or a drag started on the field leaves it open.
+
+Which gesture that is has to be read on the **Initial** pass, and this is the one place where the
+pass really matters. `waitForUpOrCancellation()` treats a consumed change as a cancelled gesture,
+and its default `Main` pass wakes on the down event the field has already consumed — the field takes
+the down in `detectTapAndPress` — so on `Main` every ordinary tap comes back cancelled. On `Initial`
+the down is behind us, an up short-circuits before consumption is looked at, and the only changes
+left to be judged are the moves in between: the field consumes none of those during a tap, and a
+scroll above us consumes them as soon as it passes touch slop. That is the whole difference between
+the two gestures, and it is why the answer is read a pass earlier rather than by a slop measurement
+of our own. The scroll's own consumption happens on `Main`, after us, which is why the check that
+sees it is the `Final`-pass re-read inside the same loop.
+
+The list is gated on `expanded` and not on the focus. Long-pressing into text selection opens the
+list and then cancels the gesture, which closes it again — with the focus granted. Gated on focus,
+the field would sit focused with the list shut and no further tap could reopen it.
+
 The scene density cannot be set on Aurora — the fork builds the scene with the `contentScale` the
 system handed over — so the app fixes its own dp space instead: `ScaledUiDensity` substitutes
 `short_side_px / uiScaleBaseline` and pins `fontScale` to 1 so the system font scale cannot multiply
