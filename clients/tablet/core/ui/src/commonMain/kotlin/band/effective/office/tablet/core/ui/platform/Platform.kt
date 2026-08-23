@@ -1,6 +1,12 @@
 package band.effective.office.tablet.core.ui.platform
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.unit.Dp
 
 expect fun getCurrentLanguageCode(): String
@@ -29,3 +35,22 @@ expect val uiScaleBaseline: Dp
  */
 @Composable
 expect fun DialogSceneFrame(content: @Composable () -> Unit)
+
+/**
+ * What a modal host offers the content inside it; `null` outside one. Anything positional here is
+ * measured against the card, never through window coordinates: on Aurora `positionInWindow()` maps
+ * up through [ForcedLandscape], so the window-Y of a rotated node is its content-X.
+ */
+@Stable
+class ModalHostState {
+    /** The card box, which everything in [overlay] is anchored against so both sides move alike. */
+    var cardCoords: LayoutCoordinates? by mutableStateOf(null)
+
+    /**
+     * Content drawn over the card, inside the card's own box and in the same scene. Stays empty
+     * where such content goes into a `Popup` instead.
+     */
+    var overlay: (@Composable () -> Unit)? by mutableStateOf(null)
+}
+
+val LocalModalHost = compositionLocalOf<ModalHostState?> { null }

@@ -24,7 +24,9 @@ composeApp/
   `InactivityTracking` instance and the `InactivityTracker` that feeds it; starts the platform
   `TimeReceiver` and the periodic room refresh; reads the configured room to pick the start
   destination; draws `VersionOverlay` on top.
-- **AppNavHost**: the navigation graph and the modal host — see [Navigation](#navigation).
+- **AppNavHost**: the navigation graph and the state the modal overlays are driven by — see
+  [Navigation](#navigation).
+- **ModalHost**: the dim, the card and the `ModalHostState` the content inside it is given.
 - **Routes**: the two destinations, `SettingsRoute` and `MainRoute`.
 - **ModalBackHandler**: `expect`/`actual` back-gesture hook for the modal overlays, which are not on
   the nav back stack.
@@ -45,6 +47,12 @@ overlay driven by state held in `AppNavHost`, not a destination. `ModalHost` dra
 backdrop, owns a modal-scoped `ViewModelStoreOwner` cleared on dispose, dismisses on a tap outside
 the card and routes the back gesture to the same dismissal. The inactivity timeout closes whatever
 overlay is up, so a modal is never left addressing one room over another room's schedule.
+
+`ModalHost` also hands the content inside it a `ModalHostState` through `LocalModalHost`. Its slot
+is composed inside the card's own box, after the content and without clipping, so content placed
+there rides every transform applied to the card and may reach above its top edge. On Aurora that is
+where the organizer list is drawn, a `Popup` there being a scene of its own — see the Aurora window
+model in `clients/tablet/core/ui/README.md`.
 
 ### Why the modals are overlays and not `dialog<>` destinations
 
