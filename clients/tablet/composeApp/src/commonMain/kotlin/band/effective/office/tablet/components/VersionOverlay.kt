@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import band.effective.office.tablet.BuildKonfig
@@ -21,21 +22,24 @@ private const val FRACTION_DIGITS = 2
 
 /**
  * Build version in the corner. Where [showsDebugMetrics] is on, it also carries the window size the
- * system handed over (`win`, px), the density (`d`) and the font scale (`fs`).
+ * system handed over (`win`, px), [systemDensity]'s density (`d`) and font scale (`fs`), and the
+ * density in force where the overlay is drawn (`ui`), which is what `ScaledUiDensity` computed.
  */
 @Composable
 fun BoxScope.VersionOverlay(
     modifier: Modifier = Modifier,
+    systemDensity: Density = LocalDensity.current,
     text: String = "v${BuildKonfig.VERSION_NAME}",
 ) {
     val overlayText = if (showsDebugMetrics) {
-        val density = LocalDensity.current
         val windowSize = LocalWindowInfo.current.containerSize
+        val uiDensity = LocalDensity.current.density
         buildString {
             append(text)
             append(" · win ").append(windowSize.width).append(" x ").append(windowSize.height)
-            append(" · d ").append(density.density.twoDecimals())
-            append(" fs ").append(density.fontScale.twoDecimals())
+            append(" · d ").append(systemDensity.density.twoDecimals())
+            append(" fs ").append(systemDensity.fontScale.twoDecimals())
+            append(" · ui ").append(uiDensity.twoDecimals())
         }
     } else {
         text

@@ -11,6 +11,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -57,6 +58,7 @@ fun AppRoot() {
         LocalInactivityTracking provides inactivityTracking,
     ) {
         AppTheme {
+            val systemDensity = LocalDensity.current
             AuroraWindowFrame {
                 InactivityTracker(modifier = Modifier.fillMaxSize()) {
                     Box(modifier = Modifier.fillMaxSize()) {
@@ -68,7 +70,7 @@ fun AppRoot() {
                         ) {
                             AppNavHost(startRoomConfigured = startRoomConfigured)
                         }
-                        VersionOverlay()
+                        VersionOverlay(systemDensity = systemDensity)
                     }
                 }
             }

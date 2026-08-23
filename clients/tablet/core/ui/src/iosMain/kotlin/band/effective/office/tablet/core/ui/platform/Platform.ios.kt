@@ -13,5 +13,7 @@ actual val forceLandscape: Boolean = false
 
 actual val statusBarInset: Dp = 0.dp
 
+actual val uiScaleBaseline: Dp = 0.dp
+
 @Composable
 actual fun DialogSceneFrame(content: @Composable () -> Unit) = content()

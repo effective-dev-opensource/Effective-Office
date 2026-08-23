@@ -76,9 +76,21 @@ goes through the rotation, so the window-Y of a node inside the rotated content 
 anything positional has to be measured between two nodes on the same side of the rotation, where it
 cancels out.
 
+The scene density cannot be set on Aurora — the fork builds the scene with the `contentScale` the
+system handed over — so the app fixes its own dp space instead: `ScaledUiDensity` substitutes
+`short_side_px / uiScaleBaseline` and pins `fontScale` to 1 so the system font scale cannot multiply
+on top of it. The baseline of 686 dp is parity with the reference Android tablet rather than a
+familiar screen size: both live devices are 1200 px on the short side — the Quadro T's window is
+1200x2000, the reference tablet is 1920x1200 — so 1200/686 = 1.7493 against that tablet's own 1.75.
+The two lay out the same, not merely close. The answer goes to the log on every change under the
+`UiScale` tag, e.g. `content 2000x1200, density 1.7492712`.
+
 The order inside the frame is fixed, and each of these rules cost a round trip to the device:
 - the status-bar inset goes **inside** the rotation, or the padding lands in the window's portrait
   coordinate space and draws as a stripe down the edge instead of a band along the top;
+- the inset goes **inside** the scale, not the other way round. `ScaledUiDensity` measures its own
+  constraints, so under the padding it would normalise 1157 px instead of the window's 1200, the
+  parity above would be gone and everything would come out some 3.6% larger;
 - the theme goes **outside** the frame, because `AppTheme`'s own `Surface` is what paints the strip
   the inset leaves bare; with the theme inside, that strip came out white.
 

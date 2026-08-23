@@ -18,6 +18,12 @@ expect val forceLandscape: Boolean
 expect val statusBarInset: Dp
 
 /**
+ * The reference short side, in dp, that [ScaledUiDensity] normalises the window to. Zero on Android
+ * and iOS, where the system hands over a density worth keeping and nothing has to be normalised.
+ */
+expect val uiScaleBaseline: Dp
+
+/**
  * Re-applies around a scene of its own what [AuroraWindowFrame] applies around the root: the fork
  * draws a `Dialog` as a separate scene in the untouched window, which inherits none of it.
  */

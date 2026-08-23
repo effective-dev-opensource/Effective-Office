@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
 /**
  * Everything the Aurora window needs doing to it before an app can be laid out inside. The order
@@ -15,13 +16,19 @@ import androidx.compose.ui.Modifier
 @Composable
 fun AuroraWindowFrame(content: @Composable () -> Unit) {
     ForcedLandscape {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = statusBarInset),
-            contentAlignment = Alignment.Center,
-        ) {
-            content()
+        ScaledUiDensity(modifier = Modifier.fillMaxSize()) {
+            if (statusBarInset <= 0.dp) {
+                content()
+                return@ScaledUiDensity
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = statusBarInset),
+                contentAlignment = Alignment.Center,
+            ) {
+                content()
+            }
         }
     }
 }
