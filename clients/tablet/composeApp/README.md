@@ -103,15 +103,22 @@ answered by dropping the focus, which is the door everything else leaves editing
 
 #### What the shift cannot do
 
-On the reference tablet the editor card is about 940 px tall, the keyboard leaves 583 px of the
-container above it, and the organizer field's bottom edge sits 752 px down the card. To put that
-edge above the keyboard the card has to hang at least 169 px off the top; the card's header ends
-148 px down. The two do not overlap, so the header cannot be on screen at the moment the field is —
-case 4.6 and case 4.7 of the checklist are mutually exclusive at this geometry, and no gap or clamp
-setting reconciles them. The shift favours the field, because a field you cannot see is a field you
-cannot type into; the header stays reachable by scrolling inside the card, which is what the
-editor's `verticalScroll` is for. Making both fit would mean a shorter card while the keyboard is
-up, which is a layout change and not a placement one.
+Measured on the reference tablet: the card is 947 px tall and moves by exactly 245 px, from
+`[330,120][1590,1067]` to `[330,-125][1590,822]`. The field's bottom edge goes from 844 to 599, and
+the keyboard's edge is at 626. The header ends 254 px down the screen before the shift, so 245 px of
+it go past the top edge and 9 px are left.
+
+The header therefore cannot be on screen at the moment the field is, and no gap or clamp setting
+reconciles them: the card is taller than the space the keyboard leaves. The shift favours the field,
+because a field you cannot see is a field you cannot type into.
+
+The header is also not reachable by scrolling, and that is not a defect. The editor's
+`verticalScroll` sits inside the card's 35 dp padding, so its viewport is the card's height less
+122 px, and a viewport equal to its content has no scroll range — the card travels with its own
+viewport. A scroll range appears only when the card is given a maximum smaller than its natural
+height, which is the squeeze this shift replaced. Scrolling was a by-product of squeezing, not a
+fallback beside it. Making both the header and the field fit would mean a shorter card while the
+keyboard is up: a layout change, not a placement one.
 
 ### Why the modals are overlays and not `dialog<>` destinations
 
