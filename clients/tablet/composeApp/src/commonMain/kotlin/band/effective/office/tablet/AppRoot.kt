@@ -21,6 +21,7 @@ import band.effective.office.tablet.core.domain.useCase.ResourceDisposerUseCase
 import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
 import band.effective.office.tablet.core.ui.inactivity.InactivityTracking
 import band.effective.office.tablet.core.ui.inactivity.LocalInactivityTracking
+import band.effective.office.tablet.core.ui.platform.AuroraWindowFrame
 import band.effective.office.tablet.core.ui.theme.AppTheme
 import band.effective.office.tablet.feature.main.domain.RefreshOnTimeZoneChangeUseCase
 import band.effective.office.tablet.navigation.AppNavHost
@@ -56,17 +57,19 @@ fun AppRoot() {
         LocalInactivityTracking provides inactivityTracking,
     ) {
         AppTheme {
-            InactivityTracker(modifier = Modifier.fillMaxSize()) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Box(
-                        modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.background)
-                            .fillMaxSize()
-                            .systemBarsPadding()
-                    ) {
-                        AppNavHost(startRoomConfigured = startRoomConfigured)
+            AuroraWindowFrame {
+                InactivityTracker(modifier = Modifier.fillMaxSize()) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Box(
+                            modifier = Modifier
+                                .background(color = MaterialTheme.colorScheme.background)
+                                .fillMaxSize()
+                                .systemBarsPadding()
+                        ) {
+                            AppNavHost(startRoomConfigured = startRoomConfigured)
+                        }
+                        VersionOverlay()
                     }
-                    VersionOverlay()
                 }
             }
         }

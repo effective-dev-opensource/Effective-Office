@@ -60,6 +60,28 @@ SuccessButton(onClick = { /* handle click */ }) {
 }
 ```
 
+## Aurora window model
+`AuroraWindowFrame` is the one place the Aurora window is prepared for the app, and every scene
+layer applies it: the fork draws `Popup` and `Dialog` as separate scenes in the untouched window, so
+nothing installed at the root reaches them. `DialogSceneFrame` is that re-application for a dialog.
+On Android and iOS the flags behind the frame are off and every wrapper passes its content through.
+
+The window arrives portrait on every live device — 1200x2000 on the Quadro T, 720x1600 on the dev
+phone — while the app is a landscape kiosk, so `ForcedLandscape` rotates the content by 90°. That is
+a drawing effect and the window's own geometry never changes, which has two consequences. System
+gestures stay in the portrait window: on the TrustPhone the close gesture fires from the physical
+side edge and the swipe from the bottom does nothing, and this cannot be fixed from inside the app —
+the fork would have to report the content orientation to the compositor. And `positionInWindow()`
+goes through the rotation, so the window-Y of a node inside the rotated content is its content-X;
+anything positional has to be measured between two nodes on the same side of the rotation, where it
+cancels out.
+
+The order inside the frame is fixed, and each of these rules cost a round trip to the device:
+- the status-bar inset goes **inside** the rotation, or the padding lands in the window's portrait
+  coordinate space and draws as a stripe down the edge instead of a band along the top;
+- the theme goes **outside** the frame, because `AppTheme`'s own `Surface` is what paints the strip
+  the inset leaves bare; with the theme inside, that strip came out white.
+
 ## Fork defects
 Corrections to the Aurora fork's own bugs. Each is expected to die when the fork is fixed, and each
 is marked `// Fork defect:` at its site.

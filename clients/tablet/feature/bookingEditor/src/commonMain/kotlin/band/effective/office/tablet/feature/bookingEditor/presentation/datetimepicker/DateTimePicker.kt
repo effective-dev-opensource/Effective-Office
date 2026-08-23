@@ -27,6 +27,7 @@ import androidx.compose.ui.window.DialogProperties
 import band.effective.office.tablet.core.ui.common.CrossButtonView
 import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
 import band.effective.office.tablet.core.ui.inactivity.LocalInactivityTracking
+import band.effective.office.tablet.core.ui.platform.DialogSceneFrame
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.header8
 import band.effective.office.tablet.core.ui.time_booked
@@ -57,8 +58,9 @@ fun DateTimePicker(dateTimePickerComponent: DateTimePickerComponent) {
 }
 
 /**
- * The picker owns the only `Dialog` in the chain, and re-applies the inactivity tracker that a
- * scene of its own does not inherit. See Navigation in clients/tablet/composeApp/README.md.
+ * The picker owns the only `Dialog` in the chain, and re-applies to its own scene what the root
+ * installed and the scene does not inherit: the inactivity tracker and the Aurora window frame.
+ * See Navigation in clients/tablet/composeApp/README.md.
  */
 @Composable
 fun DateTimePicker(
@@ -87,57 +89,59 @@ fun DateTimePicker(
         )
     ) {
         InactivityTracker {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight(0.8f)
-                    .fillMaxWidth(0.8f)
-                    .clip(RoundedCornerShape(3))
-                    .background(LocalCustomColorsPalette.current.elevationBackground)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+            DialogSceneFrame {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight(0.8f)
+                        .fillMaxWidth(0.8f)
+                        .clip(RoundedCornerShape(3))
+                        .background(LocalCustomColorsPalette.current.elevationBackground)
                 ) {
-                    CrossButtonView(
-                        onDismissRequest = onCloseRequest,
-                        modifier = Modifier.fillMaxWidth(1f)
-                    )
-                    Row(
-                        modifier = Modifier.padding(10.dp).fillMaxHeight(0.8f),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        TimePickerView(
-                            modifier = Modifier.fillMaxWidth(0.3f),
-                            currentDate = currentDate,
-                            onSnap = onTimePicked
+                        CrossButtonView(
+                            onDismissRequest = onCloseRequest,
+                            modifier = Modifier.fillMaxWidth(1f)
                         )
-                        Spacer(Modifier.width(40.dp))
-                        DatePickerView(
-                            modifier = Modifier.fillMaxWidth(0.6f).fillMaxHeight(),
-                            currentDate = currentDate,
-                            onChangeDate = onDatePicked,
-                        )
-                    }
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        Button(
-                            modifier = Modifier.align(Alignment.Center)
-                                .fillMaxWidth(0.3f),
-                            onClick = {
-                                onCloseRequest()
-                            },
-                            enabled = enableDateButton,
-                            colors = buttonColors(
-                                containerColor = LocalCustomColorsPalette.current.pressedPrimaryButton
-                            )
+                        Row(
+                            modifier = Modifier.padding(10.dp).fillMaxHeight(0.8f),
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(
-                                text = when (enableDateButton) {
-                                    true -> DateDisplayMapper.formatForPicker(currentDate)
-                                    false -> stringResource(band.effective.office.tablet.core.ui.Res.string.time_booked)
-                                },
-                                style = header8,
-                                color = LocalCustomColorsPalette.current.primaryTextAndIcon,
+                            TimePickerView(
+                                modifier = Modifier.fillMaxWidth(0.3f),
+                                currentDate = currentDate,
+                                onSnap = onTimePicked
                             )
+                            Spacer(Modifier.width(40.dp))
+                            DatePickerView(
+                                modifier = Modifier.fillMaxWidth(0.6f).fillMaxHeight(),
+                                currentDate = currentDate,
+                                onChangeDate = onDatePicked,
+                            )
+                        }
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Button(
+                                modifier = Modifier.align(Alignment.Center)
+                                    .fillMaxWidth(0.3f),
+                                onClick = {
+                                    onCloseRequest()
+                                },
+                                enabled = enableDateButton,
+                                colors = buttonColors(
+                                    containerColor = LocalCustomColorsPalette.current.pressedPrimaryButton
+                                )
+                            ) {
+                                Text(
+                                    text = when (enableDateButton) {
+                                        true -> DateDisplayMapper.formatForPicker(currentDate)
+                                        false -> stringResource(band.effective.office.tablet.core.ui.Res.string.time_booked)
+                                    },
+                                    style = header8,
+                                    color = LocalCustomColorsPalette.current.primaryTextAndIcon,
+                                )
+                            }
                         }
                     }
                 }
