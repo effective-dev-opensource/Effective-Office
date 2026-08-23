@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.arrow_to_down
+import band.effective.office.tablet.core.ui.platform.noteSoftKeyboardExpected
 import band.effective.office.tablet.core.ui.res.painterResource
 import band.effective.office.tablet.core.ui.selectbox_organizer_error
 import band.effective.office.tablet.core.ui.selectbox_organizer_title
@@ -120,6 +121,7 @@ fun EventOrganizerView(
                                 requireUnconsumed = false,
                                 pass = PointerEventPass.Initial,
                             )
+                            noteSoftKeyboardExpected()
                             // onExpandedChange is a toggle, so a press with the list already
                             // open would close the list the press means to go on using.
                             val opening = !isExpanded

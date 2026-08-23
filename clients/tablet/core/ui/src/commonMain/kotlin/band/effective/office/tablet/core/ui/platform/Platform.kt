@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.unit.Dp
+import kotlin.time.Duration.Companion.seconds
 
 expect fun getCurrentLanguageCode(): String
 
@@ -35,6 +36,27 @@ expect val uiScaleBaseline: Dp
  */
 @Composable
 expect fun DialogSceneFrame(content: @Composable () -> Unit)
+
+/**
+ * How many pixels of the app's own content area the on-screen keyboard covers. Zero on iOS, where
+ * the host shortens the scene instead — see "The on-screen keyboard" in
+ * clients/tablet/core/ui/README.md.
+ */
+@Composable
+expect fun softKeyboardOverlapPx(): Int
+
+/**
+ * Tells the platform a field has just been pressed, before it can know. Only Aurora listens, where
+ * every honest sign of a keyboard arrives after the keyboard itself.
+ */
+expect fun noteSoftKeyboardExpected()
+
+/**
+ * How long a press stands as a promise of a keyboard and of the focus that comes with it. One
+ * number for both, or the shorter of the two expires mid-handshake and drops what the longer is
+ * still holding up; the Aurora handshake has been seen to take six seconds.
+ */
+internal val SOFT_KEYBOARD_PRESS_GRACE = 10.seconds
 
 /**
  * What a modal host offers the content inside it; `null` outside one. Anything positional here is

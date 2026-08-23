@@ -17,3 +17,9 @@ actual val uiScaleBaseline: Dp = 0.dp
 
 @Composable
 actual fun DialogSceneFrame(content: @Composable () -> Unit) = content()
+
+// UIKit shortens the scene to the area above the keyboard, so nothing that is left is covered.
+@Composable
+actual fun softKeyboardOverlapPx(): Int = 0
+
+actual fun noteSoftKeyboardExpected() = Unit

@@ -130,6 +130,50 @@ The order inside the frame is fixed, and each of these rules cost a round trip t
 - the theme goes **outside** the frame, because `AppTheme`'s own `Surface` is what paints the strip
   the inset leaves bare; with the theme inside, that strip came out white.
 
+## The on-screen keyboard
+`softKeyboardOverlapPx()` answers how many pixels of the app's own content the keyboard covers, and
+the three platforms mean three different things by it. Android draws edge to edge and never resizes
+its window, so the answer is the ime inset less the navigation bar the content is already padded
+away from. iOS shortens the Compose scene to the area above the keyboard before any of this runs, so
+the answer is zero — subtracting the height a second time collapses the card, which it did. Aurora
+covers the content the way Android does and tells nobody, so the height comes out of the maliit
+session, and everything below is about making that number usable.
+
+**It has to be asked for, not listened to.** `Keyboard.listenState` fires when the keyboard opens
+but carries `height = 0`; maliit sends the size in a follow-up event that never reaches the app.
+Worse, a second `listenState` subscription beside the fork's own kills maliit outright — after the
+first session closes the keyboard does not come back without a restart. So `Keyboard.height()` is
+polled every 100 ms while the modal that reads it is on screen. This looks like a stopgap and is
+not one: **do not turn it back into a subscription.** Polling also comes out ahead on its own
+merits — there is nothing to lose on `onWindowPause()`, the answer grows with the keyboard as it
+slides in, and a keyboard swiped away behind the app's back shows up as a zero on the next tick.
+
+**The number cannot be taken at face value.** The dev phone answers 535 against a 720x1600 screen —
+keyboard-shaped. The Quadro T answers 2000 against 1200x2000, the screen's whole long side: maliit's
+surface spans the screen, and the key strip's own thickness is nowhere in the binding, down to the
+libac struct `{ height, is_open }`. The SDK emulator answers an honest 520 out of 1200; the
+TrustPhone T1 answers nothing at all, `reported=0`. Hence the rule: anything reaching the screen's
+short side is a surface rather than a keyboard, and 0.43 of that side is substituted. The fraction
+is measured twice, not guessed — a 520 px key strip across the Quadro T's 1200 px short side in a
+screenshot, and the emulator's own 520 out of the same 1200.
+
+`Keyboard.isOpen()` is never a gate on the poll, only a line in the log: it has read `false` with
+the keyboard up, and on the tablet it kept the poll silent for a whole session.
+
+**A press is taken as a promise of a keyboard.** The fork starts the maliit session synchronously
+and grants focus at the end of it — six seconds on the Quadro T, with focus given and taken away in
+between. Focus, `isOpen()` and the state event all become true after the keyboard has already
+covered the field, so `noteSoftKeyboardExpected()` on the press is the only signal that comes
+first. The promise lives ten seconds and is dropped the moment a keyboard really appears or editing
+ends. Three seconds was tried and expired mid-handshake: the modal dropped back, the host read that
+as a keyboard going away, cleared the focus and closed the session — the app fighting the keyboard
+it had summoned itself. A short settle window keeps a stale `isOpen() = true` from the previous
+session from spending the promise before the keyboard has moved.
+
+The poll's answers go to the log under the `SoftKeyboard` tag on change only, with the raw height
+and the screen beside the number actually used, so a run off a new device says which branch it took.
+Sizes are printed with spaces around the separator for the reason the `OrganizerList` line gives.
+
 ## Fork defects
 Corrections to the Aurora fork's own bugs. Each is expected to die when the fork is fixed, and each
 is marked `// Fork defect:` at its site.

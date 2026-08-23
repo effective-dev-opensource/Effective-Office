@@ -16,3 +16,8 @@ actual val uiScaleBaseline: Dp = 686.dp
 actual fun DialogSceneFrame(content: @Composable () -> Unit) {
     AuroraWindowFrame { content() }
 }
+
+@Composable
+actual fun softKeyboardOverlapPx(): Int = auroraKeyboardOverlapPx()
+
+actual fun noteSoftKeyboardExpected() = noteAuroraKeyboardExpected()
