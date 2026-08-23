@@ -151,3 +151,27 @@ Aurora packages compose resources flat and without a namespace: `<qualifier>/<fi
 module's `Res` reaches it first reads the other module's bytes at its own offsets. That is why every
 tablet module names its string file differently, and why `stageAuroraResources` gathers them with
 `duplicatesStrategy = FAIL`: a future clash is a build error instead of a wrong read at runtime.
+
+### Resource language on Aurora
+`stringResource` does not ask `getCurrentLanguageCode()` anything. It resolves through a
+`ResourceEnvironment`, which `components-resources` builds from
+`androidx.compose.ui.text.intl.Locale.current`, and every seam in between —
+`ComposeEnvironment`, `LocalComposeEnvironment`, the `ResourceEnvironment` constructor — is
+`internal`. There is nothing public to substitute.
+
+On Linux the fork's `PlatformLocale` delegate reads the locale off the process environment with
+`getenv`, trying `LC_ALL`, `LC_COLLATE`, `LC_CTYPE`, `LC_MESSAGES`, `LC_MONETARY`, `LC_NUMERIC`,
+`LC_TIME`, `LANG` in that order and falling back to `en-US` when none of them holds anything but
+`C` or `POSIX`. It never consults `setlocale`, so `setenv` is the whole mechanism, and `LC_ALL` is
+the one key nothing already in the session can shadow. `main` sets it before anything else runs.
+
+The value has to be a full `<language>_<REGION>` name: the delegate cuts the codeset off at `.`,
+splits the rest on `_`, and answers `en-US` unless it gets exactly two parts — `ru` alone would
+land the app in English. The codeset is spelled `ru_RU.utf8`, the way the device spells it;
+`setlocale` does not recognise `ru_RU.UTF-8` here, and the system's own components pick the same
+name up from `LC_ALL`. `AURORA_LOCALE` in `core/ui` holds it, and `getCurrentLanguageCode()` is
+its language part, so the language is stated once.
+
+Without this, the language followed whoever started the process: launched from the device launcher
+with `LANG=ru_RU.utf8` the app came up Russian, and started from an ssh session with an empty
+environment the same build came up English.

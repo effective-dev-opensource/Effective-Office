@@ -4,7 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-actual fun getCurrentLanguageCode(): String = "ru"
+/**
+ * POSIX name of the locale the app runs under, spelled the way Aurora spells it. `main` puts it
+ * into the process environment — see "Resource language on Aurora" in
+ * clients/tablet/composeApp/README.md.
+ */
+const val AURORA_LOCALE = "ru_RU.utf8"
+
+actual fun getCurrentLanguageCode(): String = AURORA_LOCALE.substringBefore('_')
 
 actual val forceLandscape: Boolean = true
 
