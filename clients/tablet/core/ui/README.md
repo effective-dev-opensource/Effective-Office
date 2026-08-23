@@ -98,15 +98,31 @@ for focus on the up, though, so the press alone is not yet an edit: a gesture th
 the editor's column has to toggle the list back, or a drag started on the field leaves it open.
 
 Which gesture that is has to be read on the **Initial** pass, and this is the one place where the
-pass really matters. `waitForUpOrCancellation()` treats a consumed change as a cancelled gesture,
-and its default `Main` pass wakes on the down event the field has already consumed — the field takes
-the down in `detectTapAndPress` — so on `Main` every ordinary tap comes back cancelled. On `Initial`
-the down is behind us, an up short-circuits before consumption is looked at, and the only changes
-left to be judged are the moves in between: the field consumes none of those during a tap, and a
-scroll above us consumes them as soon as it passes touch slop. That is the whole difference between
-the two gestures, and it is why the answer is read a pass earlier rather than by a slop measurement
-of our own. The scroll's own consumption happens on `Main`, after us, which is why the check that
-sees it is the `Final`-pass re-read inside the same loop.
+pass really matters. Everything below turns on one fact: consumption is what marks a gesture
+cancelled, and *who has already run* decides whether we can see it.
+
+`waitForUpOrCancellation()` treats a consumed change as cancelled, and `changedToUp()` is itself
+`!isConsumed && previousPressed && !pressed` — an up that somebody has taken is not an up as far as
+that function is concerned. Its default `Main` pass wakes on the **down** event the field has just
+consumed in `detectTapAndPress`, so on `Main` every ordinary tap comes back cancelled. That was the
+bug.
+
+On `Initial` two things are true instead. The down is behind us — our own `awaitFirstDown` spent
+that node's `Initial` dispatch, so the loop begins at the next event. And the up is still unconsumed
+when we see it: `Initial` runs root to leaf, the field is our descendant and takes the up on `Main`,
+which comes after. So `changedToUp()` is true for us and the tap is recognised — not because the up
+branch is checked before consumption is, but because at that moment nothing has consumed it yet.
+
+What is left to judge is the moves in between, and those separate the two gestures cleanly: the
+field consumes none of them during a tap, while a scroll above us consumes them as soon as it passes
+touch slop. Its consumption happens on `Main`, where the parent runs after the child, so it is not
+visible to us on that pass — the `Final` re-read inside the same loop is what sees it. `Final` also
+runs root to leaf, so the ordering that makes it work is not sibling order but the fact that the
+whole `Final` sweep is dispatched after the whole `Main` sweep, as a second traversal
+(`HitPathTracker.dispatchChanges`).
+
+None of this survives being moved: a `pointerInput` placed under an ancestor that consumes on
+`Initial` would read cancelled again, and the reasoning would have to be redone rather than assumed.
 
 The list is gated on `expanded` and not on the focus. Long-pressing into text selection opens the
 list and then cancels the gesture, which closes it again — with the focus granted. Gated on focus,

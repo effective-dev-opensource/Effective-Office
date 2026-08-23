@@ -166,11 +166,9 @@ fun EventOrganizerView(
                             // open would close the list the press means to go on using.
                             val opening = !isExpanded
                             if (opening) expandRequest()
-                            // Initial again, not Main: on Main the field's own detector has
-                            // consumed the down before this wakes, and a consumed down reads as
-                            // a cancelled gesture on every tap. Here an up is answered before
-                            // consumption is looked at, so the only thing left to be consumed is
-                            // a move — which nothing but a scroll above us takes.
+                            // Initial, not the default Main: the pass this is read on is what
+                            // tells a tap from a scroll, and moving it breaks that. See the
+                            // Aurora window model in clients/tablet/core/ui/README.md.
                             if (waitForUpOrCancellation(PointerEventPass.Initial) != null) {
                                 // Taken back if the focus never confirms the press: a value
                                 // left behind has the host lifting the card for nobody. Same
