@@ -84,6 +84,19 @@ derived from the other: heights feed composition and have to invalidate it, posi
 measurement; the same `LayoutCoordinates` instance comes back every time, so a state holding one
 never reports a change.
 
+A tap on the dim takes one step back, not two: with the keyboard up it drops the focus and leaves
+the modal standing, and only closes the modal once there is no keyboard left to close. iOS has no
+dismiss key on its keyboard, so without that the only way out of the keyboard was to close the
+whole editor. Cases 9.5 and 9.6 still hold — with no field being edited the first tap dismisses.
+
+The step back is gated on `ModalHostState.editing`, the real focus, and not on
+`focusedFieldBottom`. The two are different questions: the position is written on the press so the
+card can move before Aurora grants focus, and it stands for the whole grace whether focus arrives
+or not. A press that never earns focus is not hypothetical — a tap that only halts the editor's
+fling has its down consumed on the `Initial` pass by the scroll, so the field's own detector, which
+requires an unconsumed down, never runs. Gated on the position, the dim would refuse to dismiss for
+ten seconds after such a tap.
+
 A keyboard that goes away behind the app's back — a real gesture on Aurora, which the fork does not
 report — shows up as the overlap dropping back to zero. That is taken as the end of editing and
 answered by dropping the focus, which is the door everything else leaves editing through.

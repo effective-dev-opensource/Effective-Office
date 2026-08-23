@@ -115,6 +115,7 @@ fun EventOrganizerView(
     DisposableEffect(modalHost) {
         onDispose {
             modalHost?.focusedFieldBottom = null
+            modalHost?.editing = false
             if (isFocused) closeSoftKeyboard()
         }
     }
@@ -192,6 +193,7 @@ fun EventOrganizerView(
                             // when it appears, and that is not the end of a session nobody started.
                             val wasFocused = isFocused
                             isFocused = it.isFocused
+                            modalHost?.editing = it.isFocused
                             if (it.isFocused) {
                                 // Said again on the way in: the layout callback only fires when
                                 // the layout changes, and on Aurora focus arrives long after

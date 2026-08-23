@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -52,6 +53,7 @@ internal fun ModalHost(
         onDispose { storeOwner.viewModelStore.clear() }
     }
 
+    val focusManager = LocalFocusManager.current
     val modal = remember { ModalHostState() }
 
     // Both boxes report a height and a position, and those are not two ways of asking the same
@@ -67,12 +69,24 @@ internal fun ModalHost(
         cardHeightPx = cardHeight,
     )
 
+    // One step back, not two: with the keyboard up a tap on the dim puts the keyboard away and
+    // leaves the modal standing. iOS has no dismiss key on its keyboard, so without this the only
+    // way out of the keyboard is to close the whole editor.
+    //
+    // On the real focus, not on focusedFieldBottom: that one is written on the press and stands
+    // for the whole grace, so a press that never earned a focus — a tap that only halted the
+    // editor's fling, whose down a scroll consumes before the field sees it — would have the dim
+    // refusing to dismiss for as long as the promise lasts.
+    val onDimTap: () -> Unit = {
+        if (modal.editing) focusManager.clearFocus() else onDismiss()
+    }
+
     CompositionLocalProvider(
         LocalViewModelStoreOwner provides storeOwner,
         LocalModalHost provides modal,
     ) {
         DimBox(
-            onTap = onDismiss,
+            onTap = onDimTap,
             onHeightMeasured = { containerHeight = it },
             onPositioned = { modal.containerCoords = it },
         ) {

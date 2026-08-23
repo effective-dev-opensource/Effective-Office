@@ -74,11 +74,18 @@ expect fun closeSoftKeyboard()
 @Stable
 class ModalHostState {
     /**
-     * Bottom edge of the field being edited, in [containerCoords] space, or `null` when none. The
-     * field writes it while it holds focus: what has to clear the keyboard is the field, and only
-     * the field knows where it is.
+     * Bottom edge of the field being aimed at, in [containerCoords] space, or `null` when none.
+     * Written from the press onward, ahead of any focus, because what has to clear the keyboard is
+     * the field and only the field knows where it is. Optimistic by design — see [editing].
      */
     var focusedFieldBottom: Int? by mutableStateOf(null)
+
+    /**
+     * Whether a field inside the host really holds focus. Not the same question as
+     * [focusedFieldBottom] being set, and not derivable from it: that one is written ahead of the
+     * focus, on the press, and stands until the promise expires even if no focus ever arrives.
+     */
+    var editing: Boolean by mutableStateOf(false)
 
     /** The host's full-screen box — the frame [focusedFieldBottom] is measured in. */
     var containerCoords: LayoutCoordinates? by mutableStateOf(null)
