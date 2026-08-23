@@ -54,6 +54,52 @@ there rides every transform applied to the card and may reach above its top edge
 where the organizer list is drawn, a `Popup` there being a scene of its own — see the Aurora window
 model in `clients/tablet/core/ui/README.md`.
 
+### Keeping a modal clear of the on-screen keyboard
+
+`modalKeyboardShift` works out what the keyboard costs the card and `ModalHost` applies it. It aims
+at **the focused field, not the card**: the card is asked to keep its full height, and only the
+field has to end up above the keyboard. Padding the box instead — which is what `imePadding()` did
+here on Android — squashes the card into the room that is left, and its content then clips from the
+inside: the header disappears, the date row loses 42 px and the confirm button is off the bottom.
+The two cannot both be applied, so the padding is gone.
+
+Everything positional is measured in the host container's own space. `positionInWindow()` is
+unusable on Aurora, where `ForcedLandscape` sits between the window and the content and the window-Y
+of a rotated node is its content-X — the tablet reported a field bottom of 557 in a 1200-tall
+container against a 540 px keyboard, and the host duly decided nothing was in the way. So the field
+writes its bottom edge into `ModalHostState.focusedFieldBottom` in container space while it holds
+focus, the top of the keyboard is the container height less the overlap, and the two are compared
+where the rotation cancels out. The field is the one that reports, because what has to clear the
+keyboard is the field and only the field knows where it is.
+
+The card is moved by a `graphicsLayer` translation and never by a layout offset: the field reports
+its position from layout, so a layout offset would feed the shift back into its own input and the
+card would jitter between two positions. For the same reason the resting position is captured once,
+while the shift is still zero. The height cap is a `requiredHeightIn` against the tallest the
+container has ever been, so that on iOS — where the host shortens the whole scene for the keyboard —
+the card goes on being measured against the screen it had before.
+
+`ModalHost` also reports both a height and a position for each of its two boxes, and one cannot be
+derived from the other: heights feed composition and have to invalidate it, positions feed
+measurement; the same `LayoutCoordinates` instance comes back every time, so a state holding one
+never reports a change.
+
+A keyboard that goes away behind the app's back — a real gesture on Aurora, which the fork does not
+report — shows up as the overlap dropping back to zero. That is taken as the end of editing and
+answered by dropping the focus, which is the door everything else leaves editing through.
+
+#### What the shift cannot do
+
+On the reference tablet the editor card is about 940 px tall, the keyboard leaves 583 px of the
+container above it, and the organizer field's bottom edge sits 752 px down the card. To put that
+edge above the keyboard the card has to hang at least 169 px off the top; the card's header ends
+148 px down. The two do not overlap, so the header cannot be on screen at the moment the field is —
+case 4.6 and case 4.7 of the checklist are mutually exclusive at this geometry, and no gap or clamp
+setting reconciles them. The shift favours the field, because a field you cannot see is a field you
+cannot type into; the header stays reachable by scrolling inside the card, which is what the
+editor's `verticalScroll` is for. Making both fit would mean a shorter card while the keyboard is
+up, which is a layout change and not a placement one.
+
 ### Why the modals are overlays and not `dialog<>` destinations
 
 A `dialog<>` destination is a nested window, and calf's date and time pickers are native UIKit views

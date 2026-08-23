@@ -57,15 +57,29 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.arrow_to_down
+import band.effective.office.tablet.core.ui.platform.LocalModalHost
+import band.effective.office.tablet.core.ui.platform.ModalHostState
+import band.effective.office.tablet.core.ui.platform.SOFT_KEYBOARD_PRESS_GRACE
 import band.effective.office.tablet.core.ui.platform.closeSoftKeyboard
+import band.effective.office.tablet.core.ui.platform.fieldBottomIn
 import band.effective.office.tablet.core.ui.platform.noteSoftKeyboardExpected
 import band.effective.office.tablet.core.ui.res.painterResource
 import band.effective.office.tablet.core.ui.selectbox_organizer_error
 import band.effective.office.tablet.core.ui.selectbox_organizer_title
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h8
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+
+/**
+ * Tells [host] where the row's bottom edge is, in the host's own space. Only ever an improvement on
+ * what it knows: writing a null through would erase a good value with nothing left to restore it.
+ */
+private fun reportFieldBottom(host: ModalHostState?, row: LayoutCoordinates?) {
+    if (host == null || row == null) return
+    fieldBottomIn(host.containerCoords, row)?.let { host.focusedFieldBottom = it }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,11 +108,15 @@ fun EventOrganizerView(
     var rowCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
+    val modalHost = LocalModalHost.current
 
     // The net under the focus-lost branch: the field can be taken off screen mid-edit — the back
     // gesture, the inactivity reset — and no focus change is reported when that happens.
-    DisposableEffect(Unit) {
-        onDispose { if (isFocused) closeSoftKeyboard() }
+    DisposableEffect(modalHost) {
+        onDispose {
+            modalHost?.focusedFieldBottom = null
+            if (isFocused) closeSoftKeyboard()
+        }
     }
 
     Column(modifier = modifier) {
@@ -118,6 +136,10 @@ fun EventOrganizerView(
                     // the DropDown the same width
                     rowSize = coordinates.size.toSize()
                     rowCoords = coordinates
+                    // From layout rather than an effect: the edge moves when the platform resizes
+                    // the scene under the keyboard, and a value cached off a coordinates reference
+                    // would go on reporting where the field used to be.
+                    if (isFocused) reportFieldBottom(modalHost, coordinates)
                 }
                 .clip(RoundedCornerShape(15.dp))
                 .background(color = LocalCustomColorsPalette.current.elevationBackground)
@@ -136,6 +158,9 @@ fun EventOrganizerView(
                                 pass = PointerEventPass.Initial,
                             )
                             noteSoftKeyboardExpected()
+                            // Where the field is belongs to the press for the reason the list
+                            // does: on Aurora focus arrives once the keyboard already covers it.
+                            reportFieldBottom(modalHost, rowCoords)
                             // onExpandedChange is a toggle, so a press with the list already
                             // open would close the list the press means to go on using.
                             val opening = !isExpanded
@@ -146,11 +171,19 @@ fun EventOrganizerView(
                             // consumption is looked at, so the only thing left to be consumed is
                             // a move — which nothing but a scroll above us takes.
                             if (waitForUpOrCancellation(PointerEventPass.Initial) != null) {
+                                // Taken back if the focus never confirms the press: a value
+                                // left behind has the host lifting the card for nobody. Same
+                                // grace as the keyboard notice, so the two expire together.
+                                scope.launch {
+                                    delay(SOFT_KEYBOARD_PRESS_GRACE)
+                                    if (!isFocused) modalHost?.focusedFieldBottom = null
+                                }
                                 return@awaitEachGesture
                             }
                             // The press never became a tap: the gesture left for the editor's
                             // scroll, and the field it would have focused never takes focus.
                             if (opening) expandRequest()
+                            if (!isFocused) modalHost?.focusedFieldBottom = null
                         }
                     }
                     .onFocusChanged(
@@ -159,7 +192,15 @@ fun EventOrganizerView(
                             // when it appears, and that is not the end of a session nobody started.
                             val wasFocused = isFocused
                             isFocused = it.isFocused
-                            if (wasFocused && !it.isFocused) closeSoftKeyboard()
+                            if (it.isFocused) {
+                                // Said again on the way in: the layout callback only fires when
+                                // the layout changes, and on Aurora focus arrives long after
+                                // everything has settled.
+                                reportFieldBottom(modalHost, rowCoords)
+                            } else if (wasFocused) {
+                                modalHost?.focusedFieldBottom = null
+                                closeSoftKeyboard()
+                            }
                         },
                     )
                     .focusRequester(focusRequester)

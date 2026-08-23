@@ -1,7 +1,6 @@
 package band.effective.office.tablet.platform
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 
 expect val isDebug: Boolean
 
@@ -15,10 +14,3 @@ expect val showsDebugMetrics: Boolean
  */
 @Composable
 expect fun ModalBackHandler(onBack: () -> Unit)
-
-/**
- * Keeps a modal overlay clear of the on-screen keyboard. A no-op where the host already shortens
- * the scene for it — subtracting the keyboard twice collapses the card. See Navigation in
- * clients/tablet/composeApp/README.md.
- */
-expect fun Modifier.modalKeyboardPadding(): Modifier

@@ -6,8 +6,10 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.unit.Dp
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 
 expect fun getCurrentLanguageCode(): String
@@ -71,6 +73,16 @@ expect fun closeSoftKeyboard()
  */
 @Stable
 class ModalHostState {
+    /**
+     * Bottom edge of the field being edited, in [containerCoords] space, or `null` when none. The
+     * field writes it while it holds focus: what has to clear the keyboard is the field, and only
+     * the field knows where it is.
+     */
+    var focusedFieldBottom: Int? by mutableStateOf(null)
+
+    /** The host's full-screen box — the frame [focusedFieldBottom] is measured in. */
+    var containerCoords: LayoutCoordinates? by mutableStateOf(null)
+
     /** The card box, which everything in [overlay] is anchored against so both sides move alike. */
     var cardCoords: LayoutCoordinates? by mutableStateOf(null)
 
@@ -82,3 +94,15 @@ class ModalHostState {
 }
 
 val LocalModalHost = compositionLocalOf<ModalHostState?> { null }
+
+/**
+ * Bottom edge of [field] in [container]'s space, for [ModalHostState.focusedFieldBottom]. Null
+ * until there is a container to measure against, rather than falling back to window space, which
+ * on Aurora would answer with the rotation still in it.
+ */
+fun fieldBottomIn(container: LayoutCoordinates?, field: LayoutCoordinates): Int? =
+    if (container != null && container.isAttached && field.isAttached) {
+        container.localPositionOf(field, Offset(0f, field.size.height.toFloat())).y.roundToInt()
+    } else {
+        null
+    }
