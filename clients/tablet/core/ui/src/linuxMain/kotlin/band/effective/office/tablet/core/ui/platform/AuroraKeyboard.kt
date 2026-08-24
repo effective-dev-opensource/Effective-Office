@@ -3,6 +3,7 @@ package band.effective.office.tablet.core.ui.platform
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.withFrameNanos
 import io.github.aakira.napier.Napier
@@ -26,8 +27,27 @@ private val KEYBOARD_NOTICE_SETTLE = 300.milliseconds
 
 private var keyboardExpectedAt: TimeSource.Monotonic.ValueTimeMark? = null
 
+/** Short side of the screen, kept from the last poll so the promise need not ask for it. */
+private var lastShortSidePx = 0
+
+/**
+ * What the press alone is willing to claim, published without waiting for a poll: the first call
+ * into the maliit binding blocks until the fork has opened the session, which is the very wait the
+ * promise exists to cover.
+ */
+private val promisedOverlapPx = mutableStateOf(0)
+
 internal fun noteAuroraKeyboardExpected() {
     keyboardExpectedAt = TimeSource.Monotonic.markNow()
+    val shortSide = lastShortSidePx
+    if (shortSide > 0) {
+        promisedOverlapPx.value = (shortSide * KEYBOARD_COVER_FRACTION).roundToInt()
+    }
+}
+
+private fun dropKeyboardPromise() {
+    keyboardExpectedAt = null
+    promisedOverlapPx.value = 0
 }
 
 /** One poll's worth of what the keyboard and the screen say, kept together for the log line. */
@@ -51,6 +71,7 @@ private fun readKeyboard(): KeyboardReading {
     val screenWidth = Window.screenWidth()
     val screenHeight = Window.screenHeight()
     val shortSide = minOf(screenWidth, screenHeight)
+    if (shortSide > 0) lastShortSidePx = shortSide
 
     if (shortSide <= 0) {
         return KeyboardReading(
@@ -70,7 +91,9 @@ private fun readKeyboard(): KeyboardReading {
     // A kept promise is dropped, or closing the keyboard inside the grace window would lift the
     // card straight back up for the rest of it.
     if (notice != null && (believable || (isOpen && notice.elapsedNow() > KEYBOARD_NOTICE_SETTLE))) {
-        keyboardExpectedAt = null
+        dropKeyboardPromise()
+    } else if (notice != null && !expected) {
+        dropKeyboardPromise()
     }
 
     val overlap = when {
@@ -97,6 +120,7 @@ private fun readKeyboard(): KeyboardReading {
  */
 @Composable
 internal fun auroraKeyboardOverlapPx(): Int {
+    val promised by promisedOverlapPx
     val overlap by produceState(0) {
         while (true) {
             val reading = runCatching { readKeyboard() }.getOrElse {
@@ -115,7 +139,8 @@ internal fun auroraKeyboardOverlapPx(): Int {
             delay(KEYBOARD_POLL_MS)
         }
     }
-    return overlap
+    // The promise wins only while it is larger: once maliit answers, its own height is the truth.
+    return maxOf(overlap, promised)
 }
 
 /** Conflated: ten requests before the next frame mean one close, which is all a session needs. */
@@ -126,7 +151,7 @@ private val keyboardCloseRequests = Channel<Unit>(Channel.CONFLATED)
 internal fun requestAuroraKeyboardClose() {
     // Editing is over, so nobody is waiting for a keyboard: a promise left to expire would lift the
     // modal over an empty screen.
-    keyboardExpectedAt = null
+    dropKeyboardPromise()
     keyboardCloseRequests.trySend(Unit)
 }
 
