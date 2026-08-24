@@ -186,6 +186,20 @@ as a keyboard going away, cleared the focus and closed the session — the app f
 it had summoned itself. A short settle window keeps a stale `isOpen() = true` from the previous
 session from spending the promise before the keyboard has moved.
 
+**The promise has to publish its own estimate, and this is what makes it work at all.** Reading it
+inside the poll is not enough, because the poll asks maliit first, and the first call into that
+binding blocks until the fork has finished opening the session — 2205 ms measured on a TrustPhone
+T1, on the composition's own thread. Read there, the advance queues behind the exact wait it exists
+to cover: the card moves only after the keyboard is already up. So the press writes an estimate into
+snapshot state itself, and the poll only refines it once maliit answers; the larger of the two wins,
+which hands the decision to the real height as soon as there is one. The short side is cached from
+the last poll so the press never has to ask the window for it.
+
+The symptom, if this is ever undone: only the first press of a session is slow, the rest are
+instant, and it comes back after the session is closed — which reads as "sometimes it works,
+sometimes it doesn't". The emulator cannot show it, opening a session there takes 59 ms. **Check
+this one on real hardware.**
+
 The poll's answers go to the log under the `SoftKeyboard` tag on change only, with the raw height
 and the screen beside the number actually used, so a run off a new device says which branch it took.
 Sizes are printed with spaces around the separator for the reason the `OrganizerList` line gives.

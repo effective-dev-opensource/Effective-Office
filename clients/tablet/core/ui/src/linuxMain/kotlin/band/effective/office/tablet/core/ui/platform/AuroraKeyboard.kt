@@ -31,18 +31,19 @@ private var keyboardExpectedAt: TimeSource.Monotonic.ValueTimeMark? = null
 private var lastShortSidePx = 0
 
 /**
- * What the press alone is willing to claim, published without waiting for a poll: the first call
- * into the maliit binding blocks until the fork has opened the session, which is the very wait the
- * promise exists to cover.
+ * What the press claims on its own, without waiting for a poll. Publishing it here rather than
+ * reading it inside the poll is what makes the advance work — see "The on-screen keyboard" in
+ * clients/tablet/core/ui/README.md.
  */
 private val promisedOverlapPx = mutableStateOf(0)
+
+private fun estimatedOverlapPx(shortSidePx: Int): Int =
+    (shortSidePx * KEYBOARD_COVER_FRACTION).roundToInt()
 
 internal fun noteAuroraKeyboardExpected() {
     keyboardExpectedAt = TimeSource.Monotonic.markNow()
     val shortSide = lastShortSidePx
-    if (shortSide > 0) {
-        promisedOverlapPx.value = (shortSide * KEYBOARD_COVER_FRACTION).roundToInt()
-    }
+    if (shortSide > 0) promisedOverlapPx.value = estimatedOverlapPx(shortSide)
 }
 
 private fun dropKeyboardPromise() {
@@ -93,12 +94,13 @@ private fun readKeyboard(): KeyboardReading {
     if (notice != null && (believable || (isOpen && notice.elapsedNow() > KEYBOARD_NOTICE_SETTLE))) {
         dropKeyboardPromise()
     } else if (notice != null && !expected) {
+        // The ten seconds are up: nothing came, and the card should not stay lifted on a stale hope.
         dropKeyboardPromise()
     }
 
     val overlap = when {
         believable -> reported
-        isOpen || expected -> (shortSide * KEYBOARD_COVER_FRACTION).roundToInt()
+        isOpen || expected -> estimatedOverlapPx(shortSide)
         else -> 0
     }
     return KeyboardReading(
