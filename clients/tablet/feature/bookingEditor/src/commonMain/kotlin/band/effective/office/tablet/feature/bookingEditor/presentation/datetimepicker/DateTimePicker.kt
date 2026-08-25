@@ -49,7 +49,8 @@ fun DateTimePicker(dateTimePickerComponent: DateTimePickerComponent) {
 
     DateTimePicker(
         currentDate = state.currentDate,
-        onCloseRequest = { dateTimePickerComponent.sendIntent(DateTimePickerComponent.Intent.CloseModal) },
+        onConfirmRequest = { dateTimePickerComponent.sendIntent(DateTimePickerComponent.Intent.CloseModal) },
+        onCancelRequest = { dateTimePickerComponent.sendIntent(DateTimePickerComponent.Intent.CancelAndClose) },
         onChangeDate = {
             dateTimePickerComponent.sendIntent(DateTimePickerComponent.Intent.OnChangeDate(it))
         },
@@ -68,7 +69,8 @@ fun DateTimePicker(dateTimePickerComponent: DateTimePickerComponent) {
 @Composable
 fun DateTimePicker(
     currentDate: LocalDateTime,
-    onCloseRequest: () -> Unit,
+    onConfirmRequest: () -> Unit,
+    onCancelRequest: () -> Unit,
     onChangeDate: (LocalDate) -> Unit,
     onChangeTime: (LocalTime) -> Unit,
     enableDateButton: Boolean,
@@ -86,7 +88,7 @@ fun DateTimePicker(
     }
 
     Dialog(
-        onDismissRequest = onCloseRequest,
+        onDismissRequest = onCancelRequest,
         properties = DialogProperties(
             usePlatformDefaultWidth = false
         )
@@ -101,7 +103,7 @@ fun DateTimePicker(
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
-                            onClick = onCloseRequest,
+                            onClick = onCancelRequest,
                         ),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -124,7 +126,7 @@ fun DateTimePicker(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 CrossButtonView(
-                                    onDismissRequest = onCloseRequest,
+                                    onDismissRequest = onCancelRequest,
                                     modifier = Modifier.fillMaxWidth(1f)
                                 )
                                 Row(
@@ -132,13 +134,16 @@ fun DateTimePicker(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     TimePickerView(
-                                        modifier = Modifier.fillMaxWidth(0.3f),
+                                        modifier = Modifier.fillMaxWidth(0.28f),
                                         currentDate = currentDate,
                                         onSnap = onTimePicked
                                     )
-                                    Spacer(Modifier.width(40.dp))
+                                    Spacer(Modifier.width(24.dp))
+                                    // Material3 DatePicker inside calf's AdaptiveDatePicker on
+                                    // Android needs more horizontal room than the earlier 0.6
+                                    // fraction gave it, or the Saturday column gets clipped.
                                     DatePickerView(
-                                        modifier = Modifier.fillMaxWidth(0.6f).fillMaxHeight(),
+                                        modifier = Modifier.fillMaxWidth(0.65f).fillMaxHeight(),
                                         currentDate = currentDate,
                                         onChangeDate = onDatePicked,
                                     )
@@ -148,7 +153,7 @@ fun DateTimePicker(
                                         modifier = Modifier.align(Alignment.Center)
                                             .fillMaxWidth(0.3f),
                                         onClick = {
-                                            onCloseRequest()
+                                            onConfirmRequest()
                                         },
                                         enabled = enableDateButton,
                                         colors = buttonColors(

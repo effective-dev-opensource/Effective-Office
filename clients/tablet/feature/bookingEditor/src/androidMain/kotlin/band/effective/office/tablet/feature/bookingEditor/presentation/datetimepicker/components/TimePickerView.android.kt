@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
-import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
 import com.mohamedrejeb.calf.ui.timepicker.AdaptiveTimePicker
 import com.mohamedrejeb.calf.ui.timepicker.rememberAdaptiveTimePickerState
 import kotlinx.datetime.LocalDateTime
@@ -20,12 +19,11 @@ actual fun TimePickerView(
     currentDate: LocalDateTime,
     onSnap: (LocalTime) -> Unit,
 ) {
-    val is24Hour = DateDisplayMapper.is24HourFormat()
-
+    // Locked to 24-hour on all platforms — AM/PM adds a vertical column that squeezes the dial.
     val state = rememberAdaptiveTimePickerState(
         initialHour = currentDate.hour,
         initialMinute = currentDate.minute,
-        is24Hour = is24Hour
+        is24Hour = true
     )
     LaunchedEffect(state.hour, state.minute) {
         val hour = state.hour

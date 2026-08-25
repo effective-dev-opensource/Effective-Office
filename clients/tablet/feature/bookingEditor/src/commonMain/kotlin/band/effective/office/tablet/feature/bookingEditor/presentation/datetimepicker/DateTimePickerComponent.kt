@@ -39,6 +39,10 @@ class DateTimePickerComponent(
                 onSelectDate(state.value.currentDate)
                 onCloseRequest()
             }
+            Intent.CancelAndClose -> {
+                mutableState.update { it.copy(currentDate = initDate(), isEnabledButton = true) }
+                onCloseRequest()
+            }
             is Intent.OnChangeDate -> changeDate(
                 intent.date.year,
                 intent.date.month,
@@ -117,6 +121,7 @@ class DateTimePickerComponent(
 
     sealed interface Intent {
         object CloseModal : Intent
+        object CancelAndClose : Intent
         data class OnChangeDate(val date: LocalDate) : Intent
         data class OnChangeTime(val time: LocalTime) : Intent
     }
