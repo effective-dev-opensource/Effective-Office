@@ -133,15 +133,17 @@ fun DateTimePicker(
                                     modifier = Modifier.padding(10.dp).fillMaxHeight(0.8f),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
+                                    // TimePicker's own room: enough for the 12-hour AM/PM column
+                                    // that AdaptiveTimePicker draws when the system is 12-hour.
                                     TimePickerView(
-                                        modifier = Modifier.fillMaxWidth(0.28f),
+                                        modifier = Modifier.fillMaxWidth(0.33f),
                                         currentDate = currentDate,
                                         onSnap = onTimePicked
                                     )
-                                    Spacer(Modifier.width(24.dp))
+                                    Spacer(Modifier.width(16.dp))
                                     // Material3 DatePicker inside calf's AdaptiveDatePicker on
-                                    // Android needs more horizontal room than the earlier 0.6
-                                    // fraction gave it, or the Saturday column gets clipped.
+                                    // Android needs a hair more than 0.6 or the Saturday column
+                                    // gets clipped.
                                     DatePickerView(
                                         modifier = Modifier.fillMaxWidth(0.65f).fillMaxHeight(),
                                         currentDate = currentDate,
