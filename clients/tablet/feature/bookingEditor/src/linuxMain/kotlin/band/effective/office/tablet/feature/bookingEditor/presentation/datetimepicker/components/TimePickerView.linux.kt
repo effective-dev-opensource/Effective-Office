@@ -4,13 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,10 +19,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import band.effective.office.tablet.core.ui.platform.snapListFlingBehavior
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -35,8 +36,9 @@ private val CELL_CORNER_RADIUS = 8.dp
 private val COLUMN_SPACING = 8.dp
 
 /**
- * Aurora has no calf, and the hand-rolled month grid next door leaves no reason to reach for
- * Material3 here either. Minute by minute, matching what the Android and iOS pickers allow.
+ * A pair of wheel-like columns for hours and minutes. Aurora has no calf, and the hand-rolled month
+ * grid next door leaves no reason to reach for Material3 here either. Minute by minute, matching
+ * what the Android and iOS pickers allow.
  */
 @Composable
 actual fun TimePickerView(
@@ -78,13 +80,29 @@ private fun TimeColumn(
     val palette = LocalCustomColorsPalette.current
     val accent = MaterialTheme.colorScheme.primary
     val onAccent = MaterialTheme.colorScheme.onPrimary
-    val scrollState = rememberScrollState()
-    val cellHeightPx = with(LocalDensity.current) { CELL_HEIGHT.roundToPx() }
+    val state = rememberLazyListState(initialFirstVisibleItemIndex = selected)
 
-    LaunchedEffect(Unit) { scrollState.scrollTo(selected * cellHeightPx) }
+    // Once a fling has settled and snapped to a row, the item at the top of the viewport is what
+    // the user picked. A click on any row still works, and moves the selection so it stays in the
+    // same place.
+    LaunchedEffect(state) {
+        snapshotFlow { Triple(state.isScrollInProgress, state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset) }
+            .collect { (scrolling, index, offset) ->
+                if (!scrolling && offset == 0 && index != selected) onSelect(index)
+            }
+    }
+    LaunchedEffect(selected) {
+        if (state.firstVisibleItemIndex != selected || state.firstVisibleItemScrollOffset != 0) {
+            state.animateScrollToItem(selected)
+        }
+    }
 
-    Column(modifier = modifier.verticalScroll(scrollState)) {
-        values.forEach { value ->
+    LazyColumn(
+        modifier = modifier,
+        state = state,
+        flingBehavior = snapListFlingBehavior(state),
+    ) {
+        items(values.toList()) { value ->
             val isSelected = value == selected
             Box(
                 modifier = Modifier
