@@ -1,8 +1,10 @@
 package band.effective.office.tablet.core.ui.platform
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -20,9 +22,12 @@ fun AuroraWindowFrame(content: @Composable () -> Unit) {
                 content()
                 return@ScaledUiDensity
             }
+            // Background before padding, so the status-bar inset itself is painted, not the
+            // area under it — otherwise the strip along the top shows through to the compositor.
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(top = statusBarInset),
             ) {
                 content()
