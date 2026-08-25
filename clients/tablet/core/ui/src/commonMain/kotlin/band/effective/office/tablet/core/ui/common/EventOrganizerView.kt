@@ -130,6 +130,10 @@ fun EventOrganizerView(
         Spacer(modifier = Modifier.height(10.dp))
         var rowSize by remember { mutableStateOf(Size.Zero) }
 
+        // Box around the row so the Popup mounted here takes the Box as its anchor —
+        // anchorBounds then equals the row's rect on screen, position and size both. A Popup
+        // nested inside Row would inherit a placeholder position from SpaceBetween instead.
+        Box {
         Row(
             modifier = Modifier
                 .fillMaxSize()
@@ -289,6 +293,7 @@ fun EventOrganizerView(
                     }
                 }
             }
+        }
         }
     }
 

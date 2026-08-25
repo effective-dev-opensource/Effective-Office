@@ -44,13 +44,10 @@ internal fun AnchoredOrganizerList(
                 layoutDirection: LayoutDirection,
                 popupContentSize: IntSize
             ): IntOffset {
-                // anchorBounds is the popup call site's rect on screen — the row that carries
-                // the field sits above it, so its top is anchorBounds.top minus the row's height.
-                // Reading it through positionInWindow instead would mix window and screen spaces
-                // on Android, where the popup runs in its own window and drifts by the status bar.
+                // Popup lives inside the field's Row, so anchorBounds IS the row's rect on
+                // screen. Everything below sits above it by the popup's own height plus a gap.
                 return if (anchorCoords != null) {
-                    val rowHeight = anchorCoords.size.height
-                    val y = anchorBounds.top - rowHeight - popupContentSize.height - LIST_GAP_PX
+                    val y = anchorBounds.top - popupContentSize.height - LIST_GAP_PX
                     IntOffset(anchorBounds.left, y.coerceAtLeast(0))
                 } else {
                     IntOffset.Zero
