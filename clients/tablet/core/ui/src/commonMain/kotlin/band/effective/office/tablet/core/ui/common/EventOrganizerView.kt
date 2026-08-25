@@ -62,6 +62,7 @@ import band.effective.office.tablet.core.ui.platform.ModalHostState
 import band.effective.office.tablet.core.ui.platform.SOFT_KEYBOARD_PRESS_GRACE
 import band.effective.office.tablet.core.ui.platform.closeSoftKeyboard
 import band.effective.office.tablet.core.ui.platform.fieldBottomIn
+import band.effective.office.tablet.core.ui.platform.listFlingBehavior
 import band.effective.office.tablet.core.ui.platform.noteSoftKeyboardExpected
 import band.effective.office.tablet.core.ui.res.painterResource
 import band.effective.office.tablet.core.ui.selectbox_organizer_error
@@ -256,6 +257,7 @@ fun EventOrganizerView(
         if (expanded) {
             OrganizerListPopup(anchorCoords = rowCoords) { listModifier ->
                 LazyColumn(
+                    flingBehavior = listFlingBehavior(),
                     modifier = listModifier
                         .width(with(density) { rowSize.width.toDp() })
                         .heightIn(max = 150.dp)

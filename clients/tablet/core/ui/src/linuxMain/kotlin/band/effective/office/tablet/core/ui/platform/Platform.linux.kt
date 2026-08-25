@@ -1,5 +1,11 @@
 package band.effective.office.tablet.core.ui.platform
 
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.ScrollScope
+import androidx.compose.foundation.gestures.ScrollableDefaults
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.lazy.LazyListState
+import io.github.aakira.napier.Napier
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -30,3 +36,25 @@ actual fun softKeyboardOverlapPx(): Int = auroraKeyboardOverlapPx()
 actual fun noteSoftKeyboardExpected() = noteAuroraKeyboardExpected()
 
 actual fun closeSoftKeyboard() = requestAuroraKeyboardClose()
+
+private const val FLING_TAG = "ListFling"
+
+/** Wraps [delegate], flipping the sign of the velocity going in and the remainder coming out. */
+@Composable
+private fun invertedFling(delegate: FlingBehavior): FlingBehavior =
+    androidx.compose.runtime.remember(delegate) {
+        object : FlingBehavior {
+            override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
+                val left = with(delegate) { performFling(-initialVelocity) }
+                Napier.i(tag = FLING_TAG) { "fling v=$initialVelocity flipped, unconsumed=$left" }
+                return -left
+            }
+        }
+    }
+
+@Composable
+actual fun listFlingBehavior(): FlingBehavior = invertedFling(ScrollableDefaults.flingBehavior())
+
+@Composable
+actual fun snapListFlingBehavior(state: LazyListState): FlingBehavior =
+    invertedFling(rememberSnapFlingBehavior(state))

@@ -1,5 +1,7 @@
 package band.effective.office.tablet.core.ui.platform
 
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
@@ -113,3 +115,14 @@ fun fieldBottomIn(container: LayoutCoordinates?, field: LayoutCoordinates): Int?
     } else {
         null
     }
+
+/**
+ * Fling for a scrollable list. Aurora inverts the sign; Android and iOS hand back the platform
+ * default. See "The on-screen keyboard" and "Fling direction" in clients/tablet/core/ui/README.md.
+ */
+@Composable
+expect fun listFlingBehavior(): FlingBehavior
+
+/** Snapping fling for a wheel-like [LazyColumn] where the item at rest is the selected value. */
+@Composable
+expect fun snapListFlingBehavior(state: LazyListState): FlingBehavior
