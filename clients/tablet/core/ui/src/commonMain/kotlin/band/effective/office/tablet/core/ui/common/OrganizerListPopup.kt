@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -14,7 +13,7 @@ import androidx.compose.ui.window.PopupPositionProvider
 import band.effective.office.tablet.core.ui.inactivity.InactivityTracker
 
 // Gap between the field and the expanded list, in px.
-private const val LIST_GAP_PX = 60
+private const val LIST_GAP_PX = 8
 
 /**
  * The popup that holds the expanded organizer list. The list is the same everywhere, its placement
@@ -45,10 +44,14 @@ internal fun AnchoredOrganizerList(
                 layoutDirection: LayoutDirection,
                 popupContentSize: IntSize
             ): IntOffset {
+                // anchorBounds is the popup call site's rect on screen — the row that carries
+                // the field sits above it, so its top is anchorBounds.top minus the row's height.
+                // Reading it through positionInWindow instead would mix window and screen spaces
+                // on Android, where the popup runs in its own window and drifts by the status bar.
                 return if (anchorCoords != null) {
-                    val anchorTop = anchorCoords.positionInWindow().y.toInt()
-                    val y = anchorTop - popupContentSize.height
-                    IntOffset(anchorBounds.left, y.coerceAtLeast(0) - LIST_GAP_PX)
+                    val rowHeight = anchorCoords.size.height
+                    val y = anchorBounds.top - rowHeight - popupContentSize.height - LIST_GAP_PX
+                    IntOffset(anchorBounds.left, y.coerceAtLeast(0))
                 } else {
                     IntOffset.Zero
                 }
