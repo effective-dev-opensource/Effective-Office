@@ -39,6 +39,8 @@ actual fun closeSoftKeyboard() = requestAuroraKeyboardClose()
 
 private const val FLING_TAG = "ListFling"
 
+// Fork defect: the fling velocity arrives with the sign flipped.
+// See "Fling direction" in clients/tablet/core/ui/README.md.
 /** Wraps [delegate], flipping the sign of the velocity going in and the remainder coming out. */
 @Composable
 private fun invertedFling(delegate: FlingBehavior): FlingBehavior =

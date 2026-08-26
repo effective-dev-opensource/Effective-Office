@@ -208,6 +208,21 @@ Sizes are printed with spaces around the separator for the reason the `Organizer
 Corrections to the Aurora fork's own bugs. Each is expected to die when the fork is fixed, and each
 is marked `// Fork defect:` at its site.
 
+### Fling direction
+A drag scrolls a list the right way and the release throws the inertia back the other way. A slow
+drag is fine throughout, and a slow drag is the one gesture that ends with no velocity and never
+flings at all, which puts the fault in the velocity rather than in the drag.
+
+`listFlingBehavior()` wraps the platform default and flips the sign of the velocity going in and of
+the remainder coming out; Android and iOS hand the default back untouched.
+`snapListFlingBehavior(state)` is the same correction around a snapping fling, for a `LazyColumn`
+whose resting item is the selected value. It has no callers since the Aurora time picker went back
+to the Material3 clock, and is kept so the next hand-rolled scroller need not put the seam back.
+
+The linux actual logs `fling v=… flipped, unconsumed=…` on every fling — the only place the number
+is visible. If a future fork build starts handing back the sign the drag had, both shapes have to
+go, together.
+
 ### The maliit session is never closed
 The fork opens a maliit session when a field takes focus and then parks in `awaitCancellation()`
 with no `finally`, so nothing ever stops it: the field is done being edited and maliit still
