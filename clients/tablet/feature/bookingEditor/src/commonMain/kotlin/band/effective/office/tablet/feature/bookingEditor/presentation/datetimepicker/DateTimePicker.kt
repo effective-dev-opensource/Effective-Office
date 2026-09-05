@@ -116,7 +116,7 @@ fun DateTimePicker(
                     ) {
                         Box(
                             modifier = Modifier
-                                .fillMaxHeight(0.8f)
+                                .fillMaxHeight(0.9f)
                                 .fillMaxWidth(0.8f)
                                 .clip(RoundedCornerShape(3))
                                 .background(LocalCustomColorsPalette.current.elevationBackground)
@@ -130,7 +130,7 @@ fun DateTimePicker(
                                     modifier = Modifier.fillMaxWidth(1f)
                                 )
                                 Row(
-                                    modifier = Modifier.padding(10.dp).fillMaxHeight(0.8f),
+                                    modifier = Modifier.weight(1f).padding(10.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     // TimePicker's own room: enough for the 12-hour AM/PM column
@@ -150,7 +150,7 @@ fun DateTimePicker(
                                         onChangeDate = onDatePicked,
                                     )
                                 }
-                                Box(modifier = Modifier.fillMaxSize()) {
+                                Box(modifier = Modifier.fillMaxWidth()) {
                                     Button(
                                         modifier = Modifier.align(Alignment.Center)
                                             .fillMaxWidth(0.3f),
