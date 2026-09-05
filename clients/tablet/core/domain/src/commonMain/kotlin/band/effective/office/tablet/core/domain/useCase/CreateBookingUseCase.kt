@@ -35,25 +35,27 @@ class CreateBookingUseCase(
 
         val loadingEvent = eventInfo.copy(isLoading = true)
 
-        // Update local repository with loading state
-        localBookingRepository.createBooking(loadingEvent, roomInfo)
+        return withNonCancellableContext {
+            // Update local repository with loading state
+            localBookingRepository.createBooking(loadingEvent, roomInfo)
 
-        // Attempt to create booking in network repository
-        val response = networkBookingRepository.createBooking(loadingEvent, roomInfo)
+            // Attempt to create booking in network repository
+            val response = networkBookingRepository.createBooking(loadingEvent, roomInfo)
 
-        when (response) {
-            is Either.Error -> {
-                // On error, remove the booking from local repository
-                localBookingRepository.deleteBooking(loadingEvent, roomInfo)
+            when (response) {
+                is Either.Error -> {
+                    // On error, remove the booking from local repository
+                    localBookingRepository.deleteBooking(loadingEvent, roomInfo)
+                }
+
+                is Either.Success -> {
+                    // On success, update the booking in local repository with the response data
+                    val event = response.data
+                    localBookingRepository.updateBooking(event, roomInfo)
+                }
             }
 
-            is Either.Success -> {
-                // On success, update the booking in local repository with the response data
-                val event = response.data
-                localBookingRepository.updateBooking(event, roomInfo)
-            }
+            response
         }
-
-        return response
     }
 }

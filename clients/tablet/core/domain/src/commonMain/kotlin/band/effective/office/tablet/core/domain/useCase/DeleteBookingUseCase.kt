@@ -40,24 +40,26 @@ class DeleteBookingUseCase(
         // Save the original event state before attempting to delete
         val originalEvent = eventInfo.copy()
 
-        // Mark as loading in local repository
-        localBookingRepository.updateBooking(loadingEvent, roomInfo)
+        return withNonCancellableContext {
+            // Mark as loading in local repository
+            localBookingRepository.updateBooking(loadingEvent, roomInfo)
 
-        // Attempt to delete from network
-        val response = networkBookingRepository.deleteBooking(loadingEvent, roomInfo)
+            // Attempt to delete from network
+            val response = networkBookingRepository.deleteBooking(loadingEvent, roomInfo)
 
-        when (response) {
-            is Either.Error -> {
-                // On error, restore the original event in local repository
-                localBookingRepository.updateBooking(originalEvent, roomInfo)
+            when (response) {
+                is Either.Error -> {
+                    // On error, restore the original event in local repository
+                    localBookingRepository.updateBooking(originalEvent, roomInfo)
+                }
+
+                is Either.Success -> {
+                    // On success, delete from local repository
+                    localBookingRepository.deleteBooking(loadingEvent, roomInfo)
+                }
             }
 
-            is Either.Success -> {
-                // On success, delete from local repository
-                localBookingRepository.deleteBooking(loadingEvent, roomInfo)
-            }
+            response
         }
-
-        return response
     }
 }

@@ -40,25 +40,27 @@ class UpdateBookingUseCase(
         val oldEvent = localBookingRepository.getBooking(eventInfo) as? Either.Success
             ?: return Either.Error(ErrorResponse(404, "Old event with id ${eventInfo.id} wasn't found"))
 
-        // Update local repository with loading state
-        localBookingRepository.updateBooking(loadingEvent, roomInfo)
+        return withNonCancellableContext {
+            // Update local repository with loading state
+            localBookingRepository.updateBooking(loadingEvent, roomInfo)
 
-        // Attempt to update booking in network repository
-        val response = networkBookingRepository.updateBooking(loadingEvent, roomInfo)
+            // Attempt to update booking in network repository
+            val response = networkBookingRepository.updateBooking(loadingEvent, roomInfo)
 
-        when (response) {
-            is Either.Error -> {
-                // On error, restore the original event in local repository
-                localBookingRepository.updateBooking(oldEvent.data, roomInfo)
+            when (response) {
+                is Either.Error -> {
+                    // On error, restore the original event in local repository
+                    localBookingRepository.updateBooking(oldEvent.data, roomInfo)
+                }
+
+                is Either.Success -> {
+                    // On success, update the booking in local repository with the response data
+                    val event = response.data
+                    localBookingRepository.updateBooking(event, roomInfo)
+                }
             }
 
-            is Either.Success -> {
-                // On success, update the booking in local repository with the response data
-                val event = response.data
-                localBookingRepository.updateBooking(event, roomInfo)
-            }
+            response
         }
-
-        return response
     }
 }
