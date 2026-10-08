@@ -9,8 +9,9 @@ import kotlin.native.Platform
 @OptIn(ExperimentalNativeApi::class)
 actual val isDebug: Boolean = Platform.isDebugBinary
 
-// Not isDebug: that would hide the metrics on the one platform they are being added for.
-actual val showsDebugMetrics: Boolean = true
+// Off on a device by request: the Aurora variant always links a release binary. The same numbers
+// go to the log under the UiScale tag.
+actual val showsDebugMetrics: Boolean = isDebug
 
 // Aurora's back gesture is not routed to the app yet; the modal closes by its cross button.
 @Composable
