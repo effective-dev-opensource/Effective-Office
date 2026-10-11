@@ -8,10 +8,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import java.util.Locale
-import androidx.compose.foundation.gestures.FlingBehavior
-import androidx.compose.foundation.gestures.ScrollableDefaults
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
-import androidx.compose.foundation.lazy.LazyListState
 
 actual fun getCurrentLanguageCode(): String = Locale.getDefault().language
 
@@ -35,11 +31,3 @@ actual fun noteSoftKeyboardExpected() = Unit
 
 // The ime goes down with the focus by itself.
 actual fun closeSoftKeyboard() = Unit
-
-
-@Composable
-actual fun listFlingBehavior(): FlingBehavior = ScrollableDefaults.flingBehavior()
-
-@Composable
-actual fun snapListFlingBehavior(state: LazyListState): FlingBehavior =
-    rememberSnapFlingBehavior(state)
