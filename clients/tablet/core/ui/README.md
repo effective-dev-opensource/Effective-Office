@@ -174,9 +174,16 @@ the whole long side of the panel: 1600 on a 960x1600 emulator, 1520 against the 
 key strip on a screenshot of the emulator is 520 px. `Keyboard.height()` and the `listenState` event
 give the same number or none at all, so nothing the fork hands over carries the strip's thickness.
 Hence the rule: an inset reaching the window's short side is a surface rather than a keyboard, and
-0.43 of that side is substituted; an inset below the short side is believed as it is. The fork keeps
-the inset in the scene's own density, so under `ScaledUiDensity` it is taken back through
+an estimate is substituted; an inset below the short side is believed as it is. The fork keeps the
+inset in the scene's own density, so under `ScaledUiDensity` it is taken back through
 `Window.scale()` before it is compared with anything in pixels.
+
+The estimate is 520 px, capped at 0.65 of the short side, and both numbers are measured. The strip
+is the keyboard's own size and not a share of the window: 520 px across the Quadro T's 1200 px short
+side in a screenshot, the same 520 px on a 960x1600 emulator panel, and 470 px against the 720 px of
+a TrustPhone-shaped one, where the theme's pixel ratio is 1.25. It used to be a plain 0.43 of the
+short side, which is right for the tablet alone: on anything narrower it left the field under the
+keyboard.
 
 Up to 0.0.4 there was no inset and the height was polled out of the maliit binding every 100 ms,
 with a first call that blocked the composition's thread for 2205 ms on the TrustPhone while the fork

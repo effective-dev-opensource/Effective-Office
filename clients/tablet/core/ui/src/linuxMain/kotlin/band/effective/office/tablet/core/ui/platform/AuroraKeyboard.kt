@@ -17,8 +17,11 @@ import kotlin.time.TimeSource
 
 private const val KEYBOARD_TAG = "SoftKeyboard"
 
-/** Share of the window's short side taken for the keyboard when the inset cannot be believed. */
-private const val KEYBOARD_COVER_FRACTION = 0.43f
+/** Height of maliit's key strip on a roomy panel, used when the inset cannot be believed. */
+private const val KEYBOARD_STRIP_PX = 520
+
+/** The most of the window's short side the strip takes, which is what a phone leaves it. */
+private const val KEYBOARD_STRIP_MAX_FRACTION = 0.65f
 
 /** How long after a press an inset is not yet proof, so a stale one cannot spend the promise. */
 private val KEYBOARD_NOTICE_SETTLE = 300.milliseconds
@@ -35,7 +38,7 @@ private val keyboardPromise = mutableStateOf<KeyboardPromise?>(null)
 private var lastShortSidePx = 0
 
 private fun estimatedOverlapPx(shortSidePx: Int): Int =
-    (shortSidePx * KEYBOARD_COVER_FRACTION).roundToInt()
+    minOf(KEYBOARD_STRIP_PX, (shortSidePx * KEYBOARD_STRIP_MAX_FRACTION).roundToInt())
 
 internal fun noteAuroraKeyboardExpected() {
     val shortSide = lastShortSidePx
