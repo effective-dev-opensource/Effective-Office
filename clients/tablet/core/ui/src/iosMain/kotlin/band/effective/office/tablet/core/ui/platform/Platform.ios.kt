@@ -13,8 +13,6 @@ import androidx.compose.foundation.lazy.LazyListState
 
 actual fun getCurrentLanguageCode(): String = NSLocale.currentLocale.languageCode ?: "en"
 
-actual val forceLandscape: Boolean = false
-
 actual val statusBarInset: Dp = 0.dp
 
 actual val uiScaleBaseline: Dp = 0.dp

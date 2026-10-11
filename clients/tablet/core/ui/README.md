@@ -67,23 +67,29 @@ nothing installed at the root reaches them. `DialogSceneFrame` is that re-applic
 On Android and iOS the flags behind the frame are off and every wrapper passes its content through.
 
 The window arrives portrait on every live device — 1200x2000 on the Quadro T, 720x1600 on the dev
-phone — while the app is a landscape kiosk, so `ForcedLandscape` rotates the content by 90°. That is
-a drawing effect and the window's own geometry never changes, which has two consequences. System
-gestures stay in the portrait window: on the TrustPhone the close gesture fires from the physical
-side edge and the swipe from the bottom does nothing, and this cannot be fixed from inside the app —
-the fork would have to report the content orientation to the compositor. And `positionInWindow()`
-goes through the rotation, so the window-Y of a node inside the rotated content is its content-X;
-anything positional has to be measured between two nodes on the same side of the rotation, where it
-cancels out.
+phone — while the app is a landscape kiosk. The fork turns the canvas itself, to the orientation the
+compositor reports, and hands Compose a container that is landscape already: 1600x720 on the dev
+phone, with the on-screen keyboard turned along with it and the system gestures where a native app
+has them. What the compositor reports follows the device unless the package pins it, so
+`auroraBuild` declares `orientation { default.set(listOf(Orientation.Landscape)) }`, which reaches
+the `.desktop` file as `Orientation=LandscapeMask`; without it the dev phone goes portrait as soon
+as it is held upright. All of this is the fork's 0.0.5 — on 0.0.4 the window stays portrait and
+nothing here turns it.
 
-The organizer list is what that rule cost. A `Popup` on Aurora is a scene of its own: it comes up
-after a visible pause and shares no ancestor with the field, so it cannot be aimed — carrying the
-field's window coordinates across carries its content-X as a Y. The list goes into
-`ModalHostState.overlay` instead, a slot inside the card's own box, so it appears on the frame it
-opens and everything that moves the card moves it identically. It anchors on the row around the
-field and not on the field itself, because the row is also what it takes its width from: with the
-card 1259 wide, the row at x=61 spanning 1137 and the field at x=96 spanning 854, a list sized to
-the row but placed at the field ran 96..1233 against the row's 61..1198 and hung off the card's
+One trap for the stand: the fork takes every panel for portrait. Told `Landscape` on a panel that is
+landscape to begin with, which is the SDK emulator's stock tablet model, it swaps the sides and
+turns the canvas all the same, and the content is laid out 1200x2000 and drawn on its side. The
+emulator has to be given a portrait panel, as the devices have.
+
+The organizer list goes into `ModalHostState.overlay`, a slot inside the card's own box, and not
+into a `Popup`. The card is moved clear of the keyboard by a layer translation, and a popup on
+Aurora does not follow it: placed once against the field, it stays where it was when the keyboard
+leaves and the card comes back down, and hangs in the air above the field — seen on the TrustPhone
+with the fork's 0.0.5. In the slot the list appears on the frame it opens and everything that moves
+the card moves it identically. It anchors on the row around the field and not on the field itself,
+because the row is also what it takes its width from: with the card 1259 wide, the row at x=61
+spanning 1137 and the field at x=96 spanning 854, a list sized to the row but placed at the field
+ran 96..1233 against the row's 61..1198 and hung off the card's
 right edge — the row's own 20.dp horizontal padding, in full. The numbers go to the log under the
 `OrganizerList` tag: `anchor 61,612 in card 1259 x 947; row 1137 x 125; list 1137 x 262` on the
 tablet, `anchor 37,369 in card 756 x 570; row 682 x 75; list 682 x 157` on a small screen. Sizes are
@@ -138,9 +144,7 @@ The two lay out the same, not merely close. The answer goes to the log on every 
 `UiScale` tag, e.g. `content 2000x1200, density 1.7492712`.
 
 The order inside the frame is fixed, and each of these rules cost a round trip to the device:
-- the status-bar inset goes **inside** the rotation, or the padding lands in the window's portrait
-  coordinate space and draws as a stripe down the edge instead of a band along the top;
-- the inset goes **inside** the scale, not the other way round. `ScaledUiDensity` measures its own
+- the status-bar inset goes **inside** the scale, not the other way round. `ScaledUiDensity` measures its own
   constraints, so under the padding it would normalise 1157 px instead of the window's 1200, the
   parity above would be gone and everything would come out some 3.6% larger;
 - the theme goes **outside** the frame, because `AppTheme`'s own `Surface` is what paints the strip

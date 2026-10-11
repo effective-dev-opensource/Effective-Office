@@ -16,22 +16,20 @@ import androidx.compose.ui.unit.dp
  */
 @Composable
 fun AuroraWindowFrame(content: @Composable () -> Unit) {
-    ForcedLandscape {
-        ScaledUiDensity(modifier = Modifier.fillMaxSize()) {
-            if (statusBarInset <= 0.dp) {
-                content()
-                return@ScaledUiDensity
-            }
-            // Background before padding, so the status-bar inset itself is painted, not the
-            // area under it — otherwise the strip along the top shows through to the compositor.
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(top = statusBarInset),
-            ) {
-                content()
-            }
+    ScaledUiDensity(modifier = Modifier.fillMaxSize()) {
+        if (statusBarInset <= 0.dp) {
+            content()
+            return@ScaledUiDensity
+        }
+        // Background before padding, so the status-bar inset itself is painted, not the
+        // area under it — otherwise the strip along the top shows through to the compositor.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(top = statusBarInset),
+        ) {
+            content()
         }
     }
 }

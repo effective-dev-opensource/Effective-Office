@@ -19,8 +19,6 @@ const val AURORA_LOCALE = "ru_RU.utf8"
 
 actual fun getCurrentLanguageCode(): String = AURORA_LOCALE.substringBefore('_')
 
-actual val forceLandscape: Boolean = true
-
 actual val statusBarInset: Dp = 24.dp
 
 actual val uiScaleBaseline: Dp = 686.dp

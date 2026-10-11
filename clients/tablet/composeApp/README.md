@@ -63,14 +63,13 @@ here on Android — squashes the card into the room that is left, and its conten
 inside: the header disappears, the date row loses 42 px and the confirm button is off the bottom.
 The two cannot both be applied, so the padding is gone.
 
-Everything positional is measured in the host container's own space. `positionInWindow()` is
-unusable on Aurora, where `ForcedLandscape` sits between the window and the content and the window-Y
-of a rotated node is its content-X — the tablet reported a field bottom of 557 in a 1200-tall
-container against a 540 px keyboard, and the host duly decided nothing was in the way. So the field
-writes its bottom edge into `ModalHostState.focusedFieldBottom` in container space while it holds
-focus, the top of the keyboard is the container height less the overlap, and the two are compared
-where the rotation cancels out. The field is the one that reports, because what has to clear the
-keyboard is the field and only the field knows where it is.
+Everything positional is measured in the host container's own space and not through
+`positionInWindow()`: the container is what the keyboard's overlap is counted from, and on Aurora
+it does not start at the top of the window, where the status-bar inset is. So the field writes its
+bottom edge into `ModalHostState.focusedFieldBottom` in container space while it holds focus, the
+top of the keyboard is the container height less the overlap, and the two are compared in the one
+space. The field is the one that reports, because what has to clear the keyboard is the field and
+only the field knows where it is.
 
 The card is moved by a `graphicsLayer` translation and never by a layout offset: the field reports
 its position from layout, so a layout offset would feed the shift back into its own input and the

@@ -1,5 +1,6 @@
 import com.codingfeline.buildkonfig.compiler.FieldSpec
 import java.util.Properties
+import ru.auroraos.kmp.build.plugin.configs.Orientation
 
 // See clients/shared/core/build.aurora.gradle.kts for why the convention plugins are avoided.
 plugins {
@@ -25,6 +26,11 @@ auroraBuild {
         // The on-screen keyboard.
         libs3rdParty.set(listOf("maliit-glib"))
         icons.set(projectDir.toPath().resolve("icons"))
+        // The fork turns the canvas to the orientation the compositor reports, and without this
+        // the compositor follows the device.
+        orientation {
+            default.set(listOf(Orientation.Landscape))
+        }
     }
 }
 

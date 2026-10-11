@@ -17,14 +17,8 @@ import kotlin.time.Duration.Companion.seconds
 expect fun getCurrentLanguageCode(): String
 
 /**
- * Whether the content has to be turned landscape by hand. The tablet is a landscape-locked kiosk
- * and the Aurora window arrives portrait; Android and iOS leave orientation to the system.
- */
-expect val forceLandscape: Boolean
-
-/**
- * Padding for Aurora's status bar, applied by [AuroraWindowFrame] inside the rotation. Zero on
- * Android and iOS, where `systemBarsPadding()` covers the system bars instead.
+ * Padding for Aurora's status bar, applied by [AuroraWindowFrame]. Zero on Android and iOS, where
+ * `systemBarsPadding()` covers the system bars instead.
  */
 expect val statusBarInset: Dp
 
@@ -70,8 +64,8 @@ expect fun closeSoftKeyboard()
 
 /**
  * What a modal host offers the content inside it; `null` outside one. Anything positional here is
- * measured against the card, never through window coordinates: on Aurora `positionInWindow()` maps
- * up through [ForcedLandscape], so the window-Y of a rotated node is its content-X.
+ * measured against the host's own boxes, never through window coordinates: the card is moved by a
+ * layer translation, and what is anchored to it has to move with it.
  */
 @Stable
 class ModalHostState {
@@ -107,7 +101,7 @@ val LocalModalHost = compositionLocalOf<ModalHostState?> { null }
 /**
  * Bottom edge of [field] in [container]'s space, for [ModalHostState.focusedFieldBottom]. Null
  * until there is a container to measure against, rather than falling back to window space, which
- * on Aurora would answer with the rotation still in it.
+ * is not the space the keyboard's overlap is counted in.
  */
 fun fieldBottomIn(container: LayoutCoordinates?, field: LayoutCoordinates): Int? =
     if (container != null && container.isAttached && field.isAttached) {
