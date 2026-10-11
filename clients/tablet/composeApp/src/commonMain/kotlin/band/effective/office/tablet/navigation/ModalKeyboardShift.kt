@@ -96,8 +96,7 @@ internal fun modalKeyboardShift(
 
 /**
  * Ends editing when the keyboard goes away behind the app's back — swiped down or dismissed from
- * its own key, neither of which the Aurora fork reports. The overlap dropping back to zero after
- * the keyboard had been up is the only notice there is.
+ * its own key. The overlap dropping back to zero after the keyboard had been up is the notice.
  */
 @Composable
 private fun KeyboardWithdrawalWatch(anchor: ModalHostState, overlapPx: Int) {

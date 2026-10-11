@@ -96,9 +96,10 @@ fling has its down consumed on the `Initial` pass by the scroll, so the field's 
 requires an unconsumed down, never runs. Gated on the position, the dim would refuse to dismiss for
 ten seconds after such a tap.
 
-A keyboard that goes away behind the app's back — a real gesture on Aurora, which the fork does not
-report — shows up as the overlap dropping back to zero. That is taken as the end of editing and
-answered by dropping the focus, which is the door everything else leaves editing through.
+A keyboard that goes away behind the app's back — swiped down, a real gesture on Aurora — shows up
+as the overlap dropping back to zero. That is taken as the end of editing and answered by dropping
+the focus, which is the door everything else leaves editing through. The fork's 0.0.5 releases the
+focus itself when maliit hides the keyboard, so on Aurora this now only confirms it.
 
 #### What the shift cannot do
 

@@ -164,57 +164,38 @@ the three platforms mean three different things by it. Android draws edge to edg
 its window, so the answer is the ime inset less the navigation bar the content is already padded
 away from. iOS shortens the Compose scene to the area above the keyboard before any of this runs, so
 the answer is zero — subtracting the height a second time collapses the card, which it did. Aurora
-covers the content the way Android does and tells nobody, so the height comes out of the maliit
-session, and everything below is about making that number usable.
+covers the content the way Android does, and since the fork's 0.0.5 says so through
+`WindowInsets.ime` — though not in a number that can be used as it comes, and everything below is
+about that.
 
-**It has to be asked for, not listened to.** `Keyboard.listenState` fires when the keyboard opens
-but carries `height = 0`; maliit sends the size in a follow-up event that never reaches the app.
-Worse, a second `listenState` subscription beside the fork's own kills maliit outright — after the
-first session closes the keyboard does not come back without a restart. So `Keyboard.height()` is
-polled every 100 ms while the modal that reads it is on screen. This looks like a stopgap and is
-not one: **do not turn it back into a subscription.** Polling also comes out ahead on its own
-merits — there is nothing to lose on `onWindowPause()`, the answer grows with the keyboard as it
-slides in, and a keyboard swiped away behind the app's back shows up as a zero on the next tick.
+**The inset is the surface, not the keys.** With the canvas turned landscape the inset comes back as
+the whole long side of the panel: 1600 on a 960x1600 emulator, 1520 against the TrustPhone's
+720x1600. That is the extent of maliit's turned surface in the panel's own coordinates, while the
+key strip on a screenshot of the emulator is 520 px. `Keyboard.height()` and the `listenState` event
+give the same number or none at all, so nothing the fork hands over carries the strip's thickness.
+Hence the rule: an inset reaching the window's short side is a surface rather than a keyboard, and
+0.43 of that side is substituted; an inset below the short side is believed as it is. The fork keeps
+the inset in the scene's own density, so under `ScaledUiDensity` it is taken back through
+`Window.scale()` before it is compared with anything in pixels.
 
-**The number cannot be taken at face value.** The dev phone answers 535 against a 720x1600 screen —
-keyboard-shaped. The Quadro T answers 2000 against 1200x2000, the screen's whole long side: maliit's
-surface spans the screen, and the key strip's own thickness is nowhere in the binding, down to the
-libac struct `{ height, is_open }`. The SDK emulator answers an honest 520 out of 1200; the
-TrustPhone T1 answers nothing at all, `reported=0`. Hence the rule: anything reaching the screen's
-short side is a surface rather than a keyboard, and 0.43 of that side is substituted. The fraction
-is measured twice, not guessed — a 520 px key strip across the Quadro T's 1200 px short side in a
-screenshot, and the emulator's own 520 out of the same 1200.
+Up to 0.0.4 there was no inset and the height was polled out of the maliit binding every 100 ms,
+with a first call that blocked the composition's thread for 2205 ms on the TrustPhone while the fork
+opened the session. Nothing on the app's side calls into that binding now.
 
-`Keyboard.isOpen()` is never a gate on the poll, only a line in the log: it has read `false` with
-the keyboard up, and on the tablet it kept the poll silent for a whole session.
+**A press is taken as a promise of a keyboard.** Focus and the inset both arrive after the keyboard
+has started to cover the field: 120 to 300 ms after the press on the TrustPhone on 0.0.5, six
+seconds on the Quadro T on 0.0.4, which has not been looked at since. So
+`noteSoftKeyboardExpected()` on the press publishes the estimate at once, in snapshot state, and the
+card moves with the press. The promise lives ten seconds and is taken back once an inset really
+appears. It lifts nothing by itself: the host moves the card for a focused field, and once editing
+ends there is none. Three seconds was tried and expired mid-handshake: the modal dropped back, the
+host read that as a keyboard going away and cleared the focus — the app fighting the keyboard it had
+summoned itself. A short settle window keeps an inset the previous edit left behind from spending
+the promise before the keyboard has moved.
 
-**A press is taken as a promise of a keyboard.** The fork starts the maliit session synchronously
-and grants focus at the end of it — six seconds on the Quadro T, with focus given and taken away in
-between. Focus, `isOpen()` and the state event all become true after the keyboard has already
-covered the field, so `noteSoftKeyboardExpected()` on the press is the only signal that comes
-first. The promise lives ten seconds and is dropped the moment a keyboard really appears or editing
-ends. Three seconds was tried and expired mid-handshake: the modal dropped back, the host read that
-as a keyboard going away, cleared the focus and closed the session — the app fighting the keyboard
-it had summoned itself. A short settle window keeps a stale `isOpen() = true` from the previous
-session from spending the promise before the keyboard has moved.
-
-**The promise has to publish its own estimate, and this is what makes it work at all.** Reading it
-inside the poll is not enough, because the poll asks maliit first, and the first call into that
-binding blocks until the fork has finished opening the session — 2205 ms measured on a TrustPhone
-T1, on the composition's own thread. Read there, the advance queues behind the exact wait it exists
-to cover: the card moves only after the keyboard is already up. So the press writes an estimate into
-snapshot state itself, and the poll only refines it once maliit answers; the larger of the two wins,
-which hands the decision to the real height as soon as there is one. The short side is cached from
-the last poll so the press never has to ask the window for it.
-
-The symptom, if this is ever undone: only the first press of a session is slow, the rest are
-instant, and it comes back after the session is closed — which reads as "sometimes it works,
-sometimes it doesn't". The emulator cannot show it, opening a session there takes 59 ms. **Check
-this one on real hardware.**
-
-The poll's answers go to the log under the `SoftKeyboard` tag on change only, with the raw height
-and the screen beside the number actually used, so a run off a new device says which branch it took.
-Sizes are printed with spaces around the separator for the reason the `OrganizerList` line gives.
+The answers go to the log under the `SoftKeyboard` tag whenever the inset changes, with the raw
+inset and the short side beside the number actually used, so a run off a new device says which
+branch it took.
 
 **The session is the fork's to close.** Up to 0.0.4 the fork opened a maliit session on focus and
 never closed it, and the app had to. In 0.0.5 the session ends in a `finally` that closes the

@@ -1,143 +1,94 @@
 package band.effective.office.tablet.core.ui.platform
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
+import androidx.compose.ui.platform.LocalDensity
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.delay
-import ru.auroraos.kmp.keyboard.maliit.Keyboard
 import ru.auroraos.kmp.window.Window
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.TimeSource
 
-private const val KEYBOARD_POLL_MS = 100L
-
 private const val KEYBOARD_TAG = "SoftKeyboard"
 
-/** Share of the screen's short side taken for the keyboard when its own answer cannot be believed. */
+/** Share of the window's short side taken for the keyboard when the inset cannot be believed. */
 private const val KEYBOARD_COVER_FRACTION = 0.43f
 
-/** How long after a press `isOpen()` is not yet proof, so a stale `true` cannot spend the promise. */
+/** How long after a press an inset is not yet proof, so a stale one cannot spend the promise. */
 private val KEYBOARD_NOTICE_SETTLE = 300.milliseconds
 
-private var keyboardExpectedAt: TimeSource.Monotonic.ValueTimeMark? = null
+/** What a press claims on its own, ahead of any inset, and when it claimed it. */
+private class KeyboardPromise(
+    val overlapPx: Int,
+    val madeAt: TimeSource.Monotonic.ValueTimeMark,
+)
 
-/** Short side of the screen, kept from the last poll so the promise need not ask for it. */
+private val keyboardPromise = mutableStateOf<KeyboardPromise?>(null)
+
+/** Short side of the window, kept from the last composition so the press need not ask for it. */
 private var lastShortSidePx = 0
-
-/**
- * What the press claims on its own, without waiting for a poll. Publishing it here rather than
- * reading it inside the poll is what makes the advance work — see "The on-screen keyboard" in
- * clients/tablet/core/ui/README.md.
- */
-private val promisedOverlapPx = mutableStateOf(0)
 
 private fun estimatedOverlapPx(shortSidePx: Int): Int =
     (shortSidePx * KEYBOARD_COVER_FRACTION).roundToInt()
 
 internal fun noteAuroraKeyboardExpected() {
-    keyboardExpectedAt = TimeSource.Monotonic.markNow()
     val shortSide = lastShortSidePx
-    if (shortSide > 0) promisedOverlapPx.value = estimatedOverlapPx(shortSide)
-}
-
-private fun dropKeyboardPromise() {
-    keyboardExpectedAt = null
-    promisedOverlapPx.value = 0
-}
-
-/** One poll's worth of what the keyboard and the screen say, kept together for the log line. */
-private data class KeyboardReading(
-    val overlap: Int,
-    val reported: Int,
-    val isOpen: Boolean,
-    val screenWidth: Int,
-    val screenHeight: Int,
-    val estimated: Boolean,
-)
-
-/**
- * Asks the keyboard how tall it is and decides whether the answer means anything: a height reaching
- * the screen's short side is maliit's surface, not its key strip. See the README section named in
- * [auroraKeyboardOverlapPx].
- */
-private fun readKeyboard(): KeyboardReading {
-    val reported = Keyboard.height().toInt()
-    val isOpen = Keyboard.isOpen()
-    val screenWidth = Window.width()
-    val screenHeight = Window.height()
-    val shortSide = minOf(screenWidth, screenHeight)
-    if (shortSide > 0) lastShortSidePx = shortSide
-
-    if (shortSide <= 0) {
-        return KeyboardReading(
-            overlap = maxOf(0, reported),
-            reported = reported,
-            isOpen = isOpen,
-            screenWidth = screenWidth,
-            screenHeight = screenHeight,
-            estimated = false,
+    if (shortSide > 0) {
+        keyboardPromise.value = KeyboardPromise(
+            overlapPx = estimatedOverlapPx(shortSide),
+            madeAt = TimeSource.Monotonic.markNow(),
         )
     }
-
-    val notice = keyboardExpectedAt
-    val expected = notice?.let { it.elapsedNow() < SOFT_KEYBOARD_PRESS_GRACE } == true
-    val believable = reported in 1 until shortSide
-
-    // A kept promise is dropped, or closing the keyboard inside the grace window would lift the
-    // card straight back up for the rest of it.
-    if (notice != null && (believable || (isOpen && notice.elapsedNow() > KEYBOARD_NOTICE_SETTLE))) {
-        dropKeyboardPromise()
-    } else if (notice != null && !expected) {
-        // The ten seconds are up: nothing came, and the card should not stay lifted on a stale hope.
-        dropKeyboardPromise()
-    }
-
-    val overlap = when {
-        believable -> reported
-        isOpen || expected -> estimatedOverlapPx(shortSide)
-        else -> 0
-    }
-    return KeyboardReading(
-        overlap = overlap,
-        reported = reported,
-        isOpen = isOpen,
-        screenWidth = screenWidth,
-        screenHeight = screenHeight,
-        estimated = !believable && overlap > 0,
-    )
 }
 
 /**
- * Polls the maliit session for the height the fork reports no insets for. **Must not become a
- * subscription** — see "The on-screen keyboard" in clients/tablet/core/ui/README.md.
- *
- * Stays on the composition's dispatcher: the maliit binding is a Qt object, bound to the thread it
- * was made on.
+ * Reads the overlap off the fork's ime inset and decides whether the number means anything: one
+ * reaching the window's short side is maliit's surface, not its key strip. See "The on-screen
+ * keyboard" in clients/tablet/core/ui/README.md.
  */
 @Composable
 internal fun auroraKeyboardOverlapPx(): Int {
-    val promised by promisedOverlapPx
-    val overlap by produceState(0) {
-        while (true) {
-            val reading = runCatching { readKeyboard() }.getOrElse {
-                Napier.e(throwable = it, tag = KEYBOARD_TAG) { "height poll failed, giving up" }
-                return@produceState
-            }
-            if (reading.overlap != value) {
-                Napier.i(tag = KEYBOARD_TAG) {
-                    "overlap ${value}px -> ${reading.overlap}px (isOpen=${reading.isOpen}, " +
-                        "reported=${reading.reported}px, " +
-                        "screen ${reading.screenWidth} x ${reading.screenHeight}" +
-                        (if (reading.estimated) ", estimated)" else ")")
-                }
-                value = reading.overlap
-            }
-            delay(KEYBOARD_POLL_MS)
+    val promise by keyboardPromise
+    val density = LocalDensity.current
+    // The fork keeps the inset in the scene's own density, and this runs under a substituted one.
+    val inset = WindowInsets.ime.getBottom(density)
+    val reported = (inset * Window.scale() / density.density).roundToInt()
+    val shortSide = minOf(Window.width(), Window.height())
+    val believable = reported in 1 until shortSide
+    val overlap = when {
+        reported <= 0 -> 0
+        believable -> reported
+        else -> estimatedOverlapPx(shortSide)
+    }
+
+    SideEffect {
+        if (shortSide > 0) lastShortSidePx = shortSide
+    }
+    LaunchedEffect(reported) {
+        Napier.i(tag = KEYBOARD_TAG) {
+            "overlap ${overlap}px (inset ${reported}px, short side ${shortSide}px" +
+                (if (reported > 0 && !believable) ", estimated)" else ")")
         }
     }
-    // The promise wins only while it is larger: once maliit answers, its own height is the truth.
-    return maxOf(overlap, promised)
+    LaunchedEffect(promise, reported > 0) {
+        val kept = promise ?: return@LaunchedEffect
+        if (reported > 0) {
+            // The keyboard is really up, so the promise has done its job — unless the inset is one
+            // the last edit left behind, which the settle window is there to outlast.
+            delay(KEYBOARD_NOTICE_SETTLE - kept.madeAt.elapsedNow())
+        } else {
+            // Nothing came: the card should not stay lifted on a stale hope.
+            delay(SOFT_KEYBOARD_PRESS_GRACE - kept.madeAt.elapsedNow())
+        }
+        // A press in the meantime has made a promise of its own, which is not this one's to end.
+        if (keyboardPromise.value === kept) keyboardPromise.value = null
+    }
+    // The promise wins only while it is larger: once the inset answers, that is the truth.
+    return maxOf(overlap, promise?.overlapPx ?: 0)
 }
