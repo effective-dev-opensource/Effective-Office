@@ -29,13 +29,6 @@ expect val statusBarInset: Dp
 expect val uiScaleBaseline: Dp
 
 /**
- * Re-applies around a scene of its own what [AuroraWindowFrame] applies around the root: the fork
- * draws a `Dialog` as a separate scene in the untouched window, which inherits none of it.
- */
-@Composable
-expect fun DialogSceneFrame(content: @Composable () -> Unit)
-
-/**
  * How many pixels of the app's own content area the on-screen keyboard covers. Zero on iOS, where
  * the host shortens the scene instead — see "The on-screen keyboard" in
  * clients/tablet/core/ui/README.md.

@@ -61,10 +61,11 @@ SuccessButton(onClick = { /* handle click */ }) {
 ```
 
 ## Aurora window model
-`AuroraWindowFrame` is the one place the Aurora window is prepared for the app, and every scene
-layer applies it: the fork draws `Popup` and `Dialog` as separate scenes in the untouched window, so
-nothing installed at the root reaches them. `DialogSceneFrame` is that re-application for a dialog.
-On Android and iOS the flags behind the frame are off and every wrapper passes its content through.
+`AuroraWindowFrame` is the one place the Aurora window is prepared for the app, and it is applied
+once, at the root. A `Dialog` is a scene of its own, but the fork's 0.0.5 carries the composition
+locals into it, the substituted density among them, so the date picker lays out like the rest
+without the frame being applied a second time. On Android and iOS the flags behind the frame are off
+and every wrapper passes its content through.
 
 The window arrives portrait on every live device — 1200x2000 on the Quadro T, 720x1600 on the dev
 phone — while the app is a landscape kiosk. The fork turns the canvas itself, to the orientation the

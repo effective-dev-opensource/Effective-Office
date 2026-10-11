@@ -51,7 +51,7 @@ overlay is up, so a modal is never left addressing one room over another room's 
 `ModalHost` also hands the content inside it a `ModalHostState` through `LocalModalHost`. Its slot
 is composed inside the card's own box, after the content and without clipping, so content placed
 there rides every transform applied to the card and may reach above its top edge. On Aurora that is
-where the organizer list is drawn, a `Popup` there being a scene of its own — see the Aurora window
+where the organizer list is drawn, a `Popup` there not following the card — see the Aurora window
 model in `clients/tablet/core/ui/README.md`.
 
 ### Keeping a modal clear of the on-screen keyboard
@@ -125,9 +125,9 @@ A `dialog<>` destination is a nested window, and calf's date and time pickers ar
 on iOS. Inside such a window they receive no touches at all: the calendar will not take a date and
 the wheels will not spin.
 
-A dialog is also a scene of its own. What the application root installs — the inactivity tracking,
-the theme wrappers, the composition locals — is not inherited inside it, so every extra dialog
-window has to be furnished again from scratch.
+A dialog is also a scene of its own. The composition locals reach into it, but what the application
+root wraps its content in does not wrap the dialog's — the inactivity tracking above all — so every
+extra dialog window has to be furnished again.
 
 ### Why the date picker is still a `Dialog`
 

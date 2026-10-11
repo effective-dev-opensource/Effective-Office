@@ -19,9 +19,6 @@ actual val statusBarInset: Dp = 0.dp
 
 actual val uiScaleBaseline: Dp = 0.dp
 
-@Composable
-actual fun DialogSceneFrame(content: @Composable () -> Unit) = content()
-
 // The ime inset is measured from the bottom of the window and includes the navigation bar, which
 // the content is already padded away from.
 @Composable
