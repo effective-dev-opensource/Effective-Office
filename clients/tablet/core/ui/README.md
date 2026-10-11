@@ -144,10 +144,17 @@ familiar screen size: both live devices are 1200 px on the short side — the Qu
 The two lay out the same, not merely close. The answer goes to the log on every change under the
 `UiScale` tag, e.g. `content 2000x1200, density 1.7492712`.
 
+The fork reports no insets — `WindowInsets.statusBars`, `systemBars` and `safeDrawing` are all zero,
+on 0.0.5 as before — so the room for Aurora's status bar is a constant, `statusBarInset`, a band
+along the top of the content. On the dev phone the system does not draw the status bar over a
+landscape app at all and the band is spare there; the tablet has not been looked at on 0.0.5, which
+is why the band stays. Nothing is set aside for a display cutout: the dev phone's camera sits at the
+left edge of the landscape content, and the fork does not report that either.
+
 The order inside the frame is fixed, and each of these rules cost a round trip to the device:
-- the status-bar inset goes **inside** the scale, not the other way round. `ScaledUiDensity` measures its own
-  constraints, so under the padding it would normalise 1157 px instead of the window's 1200, the
-  parity above would be gone and everything would come out some 3.6% larger;
+- the status-bar inset goes **inside** the scale, not the other way round. `ScaledUiDensity`
+  measures its own constraints, so under the padding it would normalise 1157 px instead of the
+  window's 1200, the parity above would be gone and everything would come out some 3.6% larger;
 - the theme goes **outside** the frame, because `AppTheme`'s own `Surface` is what paints the strip
   the inset leaves bare; with the theme inside, that strip came out white.
 
