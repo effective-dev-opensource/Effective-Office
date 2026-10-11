@@ -39,8 +39,8 @@ kotlin {
                 // -Xoverride-konan-properties, without which the link against the sysroot fails.
                 freeCompilerArgs += auroraBuild.freeCompilerArgs(target.name)
                 // cmpLinkerOpts brings Qt5Core, maliit, skiko, wayland, EGL and dbus, but no
-                // networking, and the http client is ktor-curl.
-                linkerOpts.addAll(auroraBuild.cmpLinkerOpts(target.name, "Qt5Network"))
+                // networking, and the http client is ktor-curl. ak-shared-preferences links QCA.
+                linkerOpts.addAll(auroraBuild.cmpLinkerOpts(target.name, "Qt5Network", "qca-qt5"))
             }
         }
     }

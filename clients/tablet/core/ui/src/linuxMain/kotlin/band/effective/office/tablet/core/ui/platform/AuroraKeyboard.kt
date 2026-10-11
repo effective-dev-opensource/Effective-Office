@@ -69,8 +69,8 @@ private data class KeyboardReading(
 private fun readKeyboard(): KeyboardReading {
     val reported = Keyboard.height().toInt()
     val isOpen = Keyboard.isOpen()
-    val screenWidth = Window.screenWidth()
-    val screenHeight = Window.screenHeight()
+    val screenWidth = Window.width()
+    val screenHeight = Window.height()
     val shortSide = minOf(screenWidth, screenHeight)
     if (shortSide > 0) lastShortSidePx = shortSide
 

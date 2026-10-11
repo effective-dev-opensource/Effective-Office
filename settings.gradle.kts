@@ -25,7 +25,7 @@ pluginManagement {
     // Compose and breaks configuration.
     plugins {
         if (providers.gradleProperty("buildVariant").orNull == "aurora") {
-            id("org.jetbrains.compose") version "0.0.4-aurora"
+            id("org.jetbrains.compose") version "0.0.5-aurora"
             id("ru.auroraos.kmp.aurora-build") version "0.0.1"
             id("ru.auroraos.kmp.aurora-devices") version "0.0.1"
             id("com.codingfeline.buildkonfig") version "0.18.0-aurora"
