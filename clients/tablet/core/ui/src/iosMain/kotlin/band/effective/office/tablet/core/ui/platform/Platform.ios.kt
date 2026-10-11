@@ -18,6 +18,3 @@ actual val uiScaleBaseline: Dp = 0.dp
 actual fun softKeyboardOverlapPx(): Int = 0
 
 actual fun noteSoftKeyboardExpected() = Unit
-
-// UIKit takes the keyboard down with the focus by itself.
-actual fun closeSoftKeyboard() = Unit

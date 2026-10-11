@@ -113,7 +113,7 @@ private fun KeyboardWithdrawalWatch(anchor: ModalHostState, overlapPx: Int) {
         if (!keyboardGone) return@LaunchedEffect
         keyboardHasBeenUp = false
         if (anchor.focusedFieldBottom == null) return@LaunchedEffect
-        // Dropping the focus is all this does; the field closes the session from its own focus-lost
+        // Dropping the focus is all this does; the field ends the edit from its own focus-lost
         // branch. clearFocus() unwinds the fork's input method, which is the broken part here.
         runCatching {
             focusManager.clearFocus()

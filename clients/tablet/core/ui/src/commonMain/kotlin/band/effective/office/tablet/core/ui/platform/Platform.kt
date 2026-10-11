@@ -48,12 +48,6 @@ expect fun noteSoftKeyboardExpected()
 internal val SOFT_KEYBOARD_PRESS_GRACE = 10.seconds
 
 /**
- * Ends the on-screen keyboard's session for the platform that will not end it itself. Safe to call
- * from anywhere, the Aurora key dispatch included; Android and iOS have nothing to do here.
- */
-expect fun closeSoftKeyboard()
-
-/**
  * What a modal host offers the content inside it; `null` outside one. Anything positional here is
  * measured against the host's own boxes, never through window coordinates: the card is moved by a
  * layer translation, and what is anchored to it has to move with it.

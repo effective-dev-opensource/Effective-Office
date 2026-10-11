@@ -60,7 +60,6 @@ import band.effective.office.tablet.core.ui.arrow_to_down
 import band.effective.office.tablet.core.ui.platform.LocalModalHost
 import band.effective.office.tablet.core.ui.platform.ModalHostState
 import band.effective.office.tablet.core.ui.platform.SOFT_KEYBOARD_PRESS_GRACE
-import band.effective.office.tablet.core.ui.platform.closeSoftKeyboard
 import band.effective.office.tablet.core.ui.platform.fieldBottomIn
 import band.effective.office.tablet.core.ui.platform.noteSoftKeyboardExpected
 import band.effective.office.tablet.core.ui.res.painterResource
@@ -116,7 +115,6 @@ fun EventOrganizerView(
         onDispose {
             modalHost?.focusedFieldBottom = null
             modalHost?.editing = false
-            if (isFocused) closeSoftKeyboard()
         }
     }
 
@@ -203,7 +201,6 @@ fun EventOrganizerView(
                                 reportFieldBottom(modalHost, rowCoords)
                             } else if (wasFocused) {
                                 modalHost?.focusedFieldBottom = null
-                                closeSoftKeyboard()
                             }
                         },
                     )

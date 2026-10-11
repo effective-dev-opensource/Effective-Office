@@ -216,29 +216,23 @@ The poll's answers go to the log under the `SoftKeyboard` tag on change only, wi
 and the screen beside the number actually used, so a run off a new device says which branch it took.
 Sizes are printed with spaces around the separator for the reason the `OrganizerList` line gives.
 
+**The session is the fork's to close.** Up to 0.0.4 the fork opened a maliit session on focus and
+never closed it, and the app had to. In 0.0.5 the session ends in a `finally` that closes the
+keyboard, and a keyboard hidden from its own side releases the focus, so nothing on the app's side
+closes a session any more — seen on the emulator and on the TrustPhone alike.
+
+Every way out of editing is funnelled into one door, the field losing focus. The Done action does
+not call `defaultKeyboardAction(Done)`, which hides the keyboard synchronously inside maliit's own
+key dispatch, and it clears the focus a frame later rather than at once: both of the fork's
+dispatchers run a bare `launch` inline, so the frame clock is the only scheduler that genuinely
+defers. Both precautions date from 0.0.4, where tearing the session down inside that dispatch
+deadlocked the process, and have not been tried without on 0.0.5. `freeFocus()` is not a way out at
+all: it releases focus that was *captured*, and nothing here captures any, so the field stayed
+focused with the keyboard up.
+
 ## Fork defects
 Corrections to the Aurora fork's own bugs. Each is expected to die when the fork is fixed, and each
 is marked `// Fork defect:` at its site.
-
-### The maliit session is never closed
-The fork opens a maliit session when a field takes focus and then parks in `awaitCancellation()`
-with no `finally`, so nothing ever stops it: the field is done being edited and maliit still
-believes it is feeding one. A leftover session is the likeliest reason input goes to the app no
-more, which on the tablet reads as a freeze. `closeSoftKeyboard()` does what the missing `finally`
-would have done.
-
-Where it is closed matters as much as that it is. `Keyboard.close()` called from inside maliit's own
-key dispatch deadlocks the process: `send_state` waits on the channel the `send_input` still on the
-stack is holding. Deferring with a `launch` does not help either — both of the fork's dispatchers
-run tasks inline on the main thread. So the request goes into a conflated channel and
-`AuroraKeyboardSessionCloser`, mounted once at the root, closes the session after a
-`withFrameNanos {}`: on this fork the frame clock is the only scheduler that genuinely defers.
-
-Every way out of editing is funnelled into one door, the field losing focus, and the field closes
-the session from there. That is why the Done action does not call `defaultKeyboardAction(Done)` —
-it hides the keyboard synchronously, inside that same dispatch — and why it clears the focus a frame
-later rather than at once. `freeFocus()` is not a way out at all: it releases focus that was
-*captured*, and nothing here captures any, so the field stayed focused with the keyboard up.
 
 ### The fork's resource loader renders SVG only
 `vectorResource` from `compose-resources` hands the drawable bytes straight to Skia's `SVGDOM`. Every

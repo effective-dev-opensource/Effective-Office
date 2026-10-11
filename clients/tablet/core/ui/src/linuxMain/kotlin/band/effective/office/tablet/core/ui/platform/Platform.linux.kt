@@ -21,5 +21,3 @@ actual val uiScaleBaseline: Dp = 686.dp
 actual fun softKeyboardOverlapPx(): Int = auroraKeyboardOverlapPx()
 
 actual fun noteSoftKeyboardExpected() = noteAuroraKeyboardExpected()
-
-actual fun closeSoftKeyboard() = requestAuroraKeyboardClose()
