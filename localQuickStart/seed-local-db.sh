@@ -69,8 +69,6 @@ for row in "jdoe|john.doe@example.com|John|Doe" \
            VALUES (gen_random_uuid(), '$username', '$email', '$first', '$last', now(), now(), true, 'employer', 'employer')
            ON CONFLICT (email) DO NOTHING;"
 done
-# Fix any pre-existing rows seeded with the wrong tag.
-psql -c "UPDATE users SET tag='employer' WHERE tag='employee';"
 
 echo "--- current organizers (tag=employer) ---"
 psql -c "SELECT first_name, last_name, email FROM users WHERE tag='employer';"
