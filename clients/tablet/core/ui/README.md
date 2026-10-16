@@ -15,6 +15,8 @@ band.effective.office.tablet.core.ui/
 ├── common/           # Shared views: buttons, loader, error and disconnect states
 ├── date/             # Date and time strip with arrows
 ├── inactivity/       # Inactivity countdown and the tracker that feeds it
+├── platform/         # Platform.kt seams, AuroraWindowFrame, ScaledUiDensity, the Aurora keyboard
+├── res/              # painterResource/vectorResource facade and the Aurora vector-XML decoder
 ├── theme/            # Color scheme, custom palette, typography
 ├── utils/            # Date formatting and display mapping
 └── LoadMainScreen.kt # Full-screen loading state

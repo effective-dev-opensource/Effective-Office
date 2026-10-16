@@ -23,7 +23,7 @@ The TV application is a Compose Multiplatform app designed for large-screen devi
 ### Tablet Application (Compose Multiplatform)
 
 - **Framework**: Kotlin Multiplatform with Jetpack Compose
-- **Platforms**: Android and iOS
+- **Platforms**: Android, iOS and Aurora OS (`-PbuildVariant=aurora`)
 - **UI**: Jetpack Compose
 - **Navigation**: Navigation Compose, with the modals as state-driven overlays
 - **Dependency Injection**: Koin

@@ -168,8 +168,6 @@ Same port rule as step 5: **the client must be built against the proxy port**, s
 
 ---
 
----
-
 ## Files this quick-start needs elsewhere in the repo
 
 These can't live in this folder — the build looks for them at fixed locations. They're all
@@ -179,8 +177,10 @@ These can't live in this folder — the build looks for them at fixed locations.
 |------|-----|
 | `local.properties` (repo root) | `api.url.debug/release`, `apiKey`, `sdk.dir`. Any Gradle build fails without it (settings.gradle configures every module). |
 | `clients/tablet/composeApp/google-services.json` | The `com.google.gms.google-services` plugin refuses to build without it. A dummy file with package `band.effective.office.tablet` is enough. |
-| `clients/tablet/composeApp/src/debug/AndroidManifest.xml` | Debug-only overlay adding `usesCleartextTraffic="true"` so the debug build can reach the local **http** backend. |
 | `keystore/debug.keystore` | Debug signing config (alias `androiddebugkey`, store/key pass `android`). Generate with `keytool`. |
+
+The debug build reaches the local **http** backend through the committed
+`clients/tablet/composeApp/src/debug/AndroidManifest.xml`, which adds `usesCleartextTraffic="true"`.
 
 ---
 
@@ -193,17 +193,6 @@ These can't live in this folder — the build looks for them at fixed locations.
 - `photo.saver.provider=dummy` clashes with the photos dummy (both register a bean named
   `dummyPhotoProvider`) → we use `mattermost` with the scheduler disabled instead.
 - `FirebaseConfig` reads the credentials file at startup no matter what → the fake JSON.
-
-**iOS** (the `iosMain` source set was clearly never built in CI — it needed 5 fixes to compile):
-1. `clients/shared/core/.../DateTimeUtils.ios.kt` — dropped `NSLocale.currentLocale`
-   (unresolved on the current Kotlin/Native; `NSDateFormatter` defaults to the current locale).
-2. Deleted orphaned `clients/tablet/core/data/src/iosMain/.../HttpClientFactory.ios.kt`
-   (`actual` with no `expect`).
-3. `clients/tablet/core/ui/.../DateFormatter.ios.kt` — added `import platform.Foundation.languageCode`.
-4. `clients/tablet/feature/main/build.gradle.kts` — hardcoded `components-ui-tooling-preview:1.10.0`
-   pulled a Kotlin 2.2.x klib (project is 2.1.21) → switched to the managed `compose.components.uiToolingPreview`.
-5. Stripped `widthDp/heightDp/locale` params from `@Preview` in feature:main (those params only
-   exist in the newer Preview annotation; Compose here is 1.8.1).
 
 ## Limitations
 

@@ -27,8 +27,9 @@ domain/
   look like to the rest of the app.
 - **Slot**: a stretch of the day — free, taken by an event, or a group of several.
 - **RoomsEnum**: the room names shown in Settings before the server answers.
-- **SettingsManager**: the one persisted setting, the room this tablet was set up with, over
-  Multiplatform Settings.
+- **SettingsManager**: the one persisted setting, the room this tablet was set up with, over the
+  `SettingsStore` seam each platform fills: multiplatform-settings on Android and iOS, the fork's
+  shared preferences on Aurora.
 
 ### Repositories
 Interfaces only: `RoomRepository`, `BookingRepository`, `OrganizerRepository` for the network, and

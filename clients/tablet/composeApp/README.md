@@ -15,8 +15,11 @@ composeApp/
 ├── src/
 │   ├── commonMain/     # AppRoot, navigation graph, DI, logger, version overlay
 │   ├── androidMain/    # Application/Activity, Firebase messaging, kiosk mode
-│   └── iosMain/        # ComposeUIViewController entry point and initializers
-└── build.gradle.kts    # Targets, BuildKonfig fields, module dependencies
+│   ├── debug/          # Android debug manifest overlay: cleartext http for the local backend
+│   ├── iosMain/        # ComposeUIViewController entry point and initializers
+│   └── linuxMain/      # Aurora entry point, settings store, time receiver
+├── build.gradle.kts    # Targets, BuildKonfig fields, module dependencies
+└── build.aurora.gradle.kts  # The same under -PbuildVariant=aurora, plus linking, RPM and deploy
 ```
 
 ## Key Components
