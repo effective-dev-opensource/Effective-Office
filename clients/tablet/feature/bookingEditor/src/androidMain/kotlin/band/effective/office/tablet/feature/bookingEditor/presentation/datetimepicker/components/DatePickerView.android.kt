@@ -6,14 +6,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import band.effective.office.shared.core.utils.asInstant
-import band.effective.office.shared.core.utils.asLocalDateTime
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import com.mohamedrejeb.calf.ui.datepicker.AdaptiveDatePicker
 import com.mohamedrejeb.calf.ui.datepicker.rememberAdaptiveDatePickerState
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.toLocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,20 +24,15 @@ actual fun DatePickerView(
     onChangeDate: (LocalDate) -> Unit,
 ) {
     val state = rememberAdaptiveDatePickerState(
-        initialSelectedDateMillis = currentDate.asInstant.toEpochMilliseconds(),
+        initialSelectedDateMillis = currentDate.date.atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds(),
     )
 
     LaunchedEffect(state.selectedDateMillis) {
         val selectedDate = state.selectedDateMillis?.let { millis ->
-            Instant.fromEpochMilliseconds(millis).asLocalDateTime.date
+            Instant.fromEpochMilliseconds(millis).toLocalDateTime(TimeZone.UTC).date
         }
 
-        selectedDate?.let {
-            val year = it.year
-            val month = it.month
-            val day = it.dayOfMonth
-            onChangeDate(LocalDate(year, month, day))
-        }
+        selectedDate?.let { onChangeDate(it) }
     }
 
     Column {
