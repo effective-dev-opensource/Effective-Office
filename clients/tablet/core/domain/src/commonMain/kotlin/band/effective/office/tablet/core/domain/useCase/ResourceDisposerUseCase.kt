@@ -29,6 +29,7 @@ class ResourceDisposerUseCase(
     private var pollJob: Job? = null
 
     operator fun invoke() {
+        updateJob?.cancel()
         updateJob = scope.launch {
             networkRoomRepository.subscribeOnUpdates().debounce(2000).collectLatest {
                 refreshDataUseCase()
