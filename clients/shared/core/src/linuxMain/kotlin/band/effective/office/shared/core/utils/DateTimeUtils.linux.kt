@@ -1,6 +1,7 @@
 package band.effective.office.shared.core.utils
 
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.number
 
 /**
  * Locale-dependent directives are rejected by `byUnicodePattern` on Kotlin/Native, so the pattern is
@@ -23,14 +24,14 @@ actual fun LocalDateTime.toLocalisedString(pattern: String): String {
 }
 
 private fun LocalDateTime.render(directive: String): String = when (directive) {
-    "MMMM" -> MONTHS_RU[monthNumber - 1]
-    "MMM" -> MONTHS_EN_SHORT[monthNumber - 1]
-    "MM" -> monthNumber.pad()
-    "M" -> monthNumber.toString()
+    "MMMM" -> MONTHS_RU[month.number - 1]
+    "MMM" -> MONTHS_EN_SHORT[month.number - 1]
+    "MM" -> month.number.pad()
+    "M" -> month.number.toString()
     "yyyy" -> year.toString()
     "yy" -> (year % 100).pad()
-    "dd" -> dayOfMonth.pad()
-    "d" -> dayOfMonth.toString()
+    "dd" -> day.pad()
+    "d" -> day.toString()
     "HH" -> hour.pad()
     "H" -> hour.toString()
     "hh" -> hour12().pad()
