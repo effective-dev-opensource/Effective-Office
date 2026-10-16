@@ -129,11 +129,11 @@ val localProperties = Properties().apply {
 }
 
 // The SDK emulator has no address of its own — qemu forwards its ssh onto a host port and the only
-// key it authorises is the SDK's own — so all three override the real device's defaults, from -P
-// first and then local.properties.
-val auroraDeviceIp: String = (project.findProperty("AURORA_DEVICE_IP") as? String)
-    ?: localProperties.getProperty("AURORA_DEVICE_IP")
-    ?: "192.168.0.22"
+// key it authorises is the SDK's own — so all three come from -P first and then local.properties.
+// The address has no default: without one there is no device and no runReleaseOnDevice task.
+val auroraDeviceIp: String? = ((project.findProperty("AURORA_DEVICE_IP") as? String)
+    ?: localProperties.getProperty("AURORA_DEVICE_IP"))
+    ?.takeIf { it.isNotBlank() }
 
 val auroraDevicePort: Int = ((project.findProperty("AURORA_DEVICE_PORT") as? String)
     ?: localProperties.getProperty("AURORA_DEVICE_PORT"))
@@ -145,14 +145,16 @@ val auroraDeviceSshKey: String = (project.findProperty("AURORA_DEVICE_SSH_KEY") 
     ?: ".ssh/qtc_id"
 
 auroraDevices {
-    devices {
-        // Unnamed, so the device is `device` and the deploy task is runReleaseOnDevice.
-        create {
-            host.set(auroraDeviceIp)
-            user.set("defaultuser")
-            port.set(auroraDevicePort)
-            // An absolute key path resolves to itself, a relative one against $HOME.
-            sshKey.set(File(System.getProperty("user.home")).resolve(auroraDeviceSshKey).toPath())
+    auroraDeviceIp?.let { deviceIp ->
+        devices {
+            // Unnamed, so the device is `device` and the deploy task is runReleaseOnDevice.
+            create {
+                host.set(deviceIp)
+                user.set("defaultuser")
+                port.set(auroraDevicePort)
+                // An absolute key path resolves to itself, a relative one against $HOME.
+                sshKey.set(File(System.getProperty("user.home")).resolve(auroraDeviceSshKey).toPath())
+            }
         }
     }
     packages {
