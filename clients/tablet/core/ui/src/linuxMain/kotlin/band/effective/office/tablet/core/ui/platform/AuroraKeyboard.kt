@@ -8,14 +8,11 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalDensity
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.delay
 import ru.auroraos.kmp.window.Window
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.TimeSource
-
-private const val KEYBOARD_TAG = "SoftKeyboard"
 
 /** Height of maliit's key strip on a roomy panel, used when the inset cannot be believed. */
 private const val KEYBOARD_STRIP_PX = 520
@@ -72,12 +69,6 @@ internal fun auroraKeyboardOverlapPx(): Int {
 
     SideEffect {
         if (shortSide > 0) lastShortSidePx = shortSide
-    }
-    LaunchedEffect(reported) {
-        Napier.i(tag = KEYBOARD_TAG) {
-            "overlap ${overlap}px (inset ${reported}px, short side ${shortSide}px" +
-                (if (reported > 0 && !believable) ", estimated)" else ")")
-        }
     }
     LaunchedEffect(promise, reported > 0) {
         val kept = promise ?: return@LaunchedEffect

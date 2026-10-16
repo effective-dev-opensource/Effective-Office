@@ -91,12 +91,11 @@ the card moves it identically. It anchors on the row around the field and not on
 because the row is also what it takes its width from: with the card 1259 wide, the row at x=61
 spanning 1137 and the field at x=96 spanning 854, a list sized to the row but placed at the field
 ran 96..1233 against the row's 61..1198 and hung off the card's
-right edge — the row's own 20.dp horizontal padding, in full. The numbers go to the log under the
-`OrganizerList` tag: `anchor 61,612 in card 1259 x 947; row 1137 x 125; list 1137 x 262` on the
-tablet, `anchor 37,369 in card 756 x 570; row 682 x 75; list 682 x 157` on a small screen. Sizes are
-printed with spaces around the separator on purpose — the deploy plugin scans the app's output for a
-native backtrace, takes a bare `0x0` for an address and ends the run over a line that is only saying
-the list has not been measured yet.
+right edge — the row's own 20.dp horizontal padding, in full. Measured on the device: `anchor 61,612
+in card 1259 x 947; row 1137 x 125; list 1137 x 262` on the tablet, `anchor 37,369 in card 756 x 570;
+row 682 x 75; list 682 x 157` on a small screen. Anything logged as a size has to keep spaces around
+the separator: the deploy plugin scans the app's output for a native backtrace, takes a bare `0x0`
+for an address and ends the run over it.
 
 The list also opens on the raw press rather than on the focus callback. Aurora grants focus at the
 end of the maliit handshake, so waiting for it gave press, pause, keyboard, pause, list. Android and
@@ -141,8 +140,8 @@ system handed over — so the app fixes its own dp space instead: `ScaledUiDensi
 on top of it. The baseline of 686 dp is parity with the reference Android tablet rather than a
 familiar screen size: both live devices are 1200 px on the short side — the Quadro T's window is
 1200x2000, the reference tablet is 1920x1200 — so 1200/686 = 1.7493 against that tablet's own 1.75.
-The two lay out the same, not merely close. The answer goes to the log on every change under the
-`UiScale` tag, e.g. `content 2000x1200, density 1.7492712`.
+The two lay out the same, not merely close: on the Quadro T's window that is `content 2000x1200,
+density 1.7492712`.
 
 The fork reports no insets — `WindowInsets.statusBars`, `systemBars` and `safeDrawing` are all zero,
 on 0.0.5 as before — so the room for Aurora's status bar is a constant, `statusBarInset`, a band
@@ -199,10 +198,6 @@ ends there is none. Three seconds was tried and expired mid-handshake: the modal
 host read that as a keyboard going away and cleared the focus — the app fighting the keyboard it had
 summoned itself. A short settle window keeps an inset the previous edit left behind from spending
 the promise before the keyboard has moved.
-
-The answers go to the log under the `SoftKeyboard` tag whenever the inset changes, with the raw
-inset and the short side beside the number actually used, so a run off a new device says which
-branch it took.
 
 **The session is the fork's to close.** Up to 0.0.4 the fork opened a maliit session on focus and
 never closed it, and the app had to. In 0.0.5 the session ends in a `finally` that closes the

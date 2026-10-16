@@ -75,13 +75,6 @@ internal fun modalKeyboardShift(
         if (measuredFieldBottom != null) restingFieldBottom = measuredFieldBottom + shiftPx
     }
 
-    LaunchedEffect(containerHeightPx, cardHeightPx, overlapPx, shiftPx) {
-        Napier.i(tag = MODAL_TAG) {
-            "container ${containerHeightPx}px, card ${cardHeightPx}px, " +
-                "overlap ${overlapPx}px (used ${overlapInBox}px), shift ${shiftPx}px"
-        }
-    }
-
     KeyboardWithdrawalWatch(anchor = anchor, overlapPx = overlapPx)
 
     return ModalKeyboardShift(
