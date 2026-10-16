@@ -131,164 +131,164 @@ fun EventOrganizerView(
         // anchorBounds then equals the row's rect on screen, position and size both. A Popup
         // nested inside Row would inherit a placeholder position from SpaceBetween instead.
         Box {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .onGloballyPositioned { coordinates ->
-                    // This value is used to assign to
-                    // the DropDown the same width
-                    rowSize = coordinates.size.toSize()
-                    rowCoords = coordinates
-                    // From layout rather than an effect: the edge moves when the platform resizes
-                    // the scene under the keyboard, and a value cached off a coordinates reference
-                    // would go on reporting where the field used to be.
-                    if (isFocused) reportFieldBottom(modalHost, coordinates)
-                }
-                .clip(RoundedCornerShape(15.dp))
-                .background(color = LocalCustomColorsPalette.current.elevationBackground)
-                .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextField(
+            Row(
                 modifier = Modifier
-                    // Initial pass and nothing consumed, so the field still takes the press
-                    // itself. See the Aurora window model in clients/tablet/core/ui/README.md.
-                    .pointerInput(Unit) {
-                        awaitEachGesture {
-                            awaitFirstDown(
-                                requireUnconsumed = false,
-                                pass = PointerEventPass.Initial,
-                            )
-                            noteSoftKeyboardExpected()
-                            // Where the field is belongs to the press for the reason the list
-                            // does: on Aurora focus arrives once the keyboard already covers it.
-                            reportFieldBottom(modalHost, rowCoords)
-                            // onExpandedChange is a toggle, so a press with the list already
-                            // open would close the list the press means to go on using.
-                            val opening = !isExpanded
-                            if (opening) expandRequest()
-                            // Initial, not the default Main: the pass this is read on is what
-                            // tells a tap from a scroll, and moving it breaks that. See the
-                            // Aurora window model in clients/tablet/core/ui/README.md.
-                            if (waitForUpOrCancellation(PointerEventPass.Initial) != null) {
-                                // Taken back if the focus never confirms the press: a value
-                                // left behind has the host lifting the card for nobody. Same
-                                // grace as the keyboard notice, so the two expire together.
-                                scope.launch {
-                                    delay(SOFT_KEYBOARD_PRESS_GRACE)
-                                    if (!isFocused) modalHost?.focusedFieldBottom = null
-                                }
-                                return@awaitEachGesture
-                            }
-                            // The press never became a tap: the gesture left for the editor's
-                            // scroll, and the field it would have focused never takes focus.
-                            if (opening) expandRequest()
-                            if (!isFocused) modalHost?.focusedFieldBottom = null
-                        }
+                    .fillMaxSize()
+                    .onGloballyPositioned { coordinates ->
+                        // This value is used to assign to
+                        // the DropDown the same width
+                        rowSize = coordinates.size.toSize()
+                        rowCoords = coordinates
+                        // From layout rather than an effect: the edge moves when the platform resizes
+                        // the scene under the keyboard, and a value cached off a coordinates reference
+                        // would go on reporting where the field used to be.
+                        if (isFocused) reportFieldBottom(modalHost, coordinates)
                     }
-                    .onFocusChanged(
-                        onFocusChanged = {
-                            // Only a real loss counts: Compose reports the field unfocused once
-                            // when it appears, and that is not the end of a session nobody started.
-                            val wasFocused = isFocused
-                            isFocused = it.isFocused
-                            modalHost?.editing = it.isFocused
-                            if (it.isFocused) {
-                                // Said again on the way in: the layout callback only fires when
-                                // the layout changes, and on Aurora focus arrives long after
-                                // everything has settled.
+                    .clip(RoundedCornerShape(15.dp))
+                    .background(color = LocalCustomColorsPalette.current.elevationBackground)
+                    .padding(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextField(
+                    modifier = Modifier
+                        // Initial pass and nothing consumed, so the field still takes the press
+                        // itself. See the Aurora window model in clients/tablet/core/ui/README.md.
+                        .pointerInput(Unit) {
+                            awaitEachGesture {
+                                awaitFirstDown(
+                                    requireUnconsumed = false,
+                                    pass = PointerEventPass.Initial,
+                                )
+                                noteSoftKeyboardExpected()
+                                // Where the field is belongs to the press for the reason the list
+                                // does: on Aurora focus arrives once the keyboard already covers it.
                                 reportFieldBottom(modalHost, rowCoords)
-                            } else if (wasFocused) {
-                                modalHost?.focusedFieldBottom = null
-                            }
-                        },
-                    )
-                    .focusRequester(focusRequester)
-                    .fillMaxWidth(0.8f),
-                value = inputText,
-                singleLine = true,
-                onValueChange = {
-                    onInput(it)
-                },
-                placeholder = {
-                    Text(
-                        text = stringResource(
-                            if (isInputError) Res.string.selectbox_organizer_error
-                            else Res.string.selectbox_organizer_title
-                        ),
-                        color = LocalCustomColorsPalette.current.busyStatus
-                    )
-                },
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    errorContainerColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                ),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        // No defaultKeyboardAction(Done): it hides the keyboard synchronously, and
-                        // on Aurora this lambda runs inside maliit's own key dispatch, where that
-                        // deadlocks. Dropping the focus is what takes the keyboard down instead —
-                        // the one door everything leaves editing through.
-                        onDoneInput(inputText)
-                        onExpandedChange()
-                        // A frame late, because clearFocus() ends the text input session there and
-                        // then, and on Aurora that tears the maliit session down from inside the
-                        // dispatch still on the stack. The fork runs a bare launch inline, so only
-                        // the frame await really leaves it.
-                        scope.launch {
-                            withFrameNanos { }
-                            focusManager.clearFocus()
-                        }
-                    }
-                ),
-            )
-            Image(
-                modifier = Modifier,
-                painter = painterResource(Res.drawable.arrow_to_down),
-                contentDescription = null
-            )
-        }
-        if (expanded) {
-            OrganizerListPopup(anchorCoords = rowCoords) { listModifier ->
-                LazyColumn(
-                    modifier = listModifier
-                        .width(with(density) { rowSize.width.toDp() })
-                        .heightIn(max = 150.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(
-                            LocalCustomColorsPalette.current.elevationBackground,
-                            RoundedCornerShape(8.dp)
-                        )
-                        .border(3.dp, Color.DarkGray, RoundedCornerShape(8.dp))
-                ) {
-                    items(selectOrganizers) { organizer ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onSelectItem(organizer)
-                                    // clearFocus() alone: freeFocus() releases focus that was
-                                    // captured, and nothing here ever captures any.
-                                    focusManager.clearFocus()
-                                    onExpandedChange()
+                                // onExpandedChange is a toggle, so a press with the list already
+                                // open would close the list the press means to go on using.
+                                val opening = !isExpanded
+                                if (opening) expandRequest()
+                                // Initial, not the default Main: the pass this is read on is what
+                                // tells a tap from a scroll, and moving it breaks that. See the
+                                // Aurora window model in clients/tablet/core/ui/README.md.
+                                if (waitForUpOrCancellation(PointerEventPass.Initial) != null) {
+                                    // Taken back if the focus never confirms the press: a value
+                                    // left behind has the host lifting the card for nobody. Same
+                                    // grace as the keyboard notice, so the two expire together.
+                                    scope.launch {
+                                        delay(SOFT_KEYBOARD_PRESS_GRACE)
+                                        if (!isFocused) modalHost?.focusedFieldBottom = null
+                                    }
+                                    return@awaitEachGesture
                                 }
-                                .padding(16.dp),
-                        ) {
-                            Text(
-                                text = organizer,
-                            )
+                                // The press never became a tap: the gesture left for the editor's
+                                // scroll, and the field it would have focused never takes focus.
+                                if (opening) expandRequest()
+                                if (!isFocused) modalHost?.focusedFieldBottom = null
+                            }
                         }
-                        HorizontalDivider()
+                        .onFocusChanged(
+                            onFocusChanged = {
+                                // Only a real loss counts: Compose reports the field unfocused once
+                                // when it appears, and that is not the end of a session nobody started.
+                                val wasFocused = isFocused
+                                isFocused = it.isFocused
+                                modalHost?.editing = it.isFocused
+                                if (it.isFocused) {
+                                    // Said again on the way in: the layout callback only fires when
+                                    // the layout changes, and on Aurora focus arrives long after
+                                    // everything has settled.
+                                    reportFieldBottom(modalHost, rowCoords)
+                                } else if (wasFocused) {
+                                    modalHost?.focusedFieldBottom = null
+                                }
+                            },
+                        )
+                        .focusRequester(focusRequester)
+                        .fillMaxWidth(0.8f),
+                    value = inputText,
+                    singleLine = true,
+                    onValueChange = {
+                        onInput(it)
+                    },
+                    placeholder = {
+                        Text(
+                            text = stringResource(
+                                if (isInputError) Res.string.selectbox_organizer_error
+                                else Res.string.selectbox_organizer_title
+                            ),
+                            color = LocalCustomColorsPalette.current.busyStatus
+                        )
+                    },
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        errorContainerColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                    ),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            // No defaultKeyboardAction(Done): it hides the keyboard synchronously, and
+                            // on Aurora this lambda runs inside maliit's own key dispatch, where that
+                            // deadlocks. Dropping the focus is what takes the keyboard down instead —
+                            // the one door everything leaves editing through.
+                            onDoneInput(inputText)
+                            onExpandedChange()
+                            // A frame late, because clearFocus() ends the text input session there and
+                            // then, and on Aurora that tears the maliit session down from inside the
+                            // dispatch still on the stack. The fork runs a bare launch inline, so only
+                            // the frame await really leaves it.
+                            scope.launch {
+                                withFrameNanos { }
+                                focusManager.clearFocus()
+                            }
+                        }
+                    ),
+                )
+                Image(
+                    modifier = Modifier,
+                    painter = painterResource(Res.drawable.arrow_to_down),
+                    contentDescription = null
+                )
+            }
+            if (expanded) {
+                OrganizerListPopup(anchorCoords = rowCoords) { listModifier ->
+                    LazyColumn(
+                        modifier = listModifier
+                            .width(with(density) { rowSize.width.toDp() })
+                            .heightIn(max = 150.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                LocalCustomColorsPalette.current.elevationBackground,
+                                RoundedCornerShape(8.dp)
+                            )
+                            .border(3.dp, Color.DarkGray, RoundedCornerShape(8.dp))
+                    ) {
+                        items(selectOrganizers) { organizer ->
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onSelectItem(organizer)
+                                        // clearFocus() alone: freeFocus() releases focus that was
+                                        // captured, and nothing here ever captures any.
+                                        focusManager.clearFocus()
+                                        onExpandedChange()
+                                    }
+                                    .padding(16.dp),
+                            ) {
+                                Text(
+                                    text = organizer,
+                                )
+                            }
+                            HorizontalDivider()
+                        }
                     }
                 }
             }
-        }
         }
     }
 
