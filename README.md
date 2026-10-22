@@ -1,19 +1,28 @@
 # Effective Office
 
-### Project Goal
+**Open source office automation, built with Kotlin Multiplatform (KMP).**
 
-Our goal is to make everyday office work simpler and more enjoyable by automating key processes.  
+Book meeting rooms, share office updates on TV screens, and route incoming SMS to your team's services. The Meeting Room app brings the project to **iOS, Android, and Aurora OS**.
 
-### Technical goal
+![iOS, Android and Aurora OS](media/platforms/platforms.svg)
 
-The main technical task of the project is to create a multi-module Kotlin Multiplatform application, focusing on modern and relevant solutions in this ecosystem. Throughout the project, we tried to minimize the use of other languages and technologies.  
+[Website](https://office.effective.dev) · [Documentation](https://github.com/effective-dev-opensource/Effective-Office/wiki) · [Aurora OS branch](https://github.com/effective-dev-opensource/Effective-Office/tree/feature/aurora-compose-0.0.5)
 
-# Apps
-## Meeting Room
+> Aurora OS support for Meeting Room is currently available in the `feature/aurora-compose-0.0.5` branch. The `main` branch contains the Android and iOS implementations. Platform availability varies by app.
 
-<img src="media/tablet/demo-tablet.gif" style="height: 50%;" />
+## Built with Kotlin Multiplatform
 
-### Features Overview
+Effective Office shares Kotlin code across platforms in a modular codebase. The Meeting Room app uses Compose Multiplatform for its UI, with platform-specific integrations for Android, iOS, and Aurora OS. A Kotlin / Spring Boot backend connects the apps to calendars and other office services.
+
+## Apps
+
+### Meeting Room
+
+Meeting room availability and booking for **iOS, Android, and Aurora OS**.
+
+![Meeting Room demo](media/tablet/demo-tablet.gif)
+
+#### Features Overview
 
 | Feature                     | Description                                                  |
 |----------------------------|--------------------------------------------------------------|
@@ -24,12 +33,13 @@ The main technical task of the project is to create a multi-module Kotlin Multip
 | Early Room Release         | Free up the room before the end of the reservation           |
 | Google Calendar Integration| Syncs all bookings with Google Calendar                      |
 
-## TV App
+### TV App
 
+Office news, events, photos, and leaderboards for **Android TV**.
 
-<img src="media/tv/demo-tv.gif" style="height: 50%;" />
+![TV App demo](media/tv/demo-tv.gif)
 
-### Features Overview
+#### Features Overview
 
 | Feature         | Description                                                 |
 | --------------- | ----------------------------------------------------------- |
@@ -40,12 +50,13 @@ The main technical task of the project is to create a multi-module Kotlin Multip
 | Autoplay        | Automatically switches between screens in a slideshow.      |
 | Remote Control  | Allows navigation and interaction using a remote control.   |
 
-## SMS Router
+### SMS Router
 
+An **Android** app that forwards incoming SMS to configured webhooks.
 
-<img src="media/smsRouter/demo-smsRouter.gif" style="height: 50%;" />
+![SMS Router demo](media/smsRouter/demo-smsRouter.gif)
 
-### Features Overview
+#### Features Overview
 
 | Feature               | Description                                                  |
 | --------------------- | ------------------------------------------------------------ |
@@ -104,6 +115,7 @@ The main technical task of the project is to create a multi-module Kotlin Multip
    ```
 
 ### Run Clients
+
 1. Open the project in Android Studio or IntelliJ IDEA
 2. Sync the Gradle project to download dependencies
 3. Choose the appropriate run configuration in IDE
@@ -111,13 +123,25 @@ The main technical task of the project is to create a multi-module Kotlin Multip
 
 For detailed installation instructions, including setting up credentials and running client applications, see our [Getting Started Guide](https://github.com/effective-dev-opensource/Effective-Office/wiki/Getting-Started-with-Effective-Office) in the wiki.
 
+### Aurora OS
+
+The Aurora OS implementation of Meeting Room is developed in a dedicated branch:
+
+```bash
+git switch feature/aurora-compose-0.0.5
+```
+
+It uses the Aurora version of Compose Multiplatform and the `-PbuildVariant=aurora` Gradle property. The build requires the Aurora toolchain and a local Maven repository configured through `auroraMavenPath` in `local.properties`.
+
+See the [Aurora client documentation](https://github.com/effective-dev-opensource/Effective-Office/blob/feature/aurora-compose-0.0.5/clients/README.md) and [Meeting Room implementation notes](https://github.com/effective-dev-opensource/Effective-Office/blob/feature/aurora-compose-0.0.5/clients/tablet/composeApp/README.md) for platform details.
+
 ### Project Structure
 
 ```
 effective-office/
 ├── backend/           # Server-side Spring Boot application with PostgreSQL
 ├── clients/           # Client applications
-│   ├── tablet/        # Meeting Room Tablet App
+│   ├── tablet/        # Meeting Room App (Android / iOS; Aurora in its branch)
 │   ├── tv/            # Company News & Photos TV App
 │   ├── smsrouter/     # Android SMS Router & Webhooks
 │   └── shared/        # Shared module for common functionality across clients
@@ -131,23 +155,15 @@ effective-office/
 └── build-logic/       # Build configuration
 ```
 
-# Documentation
+## Documentation
 
 For comprehensive documentation, please visit our [Wiki](https://github.com/effective-dev-opensource/Effective-Office/wiki).
 
-# Contributing
+## Contributing
 
 We welcome contributions! Please see our [CONTRIBUTION.md](CONTRIBUTION.md) file for guidelines.
 
-# AI Tools in Development
-
-We actively use [Junie](https://www.jetbrains.com//junie/), the AI coding agent from JetBrains, in the development and refactoring of Effective Office.  
-Junie helped us speed up backend initialization, migrate features from legacy code, and generate documentation and boilerplate.  
-We continue to use it as part of our workflow, combining automation with careful developer review.
-
-Read more about our experience using Junie in [the Medium article](https://medium.com/effective-developers/how-we-used-junie-by-jetbrains-to-speed-up-development-of-an-internal-project-fc6f151a1f94).
-
-# Authors
+## Authors
 
 - [Alex Korovyansky](https://t.me/alexkorovyansky) 
 - [Matvey Avgul](https://t.me/matthewavgul) 
@@ -157,5 +173,6 @@ Read more about our experience using Junie in [the Medium article](https://mediu
 - [Vitaly Smirnov](https://github.com/KrugarValdes)
 - [Viktoriya Kokh](https://t.me/the_koheskine)
 
-# License
+## License
+
 The code is available as open source under the terms of the [MIT LICENSE](LICENSE).
