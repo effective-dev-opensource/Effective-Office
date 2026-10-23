@@ -12,6 +12,9 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * A dummy implementation of the CalendarProvider interface for testing purposes.
  * This implementation stores bookings in memory and doesn't interact with any external calendar service.
+ *
+ * The time range is read the way Google reads it: from is a bound on the end of an event and to a
+ * bound on its start, so a booking already under way is returned rather than dropped.
  */
 @Component("dummyCalendarProvider")
 @ConditionalOnProperty(name = ["calendar.provider"], havingValue = "dummy")
@@ -73,8 +76,8 @@ class DummyCalendarProvider : CalendarProvider {
         // In this dummy implementation, we don't have recurring events, so returnInstances has no effect
         return bookings.values.filter { booking ->
             booking.workspace.id == workspaceId &&
-            booking.beginBooking >= from &&
-            (to == null || booking.endBooking <= to)
+            booking.endBooking > from &&
+            (to == null || booking.beginBooking < to)
         }
     }
 
@@ -90,8 +93,8 @@ class DummyCalendarProvider : CalendarProvider {
         // In this dummy implementation, we don't have recurring events, so returnInstances has no effect
         return bookings.values.filter { booking ->
             (booking.owner?.id == userId || booking.participants.any { it.id == userId }) &&
-            booking.beginBooking >= from &&
-            (to == null || booking.endBooking <= to)
+            booking.endBooking > from &&
+            (to == null || booking.beginBooking < to)
         }
     }
 
@@ -113,8 +116,8 @@ class DummyCalendarProvider : CalendarProvider {
 
         // In this dummy implementation, we don't have recurring events, so returnInstances has no effect
         return bookings.values.filter { booking ->
-            booking.beginBooking >= from &&
-            (to == null || booking.endBooking <= to)
+            booking.endBooking > from &&
+            (to == null || booking.beginBooking < to)
         }
     }
 }

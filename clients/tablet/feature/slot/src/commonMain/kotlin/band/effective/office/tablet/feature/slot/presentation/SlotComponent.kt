@@ -7,40 +7,36 @@ import band.effective.office.tablet.core.domain.model.Slot
 import band.effective.office.tablet.core.domain.useCase.RoomInfoUseCase
 import band.effective.office.tablet.core.domain.useCase.TimerUseCase
 import band.effective.office.tablet.core.domain.util.BootstrapperTimer
+import band.effective.office.tablet.core.domain.util.stableKey
 import band.effective.office.shared.core.utils.asInstant
 import band.effective.office.shared.core.utils.asLocalDateTime
 import band.effective.office.shared.core.utils.currentInstant
 import band.effective.office.tablet.feature.slot.domain.usecase.GetSlotsByRoomUseCase
 import band.effective.office.tablet.feature.slot.presentation.mapper.SlotUiMapper
-import com.arkivanov.decompose.ComponentContext
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 private val SLOT_UPDATE_INTERVAL_MINUTES = 15.minutes
 private val UPDATE_BEFORE_SLOT_START_MS = 60_000L.milliseconds
 
+/** Presenter for a room's time slots. Runs on the [coroutineScope] its owner hands it. */
 class SlotComponent(
-    private val componentContext: ComponentContext,
+    private val coroutineScope: CoroutineScope,
     val roomName: () -> String,
     private val openBookingDialog: (event: EventInfo, room: String) -> Unit,
-) : ComponentContext by componentContext, KoinComponent {
+    private val roomInfoUseCase: RoomInfoUseCase,
+    private val timerUseCase: TimerUseCase,
+    private val getSlotsByRoomUseCase: GetSlotsByRoomUseCase,
+    private val slotUiMapper: SlotUiMapper,
+) {
 
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private val roomInfoUseCase: RoomInfoUseCase by inject()
-    private val timerUseCase: TimerUseCase by inject()
-    private val getSlotsByRoomUseCase: GetSlotsByRoomUseCase by inject()
-
-    private val slotUiMapper: SlotUiMapper by inject()
     private val updateTimer = BootstrapperTimer(
         timerUseCase = timerUseCase,
         coroutineScope = coroutineScope,
@@ -80,10 +76,30 @@ class SlotComponent(
     private suspend fun updateSlots(uiSlots: List<SlotUi>) = withContext(Dispatchers.Main.immediate) {
         if (uiSlots.isNotEmpty()) {
             val firstSlotStartInstant = uiSlots.first().slot.start.asInstant
-            val delayDuration = (firstSlotStartInstant - currentInstant) + UPDATE_BEFORE_SLOT_START_MS
+            // The first slot may have started already, and a non-positive delay makes the timer spin.
+            val delayDuration = ((firstSlotStartInstant - currentInstant) + UPDATE_BEFORE_SLOT_START_MS)
+                .coerceAtLeast(UPDATE_BEFORE_SLOT_START_MS)
 
             updateTimer.restart(delayDuration)
-            mutableState.update { it.copy(slots = uiSlots) }
+        }
+        // Publish even an empty list, or a day without free slots keeps the previous day's ones.
+        mutableState.update { it.copy(slots = uiSlots.keepGroupsOpenedIn(it.slots)) }
+    }
+
+    private fun List<SlotUi>.keepGroupsOpenedIn(previous: List<SlotUi>): List<SlotUi> {
+        val openedKeys = previous
+            .filterIsInstance<SlotUi.MultiSlot>()
+            .filter { it.isOpen }
+            .mapTo(mutableSetOf()) { it.slot.stableKey() }
+
+        if (openedKeys.isEmpty()) return this
+
+        return map {
+            if (it is SlotUi.MultiSlot && it.slot.stableKey() in openedKeys) {
+                it.copy(isOpen = true)
+            } else {
+                it
+            }
         }
     }
 
@@ -126,11 +142,18 @@ class SlotComponent(
     }
 
     private fun openMultislot(multislot: SlotUi.MultiSlot) {
-        val slots = state.value.slots.toMutableList()
-        val index = slots.indexOf(multislot)
-        if (index < 0) return
-        slots[index] = multislot.copy(isOpen = !multislot.isOpen)
-        mutableState.update { it.copy(slots = slots) }
+        val key = multislot.slot.stableKey()
+        mutableState.update { state ->
+            state.copy(
+                slots = state.slots.map {
+                    if (it is SlotUi.MultiSlot && it.slot.stableKey() == key) {
+                        it.copy(isOpen = !it.isOpen)
+                    } else {
+                        it
+                    }
+                },
+            )
+        }
     }
 
     private fun executeFreeSlot(slot: Slot.EmptySlot) {
@@ -169,4 +192,16 @@ class SlotComponent(
             }
         }
     }
+}
+
+/**
+ * Assisted-injection factory for [SlotComponent]: Koin supplies the use cases, the owner supplies
+ * the scope and the callbacks.
+ */
+fun interface SlotComponentFactory {
+    fun create(
+        coroutineScope: CoroutineScope,
+        roomName: () -> String,
+        openBookingDialog: (event: EventInfo, room: String) -> Unit,
+    ): SlotComponent
 }

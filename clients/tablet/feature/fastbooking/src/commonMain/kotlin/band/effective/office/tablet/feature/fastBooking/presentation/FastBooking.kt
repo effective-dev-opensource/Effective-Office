@@ -1,30 +1,24 @@
 package band.effective.office.tablet.feature.fastBooking.presentation
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.common.CrossButtonView
 import band.effective.office.tablet.core.ui.common.FailureFastSelectRoomView
@@ -35,80 +29,81 @@ import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h2
 import band.effective.office.tablet.core.ui.theme.h4
 import band.effective.office.tablet.core.ui.utils.DateDisplayMapper
-import com.arkivanov.decompose.extensions.compose.stack.Children
 import org.jetbrains.compose.resources.stringResource
 
 /**
+ * Caps the card so the scrim stays visible around it and keeps taking the dismiss tap. The views
+ * below size themselves off the width they are offered, so this is the only bound they need.
+ */
+private val MAX_FAST_BOOKING_WIDTH = 720.dp
+
+/**
+ * Keeps the clock clear of the screen header. The modal is centered in the scrim, so padding the
+ * column on top lowers its content by half the padding, whatever the card of the current state
+ * adds to its height.
+ */
+private val FAST_BOOKING_TOP_INSET = 72.dp
+
+/**
  * Main composable for the Fast Booking feature.
- * Displays different views based on the current state of the component.
+ * Displays a view per [FastBookingModal] in the current state.
  *
- * @param component The FastBookingComponent that manages the state and logic
+ * @param viewModel manages the fast-booking state and logic
+ * @param onClose called when the flow requests to close (dismisses the overlay)
  */
 @Composable
-fun FastBooking(component: FastBookingComponent) {
-    val state by component.state.collectAsState()
+fun FastBooking(
+    viewModel: FastBookingViewModel,
+    onClose: () -> Unit,
+) {
+    val state by viewModel.state.collectAsState()
 
-    Children(stack = component.childStack, modifier = Modifier.padding(35.dp)) { modal ->
-        Dialog(
-            onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) },
-            properties = DialogProperties(
-                usePlatformDefaultWidth = modal.instance != FastBookingComponent.ModalConfig.LoadingModal
+    LaunchedEffect(Unit) {
+        viewModel.closeEvents.collect { onClose() }
+    }
+
+    Column(
+        modifier = Modifier
+            .widthIn(max = MAX_FAST_BOOKING_WIDTH)
+            .padding(top = FAST_BOOKING_TOP_INSET),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = DateDisplayMapper.formatTime(state.currentTime),
+            style = MaterialTheme.typography.h2,
+            color = LocalCustomColorsPalette.current.primaryTextAndIcon
+        )
+        Spacer(modifier = Modifier.height(30.dp))
+        when (val modal = state.modal) {
+            FastBookingModal.Loading -> LoadingView(
+                onDismissRequest = { viewModel.sendIntent(Intent.OnCloseWindowRequest) }
             )
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Spacer(modifier = Modifier.height(50.dp))
-                Text(
-                    text = DateDisplayMapper.formatTime(state.currentTime),
-                    style = MaterialTheme.typography.h2,
-                    color = LocalCustomColorsPalette.current.primaryTextAndIcon
-                )
-                Row(
-                    modifier = Modifier.fillMaxHeight(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    when (val modalInstance = modal.instance) {
-                        FastBookingComponent.ModalConfig.LoadingModal -> LoadingView(
-                            onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) }
-                        )
 
-                        is FastBookingComponent.ModalConfig.FailureModal -> {
-                            // Show failure view - either due to no available rooms or an error
-                            if (state.isError) {
-                                ErrorView(onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) })
-                            } else {
-                                FailureFastSelectRoomView(
-                                    onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) },
-                                    minutes = state.minutesLeft,
-                                    room = modalInstance.room
-                                )
-                            }
-                        }
+            is FastBookingModal.Failure -> {
+                if (state.isError) {
+                    ErrorView(onDismissRequest = { viewModel.sendIntent(Intent.OnCloseWindowRequest) })
+                } else {
+                    FailureFastSelectRoomView(
+                        onDismissRequest = { viewModel.sendIntent(Intent.OnCloseWindowRequest) },
+                        minutes = state.minutesLeft,
+                        room = modal.room
+                    )
+                }
+            }
 
-                        is FastBookingComponent.ModalConfig.SuccessModal -> {
-                            // Only show success view if there's no error
-                            if (state.isError) {
-                                ErrorView(onDismissRequest = { component.sendIntent(Intent.OnCloseWindowRequest) })
-                            } else {
-                                SuccessFastSelectRoomView(
-                                    roomName = modalInstance.room,
-                                    finishTime = modalInstance.eventInfo.finishTime,
-                                    close = { component.sendIntent(Intent.OnCloseWindowRequest) },
-                                    onFreeRoomRequest = {
-                                        component.sendIntent(
-                                            Intent.OnFreeSelectRequest(
-                                                it
-                                            )
-                                        )
-                                    },
-                                    isLoading = state.isLoad
-                                )
-                            }
-                        }
-                    }
+            is FastBookingModal.Success -> {
+                if (state.isError) {
+                    ErrorView(onDismissRequest = { viewModel.sendIntent(Intent.OnCloseWindowRequest) })
+                } else {
+                    SuccessFastSelectRoomView(
+                        roomName = modal.room,
+                        finishTime = modal.eventInfo.finishTime,
+                        close = { viewModel.sendIntent(Intent.OnCloseWindowRequest) },
+                        onFreeRoomRequest = {
+                            viewModel.sendIntent(Intent.OnFreeSelectRequest(it))
+                        },
+                        isLoading = state.isLoad
+                    )
                 }
             }
         }
@@ -118,62 +113,57 @@ fun FastBooking(component: FastBookingComponent) {
 /**
  * Displays a loading view with a spinner.
  *
- * @param onDismissRequest Callback to dismiss the dialog
+ * @param onDismissRequest Callback to dismiss the modal
  */
 @Composable
 private fun LoadingView(
     onDismissRequest: () -> Unit
 ) {
-    Box(contentAlignment = Alignment.Center) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth(0.75f)
-                .fillMaxHeight(0.4f)
-                .clip(RoundedCornerShape(3))
-                .background(LocalCustomColorsPalette.current.elevationBackground)
-                .padding(35.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CrossButtonView(
-                modifier = Modifier.fillMaxWidth(),
-                onDismissRequest = onDismissRequest
-            )
-            Spacer(modifier = Modifier.height(40.dp))
-            Loader()
-        }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(0.75f)
+            .clip(RoundedCornerShape(3))
+            .background(LocalCustomColorsPalette.current.elevationBackground)
+            .padding(35.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CrossButtonView(
+            modifier = Modifier.fillMaxWidth(),
+            onDismissRequest = onDismissRequest
+        )
+        Spacer(modifier = Modifier.height(40.dp))
+        Loader()
+        Spacer(Modifier.height(30.dp))
     }
 }
 
 /**
  * Displays an error view when an operation fails.
  *
- * @param onDismissRequest Callback to dismiss the dialog
+ * @param onDismissRequest Callback to dismiss the modal
  */
 @Composable
 private fun ErrorView(onDismissRequest: () -> Unit) {
-    Box(contentAlignment = Alignment.Center) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth(0.75f)
-                .fillMaxHeight(0.4f)
-                .clip(RoundedCornerShape(3))
-                .background(LocalCustomColorsPalette.current.elevationBackground)
-                .padding(35.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CrossButtonView(
-                modifier = Modifier.fillMaxWidth(),
-                onDismissRequest = onDismissRequest
-            )
-            Spacer(modifier = Modifier.height(40.dp))
-            Text(
-                text = stringResource(Res.string.error),
-                style = MaterialTheme.typography.h4,
-                minLines = 2,
-                textAlign = TextAlign.Center,
-                color = LocalCustomColorsPalette.current.primaryTextAndIcon
-            )
-            Spacer(Modifier.height(30.dp))
-        }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(0.75f)
+            .clip(RoundedCornerShape(3))
+            .background(LocalCustomColorsPalette.current.elevationBackground)
+            .padding(35.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CrossButtonView(
+            modifier = Modifier.fillMaxWidth(),
+            onDismissRequest = onDismissRequest
+        )
+        Spacer(modifier = Modifier.height(40.dp))
+        Text(
+            text = stringResource(Res.string.error),
+            style = MaterialTheme.typography.h4,
+            minLines = 2,
+            textAlign = TextAlign.Center,
+            color = LocalCustomColorsPalette.current.primaryTextAndIcon
+        )
+        Spacer(Modifier.height(30.dp))
     }
 }

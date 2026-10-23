@@ -1,24 +1,52 @@
 package band.effective.office.tablet.components
 
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import band.effective.office.tablet.BuildKonfig
-import androidx.compose.foundation.layout.BoxScope
+import band.effective.office.tablet.platform.showsDebugMetrics
+import kotlin.math.roundToInt
 
+private const val HUNDREDTHS_IN_UNIT = 100
+private const val FRACTION_DIGITS = 2
+
+/**
+ * Build version in the corner. Where [showsDebugMetrics] is on, it also carries the window size the
+ * system handed over (`win`, px), [systemDensity]'s density (`d`) and font scale (`fs`), and the
+ * density in force where the overlay is drawn (`ui`), which is what `ScaledUiDensity` computed.
+ */
 @Composable
 fun BoxScope.VersionOverlay(
     modifier: Modifier = Modifier,
+    systemDensity: Density = LocalDensity.current,
     text: String = "v${BuildKonfig.VERSION_NAME}",
 ) {
+    val overlayText = if (showsDebugMetrics) {
+        val windowSize = LocalWindowInfo.current.containerSize
+        val uiDensity = LocalDensity.current.density
+        buildString {
+            append(text)
+            append(" · win ").append(windowSize.width).append(" x ").append(windowSize.height)
+            append(" · d ").append(systemDensity.density.twoDecimals())
+            append(" fs ").append(systemDensity.fontScale.twoDecimals())
+            append(" · ui ").append(uiDensity.twoDecimals())
+        }
+    } else {
+        text
+    }
+
     Text(
-        text = text,
+        text = overlayText,
         style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp),
         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.35f),
         textAlign = TextAlign.Start,
@@ -31,3 +59,9 @@ fun BoxScope.VersionOverlay(
     )
 }
 
+// There is no String.format in common code, and Float.toString would print "1.4666667".
+private fun Float.twoDecimals(): String {
+    val hundredths = (this * HUNDREDTHS_IN_UNIT).roundToInt()
+    val fraction = (hundredths % HUNDREDTHS_IN_UNIT).toString().padStart(FRACTION_DIGITS, '0')
+    return "${hundredths / HUNDREDTHS_IN_UNIT}.$fraction"
+}

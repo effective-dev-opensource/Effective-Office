@@ -16,17 +16,13 @@ class GetRoomsInfoUseCase(
     private val refreshDataUseCase: RefreshDataUseCase,
 ) {
     /**
-     * Gets information about all rooms.
-     * First tries to get the information from the local repository.
-     * If the local repository has no data, it refreshes the data from the network repository.
-     *
-     * @return Either containing room information or an error with saved data
+     * Gets information about all rooms, from the local repository while it holds data and from the
+     * network whenever it holds a failure — a cached failure is not data, however much of the
+     * previous answer it carries along.
      */
     suspend operator fun invoke(): Either<ErrorWithData<List<RoomInfo>>, List<RoomInfo>> {
         val roomInfos = localRoomRepository.getRoomsInfo()
-        if (roomInfos as? Either.Error != null
-            && roomInfos.error.saveData.isNullOrEmpty()
-        ) {
+        if (roomInfos is Either.Error) {
             return refreshDataUseCase()
         }
         return roomInfos

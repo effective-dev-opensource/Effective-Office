@@ -12,8 +12,8 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.arrow_to_down
+import band.effective.office.tablet.core.ui.res.painterResource
 import band.effective.office.tablet.feature.slot.presentation.SlotUi
-import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun MultiSlotView(

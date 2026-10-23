@@ -35,10 +35,11 @@ fun SlotView(
         .fillMaxWidth()
         .clip(borderShape)
         .then(
-            if (slotUi is SlotUi.MultiSlot)
-                Modifier.clickable { slotUi.onToggle() }
-            else
-                Modifier.clickable { slotUi.onClick() }
+            when {
+                slotUi is SlotUi.MultiSlot -> Modifier.clickable { slotUi.onToggle() }
+                slotUi.opensSomething -> Modifier.clickable { slotUi.onClick() }
+                else -> Modifier
+            }
         )
         .background(MaterialTheme.colorScheme.surface)
         .border(
@@ -71,6 +72,16 @@ fun SlotView(
         )
     }
 }
+
+/**
+ * Whether tapping this slot leads anywhere. A booking the tablet did not make cannot be changed
+ * from it, and the editor would open with every button already dead, so it takes no taps at all.
+ */
+private val SlotUi.opensSomething: Boolean
+    get() = when (val slot = slot) {
+        is Slot.EventSlot -> slot.eventInfo.isEditable
+        else -> true
+    }
 
 @Composable
 private fun SlotUi.borderColor() = when (this) {

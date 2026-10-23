@@ -7,11 +7,6 @@ kotlin {
         commonMain.dependencies {
             api(project(":clients:shared:core"))
             api(libs.kotlinx.datetime)
-            implementation(libs.decompose)
-            implementation(libs.decompose.compose.jetbrains)
-            implementation(libs.essenty.lifecycle)
-            implementation(libs.essenty.state.keeper)
-            api(libs.kotlinx.datetime)
         }
     }
 }

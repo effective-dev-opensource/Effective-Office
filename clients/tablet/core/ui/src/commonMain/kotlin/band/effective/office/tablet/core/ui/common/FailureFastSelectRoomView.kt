@@ -21,10 +21,10 @@ import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.failure
 import band.effective.office.tablet.core.ui.find_quiet_place
 import band.effective.office.tablet.core.ui.no_free
+import band.effective.office.tablet.core.ui.res.painterResource
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h2
 import band.effective.office.tablet.core.ui.theme.h4
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

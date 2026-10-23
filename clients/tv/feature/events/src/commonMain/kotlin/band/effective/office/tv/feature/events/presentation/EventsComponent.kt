@@ -2,7 +2,7 @@ package band.effective.office.tv.feature.events.presentation
 
 import band.effective.office.shared.core.domain.Either
 import band.effective.office.shared.core.domain.collectToEitherList
-import band.effective.office.shared.core.utils.componentCoroutineScope
+import band.effective.office.tv.core.ui.utils.componentCoroutineScope
 import band.effective.office.tv.feature.events.domain.model.EventInfo
 import band.effective.office.tv.feature.events.domain.repository.EventsRepository
 import com.arkivanov.decompose.ComponentContext

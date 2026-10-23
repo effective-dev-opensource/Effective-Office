@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.domain.model.RoomInfo
+import band.effective.office.tablet.core.domain.util.stableKey
 import band.effective.office.tablet.core.ui.common.Disconnect
 import band.effective.office.tablet.core.ui.date.DateTimeView
 import band.effective.office.tablet.feature.main.components.RoomInfoComponent
@@ -47,6 +48,7 @@ fun RoomInfoLeftPanel(
         modifier = Modifier
             .fillMaxHeight()
             .fillMaxWidth(0.6f)
+            .background(color = MaterialTheme.colorScheme.background)
     ) {
         LazyColumn(
             modifier = Modifier
@@ -67,20 +69,22 @@ fun RoomInfoLeftPanel(
                     increment = onIncrementData,
                     decrement = onDecrementData,
                     onOpenDateTimePickerModal = onOpenDateTimePickerModal,
+                    canDecrement = selectedDate.date > currentDate.date,
                 )
             }
 
             stickyHeader {
+                // indexSelectRoom is -1 until the saved room turns up in the list from the backend.
+                val safeIndex = indexSelectRoom.coerceIn(0, (roomList.size - 1).coerceAtLeast(0))
                 RoomInfoComponent(
-                    modifier = Modifier.background(color = MaterialTheme.colorScheme.background),
-                    room = roomList[indexSelectRoom],
+                    room = roomList[safeIndex],
                     onOpenFreeRoomModalRequest = { onCancelEventRequest() },
                     timeToNextEvent = timeToNextEvent,
                     isError = isDisconnect,
                 )
             }
 
-            items(slotState.slots, key = { it.slot.hashCode() }) {
+            items(slotState.slots, key = { it.slot.stableKey() }) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

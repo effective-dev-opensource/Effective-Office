@@ -8,11 +8,9 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 
 /**
- * Singleton manager that handles date reset operations.
- * This class facilitates communication between different parts of the application
- * that need to reset dates, such as when inactivity is detected.
+ * Carries an inactivity timeout from whoever detects it to whoever holds the selected date.
  */
-object DateResetManager {
+class DateResetManager {
     // Create a CoroutineScope with a SupervisorJob to handle suspending functions
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 

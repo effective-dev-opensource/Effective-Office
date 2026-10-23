@@ -9,7 +9,9 @@ buildscript {
 }
 plugins {
     alias(libs.plugins.multiplatform).apply(false)
-    alias(libs.plugins.compose).apply(false)
+    // Versionless on purpose: settings.gradle.kts binds the version per build variant, and a
+    // version from the catalog would override that binding.
+    id("org.jetbrains.compose").apply(false)
     alias(libs.plugins.android.application).apply(false)
     //id("org.jetbrains.kotlin.plugin.serialization").apply(false)
 //    alias(libs.plugins.buildConfig).apply(false)
@@ -20,6 +22,14 @@ allprojects {
     version = property("version").toString()
 
     repositories {
+        // Project repositories override the ones declared in settings.gradle.kts (PREFER_PROJECT),
+        // so the Aurora maven fork is repeated here.
+        java.util.Properties().apply {
+            val file = rootProject.file("local.properties")
+            if (file.exists()) file.inputStream().use { load(it) }
+        }.getProperty("auroraMavenPath")?.let {
+            maven(url = rootProject.file(it).canonicalFile.toURI())
+        }
         mavenCentral()
         google()
         mavenCentral()
@@ -37,9 +47,17 @@ subprojects {
     }
 
     tasks.withType<KotlinCompile> {
-        kotlinOptions {
-            freeCompilerArgs = listOf("-Xjsr305=strict")
-            jvmTarget = JavaVersion.VERSION_17.toString()
+        compilerOptions {
+            freeCompilerArgs.add("-Xjsr305=strict")
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
+    }
+
+    // kotlinx-datetime 0.7.x is built on the still-experimental kotlin.time.Clock/Instant,
+    // so opt in project-wide for every Kotlin compilation (JVM, Android and Native).
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
+        compilerOptions {
+            optIn.add("kotlin.time.ExperimentalTime")
         }
     }
 

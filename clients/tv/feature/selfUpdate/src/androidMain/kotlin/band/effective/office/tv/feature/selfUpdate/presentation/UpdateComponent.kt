@@ -1,7 +1,7 @@
 package band.effective.office.tv.feature.selfUpdate.presentation
 
 import band.effective.office.shared.core.selfUpdate.domain.SelfUpdateInteractor
-import band.effective.office.shared.core.utils.componentCoroutineScope
+import band.effective.office.tv.core.ui.utils.componentCoroutineScope
 import com.arkivanov.decompose.ComponentContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

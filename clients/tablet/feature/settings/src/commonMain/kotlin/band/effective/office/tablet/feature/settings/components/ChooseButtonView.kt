@@ -14,11 +14,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import band.effective.office.settings.generated.resources.Res
-import band.effective.office.settings.generated.resources.choose_room
 import band.effective.office.tablet.core.ui.theme.CustomDarkColors
 import band.effective.office.tablet.core.ui.theme.LocalCustomColorsPalette
 import band.effective.office.tablet.core.ui.theme.h6_button
+import band.effective.office.tablet.feature.settings.Res
+import band.effective.office.tablet.feature.settings.choose_room
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

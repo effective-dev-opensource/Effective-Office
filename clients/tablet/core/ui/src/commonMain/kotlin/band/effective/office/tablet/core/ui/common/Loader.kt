@@ -21,9 +21,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import band.effective.office.tablet.core.ui.Res
 import band.effective.office.tablet.core.ui.loader_element
+import band.effective.office.tablet.core.ui.res.painterResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.painterResource
 
 /**
  * A custom loader component that animates a series of elements

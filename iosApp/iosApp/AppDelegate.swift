@@ -7,5 +7,4 @@ import ComposeApp
 import SwiftUI
 
 class AppDelegate: NSObject, UIApplicationDelegate {
-    let rootHolder: RootHolder = RootHolder()
 }

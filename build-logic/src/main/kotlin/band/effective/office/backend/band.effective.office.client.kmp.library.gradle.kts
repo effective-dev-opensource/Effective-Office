@@ -26,7 +26,6 @@ kotlin {
 
     sourceSets.all {
         languageSettings.optIn("kotlin.time.ExperimentalTime")
-        languageSettings.optIn("com.arkivanov.decompose.DelicateDecomposeApi")
     }
 }
 

@@ -13,10 +13,7 @@ kotlin {
             implementation(project(":clients:tablet:core:domain"))
             implementation(project(":clients:tablet:core:data"))
 
-            implementation(libs.findLibrary("decompose").get())
-            implementation(libs.findLibrary("decompose.compose.jetbrains").get())
-            implementation(libs.findLibrary("essenty.lifecycle").get())
-            implementation(libs.findLibrary("essenty.state.keeper").get())
+            implementation(libs.findLibrary("jetbrains-lifecycle-viewmodel").get())
 
             implementation(libs.findLibrary("kotlin.coroutines.core").get())
 
@@ -25,9 +22,6 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(libs.findLibrary("koin-android").get())
-        }
-        iosMain.dependencies {
-            implementation(libs.findLibrary("essenty.darwin.runtime").get())
         }
     }
 }

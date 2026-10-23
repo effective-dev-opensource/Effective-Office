@@ -8,7 +8,6 @@ kotlin {
             api(project(":clients:shared:core"))
             api(libs.kotlinx.datetime)
             implementation(libs.kotlin.coroutines.core)
-            implementation(libs.settings)
             implementation(libs.bundles.koin)
         }
         androidMain.dependencies {

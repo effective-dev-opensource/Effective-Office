@@ -1,78 +1,62 @@
 # Booking Editor Feature Module
 
 ## Overview
-The Booking Editor feature module provides functionality for creating, editing, and managing bookings within the Effective Office tablet application. It allows users to select resources, specify time slots, add participants, and configure booking details.
+The Booking Editor is the modal the tablet opens on a slot: it creates a booking on a free slot and
+edits or deletes an existing one. The room is not chosen here — it is the room the tablet was set up
+with, handed in by the caller together with the event.
 
 ## Features
-- Create new bookings
-- Edit existing bookings
-- Select resources (rooms, desks, equipment)
-- Choose date and time slots
-- Add and remove participants
-- Set booking title and description
-- Configure recurring bookings
-- Validate booking constraints
+- Create a booking on a free slot
+- Change the day of a booking, a day at a time, or pick a date and time in the picker
+- Change the duration, +30 or −15 minutes at a step, no further than the end of the working day
+- Choose the organizer from the list, or type a name and have it matched
+- Update an existing booking
+- Delete an existing booking
+- Refuse to confirm a time that is taken or already in the past
+
+There is no title, description, participant list or recurrence: a booking is a room, a time span and
+an organizer.
 
 ## Architecture
-The module follows a feature-based architecture:
 
 ```
 bookingEditor/
-├── di/              # Dependency injection setup
-├── domain/          # Domain models and business logic
-└── presentation/    # UI components and screens
-    ├── BookingEditor.kt         # Main UI component
-    ├── BookingEditorComponent.kt # Component implementation
-    ├── datetimepicker/          # Date and time picker components
-    ├── Intent.kt                # User actions/intents
-    ├── mapper/                  # Model mappers
-    └── State.kt                 # UI state definitions
+├── di/                            # Koin module: ViewModel and picker factory
+└── presentation/
+    ├── BookingEditor.kt           # The modal composable
+    ├── BookingEditorViewModel.kt  # State, intents and the use case calls
+    ├── Intent.kt                  # User actions
+    ├── State.kt                   # UI state
+    ├── datetimepicker/            # Date and time picker: presenter, dialog and its views
+    └── mapper/                    # Event to state and back
 ```
 
 ## Key Components
+- **BookingEditor**: the modal composable, hosted as a state-driven overlay by `AppNavHost` rather
+  than as a window of its own.
+- **BookingEditorViewModel**: built by Koin with the event and the room name as assisted parameters.
+  Validates every change against `CheckBookingUseCase` and emits a close event when the work is
+  done.
+- **DateTimePickerComponent**: a presenter, not a ViewModel — it has no lifecycle of its own and
+  runs on the scope the editor hands it. Koin builds it through `DateTimePickerComponentFactory`,
+  supplying the use case while the owner supplies the scope, the callbacks and the event.
+- **DateTimePicker**: the one `Dialog` left in the chain. Why it is a dialog while the modals around
+  it are not is written down in `clients/tablet/composeApp/README.md`, under Navigation.
 
-### Main Components
-- **BookingEditor**: Main UI component for the booking editor screen
-- **BookingEditorComponent**: Implementation of the booking editor component following MVI architecture
-
-### State Management
-- **Intent**: Defines user actions and events that can occur in the booking editor
-- **State**: Defines the UI state for the booking editor screen
-
-### UI Components
-- **DateTimePicker**: Component for selecting date and time
-- **Mappers**: Utilities for mapping between domain and UI models
+## Bookings the tablet may not touch
+An event the tablet did not book arrives with `isEditable` false, and both "Confirm changes" and
+"Delete booking" are disabled for it. The slot list refuses to open the editor on such a booking at
+all — see `clients/tablet/feature/slot/README.md`.
 
 ## Integration
 The Booking Editor module integrates with:
-- Core domain module for business logic
-- Core data module for data operations
-- Core UI module for shared UI components
-- Other feature modules for navigation
-
-## User Flows
-
-### Creating a New Booking
-1. User navigates to the create booking screen
-2. User selects a resource (room, desk, etc.)
-3. User chooses date and time slot
-4. User adds participants (optional)
-5. User enters booking title and description
-6. User configures recurrence (optional)
-7. User submits the booking
-
-### Editing an Existing Booking
-1. User navigates to the booking details screen
-2. User selects the edit option
-3. User modifies booking details
-4. User saves the changes
+- Core domain module, for the booking, organizer and validation use cases
+- Core UI module, for the field rows, buttons and the palette
+- ComposeApp module, which hosts it as an overlay and supplies the event and the room
 
 ## Development
-### Adding a New Booking Field
-To add a new field to the booking form:
-1. Update the domain models in the domain directory
-2. Update the State.kt file to include the new field in the UI state
-3. Modify the Intent.kt file if new user actions are needed
-4. Update the BookingEditor.kt UI component to display the new field
-5. Update the BookingEditorComponent.kt to handle the new field's logic
-6. Update any mappers if needed to convert between domain and UI models
+### Adding a New Field
+1. Add the field to `State.kt`, and an action for it to `Intent.kt`
+2. Handle the action in `BookingEditorViewModel`
+3. Show the field in `BookingEditor.kt`
+4. Extend the mappers if the field has to survive a round trip to `EventInfo`

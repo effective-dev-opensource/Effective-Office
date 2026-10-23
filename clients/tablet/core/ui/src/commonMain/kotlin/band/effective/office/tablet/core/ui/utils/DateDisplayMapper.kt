@@ -2,6 +2,7 @@ package band.effective.office.tablet.core.ui.utils
 
 import kotlinx.datetime.LocalDateTime
 import band.effective.office.shared.core.utils.toLocalisedString
+import band.effective.office.tablet.core.ui.platform.getCurrentLanguageCode
 
 /**
  * Data class to store date and time format patterns for a specific locale.
